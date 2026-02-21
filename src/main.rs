@@ -27,10 +27,14 @@ async fn main() -> Result<()> {
                 Ok(())
             }
             TodoAction::List { status, project, limit } => {
-                println!("TODO: Implement list command");
-                println!("Status: {:?}", status);
-                println!("Project: {:?}", project);
-                println!("Limit: {:?}", limit);
+                let todos = doob::commands::list::execute(&db, status, project, limit).await?;
+
+                if cli.json {
+                    println!("{}", serde_json::to_string_pretty(&todos)?);
+                } else {
+                    println!("{}", doob::output::format_todos(&todos));
+                }
+
                 Ok(())
             }
             TodoAction::Complete { ids } => {
