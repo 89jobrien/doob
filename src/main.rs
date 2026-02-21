@@ -38,8 +38,8 @@ async fn main() -> Result<()> {
                 Ok(())
             }
             TodoAction::Complete { ids } => {
-                println!("TODO: Implement complete command");
-                println!("IDs: {:?}", ids);
+                let count = doob::commands::complete::execute(&db, ids).await?;
+                println!("✓ Completed {} todo(s)", count);
                 Ok(())
             }
         }

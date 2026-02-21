@@ -1,6 +1,7 @@
 mod common;
 
 use common::setup_test_db;
+use doob::models::TodoStatus;
 
 #[tokio::test]
 async fn test_list_all_todos() {
@@ -24,12 +25,6 @@ async fn test_list_all_todos() {
     assert_eq!(todos.len(), 2);
 }
 
-// Note: This test is commented out as it requires the complete command (Task 6)
-// Uncomment after implementing the complete command
-
-/*
-use doob::models::TodoStatus;
-
 #[tokio::test]
 async fn test_list_filter_by_status() {
     let db = setup_test_db().await;
@@ -50,4 +45,3 @@ async fn test_list_filter_by_status() {
     assert_eq!(pending.len(), 1);
     assert_eq!(pending[0].content, "Task 2");
 }
-*/
