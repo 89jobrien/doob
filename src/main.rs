@@ -30,9 +30,9 @@ async fn main() -> Result<()> {
                 let todos = doob::commands::list::execute(&db, status, project, limit).await?;
 
                 if cli.json {
-                    println!("{}", serde_json::to_string_pretty(&todos)?);
+                    println!("{}", doob::output::format_json(&todos));
                 } else {
-                    println!("{}", doob::output::format_todos(&todos));
+                    println!("{}", doob::output::format_human(&todos));
                 }
 
                 Ok(())

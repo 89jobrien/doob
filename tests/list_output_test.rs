@@ -27,7 +27,7 @@ async fn test_list_output_formatting() {
 
     // Get and format todos
     let todos = doob::commands::list::execute(&db, None, None, None).await.unwrap();
-    let output = doob::output::format_todos(&todos);
+    let output = doob::output::format_human(&todos);
 
     // Verify output contains expected elements
     assert!(output.contains("Task 1"));
@@ -44,7 +44,7 @@ async fn test_list_empty() {
     let db = setup_test_db().await;
 
     let todos = doob::commands::list::execute(&db, None, None, None).await.unwrap();
-    let output = doob::output::format_todos(&todos);
+    let output = doob::output::format_human(&todos);
 
     assert_eq!(output, "No todos found");
 }
