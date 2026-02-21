@@ -4,7 +4,10 @@ use anyhow::Result;
 use surrealdb::engine::local::{Db, Mem};
 use surrealdb::Surreal;
 
-pub async fn create_connection(_path: Option<&str>) -> Result<Surreal<Db>> {
+// Type alias for the database connection
+pub type DbConnection = Surreal<Db>;
+
+pub async fn create_connection(_path: Option<&str>) -> Result<DbConnection> {
     // For now, always use in-memory database
     // File backend will be added when disk space allows RocksDB compilation
     let db = Surreal::new::<Mem>(()).await?;

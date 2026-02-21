@@ -3,6 +3,14 @@ name = "doob"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "doob"
+path = "src/lib.rs"
+
+[[bin]]
+name = "doob"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 surrealdb = { version = "2", features = ["kv-mem"] }

@@ -16,7 +16,7 @@ pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
         DEFINE FIELD IF NOT EXISTS project ON TABLE todo TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS project_path ON TABLE todo TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS file_path ON TABLE todo TYPE option<string>;
-        DEFINE FIELD IF NOT EXISTS tags ON TABLE todo TYPE array DEFAULT [];
+        DEFINE FIELD IF NOT EXISTS tags ON TABLE todo TYPE array<string> DEFAULT [];
         DEFINE FIELD IF NOT EXISTS metadata ON TABLE todo TYPE option<object>;
 
         DEFINE INDEX IF NOT EXISTS idx_status ON TABLE todo COLUMNS status;

@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use surrealdb::sql::Thing;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Todo {
-    pub id: Option<String>,
+    pub id: Option<Thing>,
     pub uuid: String,
     pub content: String,
     pub status: TodoStatus,

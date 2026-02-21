@@ -1,32 +1,43 @@
-mod cli;
-mod commands;
-mod db;
-mod models;
-
 use anyhow::Result;
 use clap::Parser;
-use cli::{Cli, Commands, TodoAction};
+use doob::cli::{Cli, Commands, TodoAction};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    let db = db::create_connection(cli.db.as_deref()).await?;
+    let db = doob::db::create_connection(cli.db.as_deref()).await?;
 
     match cli.command {
         Commands::Todo { action } => match action {
-            TodoAction::Add { .. } => {
-                println!("Add command - not implemented");
+            TodoAction::Add { content, priority, project, file, tags } => {
+                let todos = doob::commands::add::execute(
+                    &db,
+                    content,
+                    priority,
+                    project,
+                    file,
+                    tags,
+                ).await?;
+
+                for todo in &todos {
+                    println!("✓ Created todo: {}", todo.content);
+                }
+
                 Ok(())
             }
-            TodoAction::List { .. } => {
-                println!("List command - not implemented");
+            TodoAction::List { status, project, limit } => {
+                println!("TODO: Implement list command");
+                println!("Status: {:?}", status);
+                println!("Project: {:?}", project);
+                println!("Limit: {:?}", limit);
                 Ok(())
             }
-            TodoAction::Complete { .. } => {
-                println!("Complete command - not implemented");
+            TodoAction::Complete { ids } => {
+                println!("TODO: Implement complete command");
+                println!("IDs: {:?}", ids);
                 Ok(())
             }
-        },
+        }
     }
 }

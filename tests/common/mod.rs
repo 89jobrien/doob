@@ -1,7 +1,5 @@
-use doob::db::create_connection;
-use surrealdb::engine::local::Db;
-use surrealdb::Surreal;
+use doob::db::{create_connection, DbConnection};
 
-pub async fn setup_test_db() -> Surreal<Db> {
+pub async fn setup_test_db() -> DbConnection {
     create_connection(None).await.expect("Failed to create test DB")
 }
