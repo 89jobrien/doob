@@ -1,5 +1,6 @@
 use anyhow::Result;
 use uuid::Uuid;
+use crate::context;
 use crate::db::DbConnection;
 use crate::models::Todo;
 
@@ -15,6 +16,10 @@ pub async fn execute(
     let tag_list: Vec<String> = tags
         .map(|t| t.split(',').map(|s| s.trim().to_string()).collect())
         .unwrap_or_default();
+
+    // Auto-detect context if not provided
+    let project = project.or_else(|| context::detect_project());
+    let file_path = file_path.or_else(|| context::detect_file_path());
 
     let mut created_todos = Vec::new();
 
