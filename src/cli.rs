@@ -64,4 +64,29 @@ pub enum TodoAction {
         #[arg(required = true)]
         ids: Vec<String>,
     },
+
+    /// Remove/delete todo(s)
+    Remove {
+        /// Todo ID(s)
+        #[arg(required = true)]
+        ids: Vec<String>,
+    },
+
+    /// Set or clear due date for a todo
+    Due {
+        /// Todo ID
+        #[arg(required = true)]
+        id: String,
+
+        /// Due date (YYYY-MM-DD or 'clear')
+        #[arg(required = false)]
+        date: Option<String>,
+    },
+
+    /// Undo completion (mark as pending)
+    Undo {
+        /// Todo ID(s)
+        #[arg(required = true)]
+        ids: Vec<String>,
+    },
 }

@@ -49,6 +49,29 @@ async fn run() -> Result<()> {
                 println!("✓ Completed {} todo(s)", count);
                 Ok(())
             }
+            TodoAction::Remove { ids } => {
+                let count = commands::remove::execute(&db, ids).await?;
+                println!("✓ Removed {} todo(s)", count);
+                Ok(())
+            }
+            TodoAction::Due { id, date } => {
+                commands::due::execute(&db, id.clone(), date.clone()).await?;
+                if let Some(d) = date {
+                    if d.to_lowercase() == "clear" {
+                        println!("✓ Cleared due date for todo: {}", id);
+                    } else {
+                        println!("✓ Set due date for todo {}: {}", id, d);
+                    }
+                } else {
+                    println!("✓ Cleared due date for todo: {}", id);
+                }
+                Ok(())
+            }
+            TodoAction::Undo { ids } => {
+                let count = commands::undo::execute(&db, ids).await?;
+                println!("✓ Undid completion for {} todo(s)", count);
+                Ok(())
+            }
         },
     }
 }

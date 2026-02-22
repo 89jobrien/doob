@@ -13,6 +13,7 @@ pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
         DEFINE FIELD IF NOT EXISTS created_at ON TABLE todo TYPE datetime DEFAULT time::now();
         DEFINE FIELD IF NOT EXISTS updated_at ON TABLE todo TYPE datetime DEFAULT time::now();
         DEFINE FIELD IF NOT EXISTS completed_at ON TABLE todo TYPE option<datetime>;
+        DEFINE FIELD IF NOT EXISTS due_date ON TABLE todo TYPE option<datetime>;
         DEFINE FIELD IF NOT EXISTS project ON TABLE todo TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS project_path ON TABLE todo TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS file_path ON TABLE todo TYPE option<string>;

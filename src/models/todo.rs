@@ -12,6 +12,7 @@ pub struct Todo {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub completed_at: Option<DateTime<Utc>>,
+    pub due_date: Option<DateTime<Utc>>,
     pub project: Option<String>,
     pub project_path: Option<String>,
     pub file_path: Option<String>,
