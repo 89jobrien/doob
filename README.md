@@ -11,12 +11,11 @@ Modern, agent-first todo CLI built with Rust and SurrealDB.
 
 ## Installation
 
-### From Source
 ```bash
 cargo install --path .
 ```
 
-## Quick Start
+## Commands
 
 ```bash
 # Add a todo (auto-detects project/file from git)
@@ -31,17 +30,24 @@ doob todo add "Task 1" "Task 2" "Task 3"
 # List todos
 doob todo list
 
-# Filter by status
+# Filter by status or project
 doob todo list --status pending
+doob todo list --project myproject --limit 10
 
-# JSON output for agents
-doob --json todo list
-
-# Complete a todo
+# Complete todo(s)
 doob todo complete <id>
-
-# Batch complete
 doob todo complete <id1> <id2> <id3>
+
+# Undo completion (mark as pending)
+doob todo undo <id>
+
+# Set or clear a due date
+doob todo due <id> 2026-03-15
+doob todo due <id> clear
+
+# Remove todo(s)
+doob todo remove <id>
+doob todo remove <id1> <id2>
 ```
 
 ## Agent Integration
@@ -49,11 +55,13 @@ doob todo complete <id1> <id2> <id3>
 Perfect for Claude Code, Cursor, Aider, and other AI coding assistants.
 
 ### JSON Output
+
 ```bash
 doob --json todo list
 ```
 
 Returns:
+
 ```json
 {
   "count": 1,
@@ -63,25 +71,29 @@ Returns:
       "content": "Fix auth bug",
       "status": "pending",
       "priority": 1,
-      "tags": ["bug", "urgent"],
-      ...
+      "tags": ["bug", "urgent"]
     }
   ]
 }
 ```
 
 ### Exit Codes
-- `0` - Success
-- `1` - Todo not found
-- `2` - Invalid input
-- `3` - Database error
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | Todo not found |
+| `2` | Invalid input |
+| `3` | Database error |
 
 ### Context Detection
-Automatically detects:
-- **Project**: From git remote URL
-- **File**: Relative path from repo root
+
+Automatically detects from git:
+- **Project** — from remote URL
+- **File** — relative path from repo root
 
 Override with flags:
+
 ```bash
 doob todo add "Task" --project myproject --file src/main.rs
 ```
@@ -89,19 +101,14 @@ doob todo add "Task" --project myproject --file src/main.rs
 ## Development
 
 ```bash
-# Run tests
 cargo test
-
-# Build
 cargo build --release
-
-# Install locally
 cargo install --path .
 ```
 
 ## Database
 
-Todos stored at `~/.claude/data/doob.db` (SurrealDB file)
+Todos stored at `~/.claude/data/doob.db` (SurrealDB/RocksDB).
 
 ## License
 

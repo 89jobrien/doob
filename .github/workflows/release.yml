@@ -15,7 +15,38 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release
+      - name: Generate checksum
+        run: |
+          cd target/release
+          sha256sum doob > doob.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: doob-${{ matrix.os }}
-          path: target/release/doob
+          path: |
+            target/release/doob
+            target/release/doob.sha256
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Rename artifacts
+        run: |
+          mv artifacts/doob-ubuntu-latest/doob doob-linux
+          mv artifacts/doob-ubuntu-latest/doob.sha256 doob-linux.sha256
+          mv artifacts/doob-macos-latest/doob doob-macos
+          mv artifacts/doob-macos-latest/doob.sha256 doob-macos.sha256
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            doob-linux
+            doob-linux.sha256
+            doob-macos
+            doob-macos.sha256
+          generate_release_notes: true

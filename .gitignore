@@ -1,4 +1,7 @@
 /target
+.claude/
+*.md
+!README.md
 Cargo.lock
 *.db
 *.swp
