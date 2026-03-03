@@ -4,10 +4,10 @@ Modern, agent-first todo CLI built with Rust and SurrealDB.
 
 ## Features
 
-- 🚀 **Fast** - Rust + SurrealDB embedded
-- 🤖 **Agent-First** - JSON output, batch operations, context detection
-- 📦 **Single Binary** - No dependencies
-- 🔍 **Context-Aware** - Auto-detects project and file from git
+- **Fast** - Rust + SurrealDB embedded
+- **Agent-First** - JSON output, batch operations, context detection
+- **Single Binary** - No dependencies
+- **Context-Aware** - Auto-detects project and file from git
 
 ## Installation
 
@@ -15,8 +15,6 @@ Modern, agent-first todo CLI built with Rust and SurrealDB.
 ```bash
 cargo install --path .
 ```
-
-Or download binary from [releases](https://github.com/yourusername/doob/releases).
 
 ## Quick Start
 
