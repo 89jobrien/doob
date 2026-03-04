@@ -24,8 +24,15 @@ async fn run() -> Result<()> {
 
     match cli.command {
         Commands::Todo { action } => match action {
-            TodoAction::Add { content, priority, project, file, tags } => {
-                let todos = commands::add::execute(&db, content, priority, project, file, tags).await?;
+            TodoAction::Add {
+                content,
+                priority,
+                project,
+                file,
+                tags,
+            } => {
+                let todos =
+                    commands::add::execute(&db, content, priority, project, file, tags).await?;
 
                 for todo in &todos {
                     println!("✓ Created todo: {}", todo.content);
@@ -33,7 +40,11 @@ async fn run() -> Result<()> {
 
                 Ok(())
             }
-            TodoAction::List { status, project, limit } => {
+            TodoAction::List {
+                status,
+                project,
+                limit,
+            } => {
                 let todos = commands::list::execute(&db, status, project, limit).await?;
 
                 if cli.json {

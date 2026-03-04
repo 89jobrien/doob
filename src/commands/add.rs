@@ -1,8 +1,8 @@
-use anyhow::Result;
-use uuid::Uuid;
 use crate::context;
 use crate::db::DbConnection;
 use crate::models::Todo;
+use anyhow::Result;
+use uuid::Uuid;
 
 pub async fn execute(
     db: &DbConnection,
@@ -18,42 +18,43 @@ pub async fn execute(
         .unwrap_or_default();
 
     // Auto-detect context if not provided
-    let project = project.or_else(|| context::detect_project());
-    let file_path = file_path.or_else(|| context::detect_file_path());
+    let project = project.or_else(context::detect_project);
+    let file_path = file_path.or_else(context::detect_file_path);
 
     let mut created_todos = Vec::new();
 
     for task in content {
         let uuid = Uuid::new_v4().to_string();
-        
+
         // Build query dynamically based on optional fields
         let mut query = String::from("CREATE todo SET uuid = $uuid, content = $content, status = 'pending', priority = $priority, tags = $tags");
-        
+
         if project.is_some() {
             query.push_str(", project = $project");
         }
-        
+
         if file_path.is_some() {
             query.push_str(", file_path = $file_path");
         }
-        
-        let mut query_builder = db.query(&query)
+
+        let mut query_builder = db
+            .query(&query)
             .bind(("uuid", uuid))
             .bind(("content", task))
             .bind(("priority", priority))
             .bind(("tags", tag_list.clone()));
-            
+
         if let Some(ref proj) = project {
             query_builder = query_builder.bind(("project", proj.clone()));
         }
-        
+
         if let Some(ref fp) = file_path {
             query_builder = query_builder.bind(("file_path", fp.clone()));
         }
-        
+
         let mut result = query_builder.await?;
         let created: Option<Todo> = result.take(0)?;
-        
+
         if let Some(todo) = created {
             created_todos.push(todo);
         }

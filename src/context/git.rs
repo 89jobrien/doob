@@ -14,7 +14,7 @@ pub fn detect_project() -> Option<String> {
     // Examples:
     //   git@github.com:user/project.git -> project
     //   https://github.com/user/project -> project
-    let name = url.split('/').last()?.trim_end_matches(".git");
+    let name = url.split('/').next_back()?.trim_end_matches(".git");
 
     Some(name.to_string())
 }

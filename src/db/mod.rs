@@ -1,9 +1,9 @@
 pub mod schema;
 
 use anyhow::Result;
+use std::path::PathBuf;
 use surrealdb::engine::local::{Db, RocksDb};
 use surrealdb::Surreal;
-use std::path::PathBuf;
 
 // Type alias for the database connection
 pub type DbConnection = Surreal<Db>;

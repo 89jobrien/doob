@@ -8,7 +8,9 @@ async fn test_complete_single_todo() {
     let db = setup_test_db().await;
 
     // Create a todo
-    doob::commands::add::execute(&db, vec!["Test".to_string()], None, None, None, None).await.unwrap();
+    doob::commands::add::execute(&db, vec!["Test".to_string()], None, None, None, None)
+        .await
+        .unwrap();
 
     // Get the ID
     let todos: Vec<doob::models::Todo> = db.select("todo").await.unwrap();
@@ -43,11 +45,16 @@ async fn test_complete_batch_todos() {
         None,
         None,
         None,
-    ).await.unwrap();
+    )
+    .await
+    .unwrap();
 
     // Get IDs
     let todos: Vec<doob::models::Todo> = db.select("todo").await.unwrap();
-    let ids: Vec<String> = todos.iter().map(|t| t.id.clone().unwrap().to_string()).collect();
+    let ids: Vec<String> = todos
+        .iter()
+        .map(|t| t.id.clone().unwrap().to_string())
+        .collect();
 
     // Complete all
     let result = doob::commands::complete::execute(&db, ids).await;
