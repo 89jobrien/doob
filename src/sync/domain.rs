@@ -20,3 +20,11 @@ pub struct SyncableTodo {
     pub file_path: Option<String>,
     pub due_date: Option<String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncRecord {
+    pub external_id: String,
+    pub external_url: Option<String>,
+    pub provider: String,
+    pub synced_at: String,
+}

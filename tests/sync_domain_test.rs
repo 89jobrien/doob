@@ -1,6 +1,6 @@
 // tests/sync_domain_test.rs
 
-use doob::sync::domain::{TodoStatus, SyncableTodo};
+use doob::sync::domain::{TodoStatus, SyncableTodo, SyncRecord};
 
 #[test]
 fn todo_status__serializes_to_string() {
@@ -59,4 +59,32 @@ fn syncable_todo__serializes_to_json() {
     assert_eq!(json["id"], "1");
     assert_eq!(json["title"], "Test");
     assert_eq!(json["priority"], 1);
+}
+
+#[test]
+fn sync_record__stores_external_sync_data() {
+    let record = SyncRecord {
+        external_id: "bd-42".to_string(),
+        external_url: Some("https://example.com/bd-42".to_string()),
+        provider: "beads".to_string(),
+        synced_at: "2026-03-04T08:00:00Z".to_string(),
+    };
+
+    assert_eq!(record.external_id, "bd-42");
+    assert_eq!(record.provider, "beads");
+    assert!(record.external_url.is_some());
+}
+
+#[test]
+fn sync_record__serializes_with_optional_url() {
+    let record = SyncRecord {
+        external_id: "123".to_string(),
+        external_url: None,
+        provider: "github".to_string(),
+        synced_at: "2026-03-04T08:00:00Z".to_string(),
+    };
+
+    let json = serde_json::to_value(&record).unwrap();
+    assert_eq!(json["external_id"], "123");
+    assert_eq!(json["external_url"], serde_json::Value::Null);
 }
