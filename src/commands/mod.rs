@@ -1,7 +1,9 @@
 pub mod add;
 pub mod complete;
 pub mod due;
+pub mod kan;
 pub mod list;
+pub mod note;
 pub mod remove;
 pub mod undo;
 

@@ -23,6 +23,23 @@ pub enum Commands {
         #[command(subcommand)]
         action: TodoAction,
     },
+
+    /// Manage notes
+    Note {
+        #[command(subcommand)]
+        action: NoteAction,
+    },
+
+    /// Visual kanban board of todos
+    Kan {
+        /// Filter by project
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+
+        /// Filter by status (comma-separated: pending,in_progress,completed,cancelled)
+        #[arg(long, value_delimiter = ',')]
+        status: Option<Vec<String>>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -86,6 +103,41 @@ pub enum TodoAction {
     /// Undo completion (mark as pending)
     Undo {
         /// Todo ID(s)
+        #[arg(required = true)]
+        ids: Vec<String>,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum NoteAction {
+    /// Add note(s)
+    Add {
+        /// Note content
+        #[arg(required = true)]
+        content: Vec<String>,
+
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+
+        #[arg(short = 'f', long)]
+        file: Option<String>,
+
+        #[arg(short = 't', long)]
+        tags: Option<String>,
+    },
+
+    /// List notes
+    List {
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+
+        #[arg(short = 'l', long)]
+        limit: Option<usize>,
+    },
+
+    /// Remove/delete note(s)
+    Remove {
+        /// Note ID(s)
         #[arg(required = true)]
         ids: Vec<String>,
     },
