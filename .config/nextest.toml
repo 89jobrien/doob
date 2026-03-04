@@ -1,0 +1,35 @@
+# .config/nextest.toml
+
+[profile.default]
+# Run tests in parallel
+test-threads = "num-cpus"
+
+# Retry flaky tests
+retries = 2
+
+# Show output only for failed tests
+failure-output = "immediate-final"
+success-output = "never"
+
+# Test groups
+[profile.default.overrides]
+# Integration tests run serially (they might create real issues)
+filter = 'test(integration)'
+test-threads = 1
+retries = 3
+
+# Unit tests run in parallel
+filter = 'test(^((?!integration).)*$)'
+test-threads = "num-cpus"
+
+# CI profile
+[profile.ci]
+retries = 0
+failure-output = "immediate-final"
+success-output = "final"
+
+# Integration test profile
+[profile.integration]
+retries = 3
+test-threads = 1
+slow-timeout = { period = "120s", terminate-after = 5 }
