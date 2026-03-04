@@ -1,6 +1,28 @@
 // src/sync/domain.rs
 
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum SyncError {
+    #[error("Provider '{0}' is not available or not installed")]
+    ProviderUnavailable(String),
+
+    #[error("Invalid configuration: {0}")]
+    InvalidConfiguration(String),
+
+    #[error("External API error: {0}")]
+    ExternalApiError(String),
+
+    #[error("Todo '{0}' has already been synced to this provider")]
+    TodoAlreadySynced(String),
+
+    #[error("Database error: {0}")]
+    DatabaseError(String),
+
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TodoStatus {

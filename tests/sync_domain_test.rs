@@ -1,6 +1,6 @@
 // tests/sync_domain_test.rs
 
-use doob::sync::domain::{TodoStatus, SyncableTodo, SyncRecord};
+use doob::sync::domain::{TodoStatus, SyncableTodo, SyncRecord, SyncError};
 
 #[test]
 fn todo_status__serializes_to_string() {
@@ -87,4 +87,26 @@ fn sync_record__serializes_with_optional_url() {
     let json = serde_json::to_value(&record).unwrap();
     assert_eq!(json["external_id"], "123");
     assert_eq!(json["external_url"], serde_json::Value::Null);
+}
+
+#[test]
+fn sync_error__formats_provider_unavailable() {
+    let err = SyncError::ProviderUnavailable("beads".to_string());
+    let msg = format!("{}", err);
+    assert!(msg.contains("beads"));
+    assert!(msg.contains("not available"));
+}
+
+#[test]
+fn sync_error__formats_external_api_error() {
+    let err = SyncError::ExternalApiError("Connection timeout".to_string());
+    let msg = format!("{}", err);
+    assert!(msg.contains("Connection timeout"));
+}
+
+#[test]
+fn sync_error__is_debug_formattable() {
+    let err = SyncError::InvalidConfiguration("Bad config".to_string());
+    let debug = format!("{:?}", err);
+    assert!(debug.contains("InvalidConfiguration"));
 }
