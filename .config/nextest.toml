@@ -1,0 +1,18 @@
+# .config/nextest.toml
+
+[profile.default]
+# Run tests in parallel
+test-threads = "num-cpus"
+
+# Retry flaky tests
+retries = 2
+
+# Show output only for failed tests
+failure-output = "immediate-final"
+success-output = "never"
+
+# CI profile
+[profile.ci]
+retries = 0
+failure-output = "immediate-final"
+success-output = "final"
