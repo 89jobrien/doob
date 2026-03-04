@@ -62,3 +62,38 @@ pub trait IssueTracker {
     /// Create an issue in the external system
     fn create_issue(&self, todo: &SyncableTodo) -> Result<SyncRecord, SyncError>;
 }
+
+/// Domain service: Sync orchestration
+pub struct SyncService<T: IssueTracker> {
+    tracker: T,
+}
+
+impl<T: IssueTracker> SyncService<T> {
+    pub fn new(tracker: T) -> Self {
+        Self { tracker }
+    }
+
+    pub fn sync_todo(&self, todo: &SyncableTodo) -> Result<SyncRecord, SyncError> {
+        // Domain logic: validate availability
+        if !self.tracker.is_available()? {
+            return Err(SyncError::ProviderUnavailable(
+                self.tracker.name().to_string()
+            ));
+        }
+
+        // Domain logic: only sync active todos
+        if todo.status != TodoStatus::Pending && todo.status != TodoStatus::InProgress {
+            return Err(SyncError::InvalidConfiguration(
+                "Only pending/in_progress todos can be synced".to_string()
+            ));
+        }
+
+        self.tracker.create_issue(todo)
+    }
+
+    pub fn sync_todos(&self, todos: &[SyncableTodo]) -> Vec<Result<SyncRecord, SyncError>> {
+        todos.iter()
+            .map(|todo| self.sync_todo(todo))
+            .collect()
+    }
+}
