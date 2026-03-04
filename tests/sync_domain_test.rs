@@ -1,6 +1,44 @@
 // tests/sync_domain_test.rs
 
-use doob::sync::domain::{TodoStatus, SyncableTodo, SyncRecord, SyncError};
+use doob::sync::domain::{TodoStatus, SyncableTodo, SyncRecord, SyncError, IssueTracker};
+
+// Mock implementation for testing IssueTracker trait
+struct MockIssueTracker {
+    name: String,
+    available: bool,
+}
+
+impl MockIssueTracker {
+    fn new(name: &str, available: bool) -> Self {
+        Self {
+            name: name.to_string(),
+            available,
+        }
+    }
+}
+
+impl doob::sync::domain::IssueTracker for MockIssueTracker {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn is_available(&self) -> Result<bool, SyncError> {
+        Ok(self.available)
+    }
+
+    fn create_issue(&self, todo: &SyncableTodo) -> Result<SyncRecord, SyncError> {
+        if !self.available {
+            return Err(SyncError::ProviderUnavailable(self.name.clone()));
+        }
+
+        Ok(SyncRecord {
+            external_id: format!("{}-{}", self.name, todo.id),
+            external_url: None,
+            provider: self.name.clone(),
+            synced_at: chrono::Utc::now().to_rfc3339(),
+        })
+    }
+}
 
 #[test]
 fn todo_status__serializes_to_string() {
@@ -109,4 +147,41 @@ fn sync_error__is_debug_formattable() {
     let err = SyncError::InvalidConfiguration("Bad config".to_string());
     let debug = format!("{:?}", err);
     assert!(debug.contains("InvalidConfiguration"));
+}
+
+#[test]
+fn issue_tracker__returns_provider_name() {
+    let tracker = MockIssueTracker::new("test", true);
+    assert_eq!(tracker.name(), "test");
+}
+
+#[test]
+fn issue_tracker__checks_availability() {
+    let tracker = MockIssueTracker::new("test", true);
+    assert!(tracker.is_available().unwrap());
+
+    let tracker = MockIssueTracker::new("test", false);
+    assert!(!tracker.is_available().unwrap());
+}
+
+#[test]
+fn issue_tracker__creates_issue_when_available() {
+    let tracker = MockIssueTracker::new("test", true);
+    let todo = SyncableTodo {
+        id: "1".to_string(),
+        title: "Test".to_string(),
+        description: None,
+        priority: 2,
+        status: TodoStatus::Pending,
+        tags: vec![],
+        project: None,
+        file_path: None,
+        due_date: None,
+    };
+
+    let result = tracker.create_issue(&todo);
+    assert!(result.is_ok());
+    let record = result.unwrap();
+    assert_eq!(record.external_id, "test-1");
+    assert_eq!(record.provider, "test");
 }

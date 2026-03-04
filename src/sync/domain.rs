@@ -50,3 +50,15 @@ pub struct SyncRecord {
     pub provider: String,
     pub synced_at: String,
 }
+
+/// Port: External issue tracker
+pub trait IssueTracker {
+    /// Provider name (e.g., "beads", "github")
+    fn name(&self) -> &str;
+
+    /// Check if provider is available (CLI installed, auth configured, etc.)
+    fn is_available(&self) -> Result<bool, SyncError>;
+
+    /// Create an issue in the external system
+    fn create_issue(&self, todo: &SyncableTodo) -> Result<SyncRecord, SyncError>;
+}
