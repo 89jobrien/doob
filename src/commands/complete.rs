@@ -1,28 +1,24 @@
-use anyhow::{anyhow, Result};
-use chrono::Utc;
+use crate::commands::normalize_id;
 use crate::db::DbConnection;
 use crate::models::{Todo, TodoStatus};
+use anyhow::{anyhow, Result};
+use chrono::Utc;
 
 pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
     let mut completed_count = 0;
 
     for id in ids {
-        // Normalize the record ID format
-        let record_id = if id.contains(':') {
-            id
-        } else {
-            format!("todo:{}", id)
-        };
+        let record_id = normalize_id(id);
 
         // Get existing todo using query
         let query = format!("SELECT * FROM {} LIMIT 1", record_id);
         let mut result = db.query(&query).await?;
         let todos: Vec<Todo> = result.take(0)?;
-        
+
         if todos.is_empty() {
             return Err(anyhow!("Todo not found: {}", record_id));
         }
-        
+
         let mut todo = todos.into_iter().next().unwrap();
 
         // Update status and completed_at
@@ -36,7 +32,7 @@ pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
             record_id
         );
         db.query(&update_query).await?;
-        
+
         completed_count += 1;
     }
 

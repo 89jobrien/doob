@@ -21,7 +21,9 @@ async fn test_complete_workflow() {
 
     // Complete it
     let id = todos[0].id.clone().unwrap().to_string();
-    let count = doob::commands::complete::execute(&db, vec![id]).await.unwrap();
+    let count = doob::commands::complete::execute(&db, vec![id])
+        .await
+        .unwrap();
     assert_eq!(count, 1);
 
     // List again

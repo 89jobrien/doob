@@ -1,33 +1,31 @@
 use crate::context;
 use crate::db::DbConnection;
-use crate::models::Todo;
+use crate::models::Note;
 use anyhow::Result;
 use uuid::Uuid;
 
 pub async fn execute(
     db: &DbConnection,
     content: Vec<String>,
-    priority: Option<u8>,
     project: Option<String>,
     file_path: Option<String>,
     tags: Option<String>,
-) -> Result<Vec<Todo>> {
-    let priority = priority.unwrap_or(0);
+) -> Result<Vec<Note>> {
     let tag_list: Vec<String> = tags
         .map(|t| t.split(',').map(|s| s.trim().to_string()).collect())
         .unwrap_or_default();
 
-    // Auto-detect context if not provided
     let project = project.or_else(context::detect_project);
     let file_path = file_path.or_else(context::detect_file_path);
 
-    let mut created_todos = Vec::new();
+    let mut created_notes = Vec::new();
 
-    for task in content {
+    for text in content {
         let uuid = Uuid::new_v4().to_string();
 
-        // Build query dynamically based on optional fields
-        let mut query = String::from("CREATE todo SET uuid = $uuid, content = $content, status = 'pending', priority = $priority, tags = $tags");
+        let mut query = String::from(
+            "CREATE note SET uuid = $uuid, content = $content, tags = $tags",
+        );
 
         if project.is_some() {
             query.push_str(", project = $project");
@@ -37,28 +35,27 @@ pub async fn execute(
             query.push_str(", file_path = $file_path");
         }
 
-        let mut query_builder = db
+        let mut qb = db
             .query(&query)
             .bind(("uuid", uuid))
-            .bind(("content", task))
-            .bind(("priority", priority))
+            .bind(("content", text))
             .bind(("tags", tag_list.clone()));
 
         if let Some(ref proj) = project {
-            query_builder = query_builder.bind(("project", proj.clone()));
+            qb = qb.bind(("project", proj.clone()));
         }
 
         if let Some(ref fp) = file_path {
-            query_builder = query_builder.bind(("file_path", fp.clone()));
+            qb = qb.bind(("file_path", fp.clone()));
         }
 
-        let mut result = query_builder.await?;
-        let created: Option<Todo> = result.take(0)?;
+        let mut result = qb.await?;
+        let created: Option<Note> = result.take(0)?;
 
-        if let Some(todo) = created {
-            created_todos.push(todo);
+        if let Some(note) = created {
+            created_notes.push(note);
         }
     }
 
-    Ok(created_todos)
+    Ok(created_notes)
 }

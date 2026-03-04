@@ -1,15 +1,11 @@
-use anyhow::{anyhow, Result};
-use chrono::{DateTime, NaiveDate, Utc};
+use crate::commands::normalize_id;
 use crate::db::DbConnection;
 use crate::models::Todo;
+use anyhow::{anyhow, Result};
+use chrono::{DateTime, NaiveDate, Utc};
 
 pub async fn execute(db: &DbConnection, id: String, due_date: Option<String>) -> Result<()> {
-    // Normalize the record ID format
-    let record_id = if id.contains(':') {
-        id
-    } else {
-        format!("todo:{}", id)
-    };
+    let record_id = normalize_id(id);
 
     // Verify the todo exists
     let query = format!("SELECT * FROM {} LIMIT 1", record_id);
@@ -53,6 +49,7 @@ pub async fn execute(db: &DbConnection, id: String, due_date: Option<String>) ->
 fn parse_date(date_str: &str) -> Result<DateTime<Utc>> {
     // Try to parse as YYYY-MM-DD format first
     if let Ok(date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+        // SAFETY: (0, 0, 0) is always a valid HMS time, so and_hms_opt never returns None here.
         return Ok(date.and_hms_opt(0, 0, 0).unwrap().and_utc());
     }
 

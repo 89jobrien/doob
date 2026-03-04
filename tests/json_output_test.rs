@@ -8,10 +8,21 @@ async fn test_json_output_format() {
     let db = setup_test_db().await;
 
     // Add todos
-    doob::commands::add::execute(&db, vec!["Test 1".to_string()], Some(1), None, None, Some("urgent".to_string())).await.unwrap();
+    doob::commands::add::execute(
+        &db,
+        vec!["Test 1".to_string()],
+        Some(1),
+        None,
+        None,
+        Some("urgent".to_string()),
+    )
+    .await
+    .unwrap();
 
     // Get todos
-    let todos = doob::commands::list::execute(&db, None, None, None).await.unwrap();
+    let todos = doob::commands::list::execute(&db, None, None, None)
+        .await
+        .unwrap();
 
     // Format as JSON
     let json = doob::output::json::format_todos(&todos);

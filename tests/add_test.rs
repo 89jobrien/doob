@@ -14,15 +14,13 @@ async fn test_add_single_todo() {
         None,
         None,
         None,
-    ).await;
+    )
+    .await;
 
     assert!(result.is_ok());
 
     // Query database to verify
-    let todos: Vec<doob::models::Todo> = db
-        .select("todo")
-        .await
-        .expect("Failed to query todos");
+    let todos: Vec<doob::models::Todo> = db.select("todo").await.expect("Failed to query todos");
 
     assert_eq!(todos.len(), 1);
     assert_eq!(todos[0].content, "Fix auth bug");
@@ -36,12 +34,17 @@ async fn test_add_batch_todos() {
 
     let result = doob::commands::add::execute(
         &db,
-        vec!["Task 1".to_string(), "Task 2".to_string(), "Task 3".to_string()],
+        vec![
+            "Task 1".to_string(),
+            "Task 2".to_string(),
+            "Task 3".to_string(),
+        ],
         Some(2),
         None,
         None,
         Some("urgent,test".to_string()),
-    ).await;
+    )
+    .await;
 
     assert!(result.is_ok());
     let created = result.unwrap();

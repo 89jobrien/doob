@@ -3,7 +3,8 @@ use surrealdb::engine::local::Db;
 use surrealdb::Surreal;
 
 pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
-    db.query(r#"
+    db.query(
+        r#"
         DEFINE TABLE IF NOT EXISTS todo SCHEMAFULL;
         DEFINE FIELD IF NOT EXISTS uuid ON TABLE todo TYPE string;
         DEFINE FIELD IF NOT EXISTS content ON TABLE todo TYPE string;
@@ -22,7 +23,20 @@ pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
 
         DEFINE INDEX IF NOT EXISTS idx_status ON TABLE todo COLUMNS status;
         DEFINE INDEX IF NOT EXISTS idx_project ON TABLE todo COLUMNS project;
-    "#).await?;
+
+        DEFINE TABLE IF NOT EXISTS note SCHEMAFULL;
+        DEFINE FIELD IF NOT EXISTS uuid       ON TABLE note TYPE string;
+        DEFINE FIELD IF NOT EXISTS content    ON TABLE note TYPE string;
+        DEFINE FIELD IF NOT EXISTS created_at ON TABLE note TYPE datetime DEFAULT time::now();
+        DEFINE FIELD IF NOT EXISTS updated_at ON TABLE note TYPE datetime DEFAULT time::now();
+        DEFINE FIELD IF NOT EXISTS project    ON TABLE note TYPE option<string>;
+        DEFINE FIELD IF NOT EXISTS file_path  ON TABLE note TYPE option<string>;
+        DEFINE FIELD IF NOT EXISTS tags       ON TABLE note TYPE array<string> DEFAULT [];
+        DEFINE FIELD IF NOT EXISTS metadata   ON TABLE note TYPE option<object>;
+        DEFINE INDEX IF NOT EXISTS idx_note_project ON TABLE note COLUMNS project;
+    "#,
+    )
+    .await?;
 
     Ok(())
 }

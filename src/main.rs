@@ -5,7 +5,7 @@ use std::process;
 
 use anyhow::Result;
 use clap::Parser;
-use doob::cli::{Cli, Commands, TodoAction};
+use doob::cli::{Cli, Commands, NoteAction, TodoAction};
 use doob::{commands, db, output};
 
 #[tokio::main]
@@ -24,8 +24,15 @@ async fn run() -> Result<()> {
 
     match cli.command {
         Commands::Todo { action } => match action {
-            TodoAction::Add { content, priority, project, file, tags } => {
-                let todos = commands::add::execute(&db, content, priority, project, file, tags).await?;
+            TodoAction::Add {
+                content,
+                priority,
+                project,
+                file,
+                tags,
+            } => {
+                let todos =
+                    commands::add::execute(&db, content, priority, project, file, tags).await?;
 
                 for todo in &todos {
                     println!("✓ Created todo: {}", todo.content);
@@ -33,7 +40,11 @@ async fn run() -> Result<()> {
 
                 Ok(())
             }
-            TodoAction::List { status, project, limit } => {
+            TodoAction::List {
+                status,
+                project,
+                limit,
+            } => {
                 let todos = commands::list::execute(&db, status, project, limit).await?;
 
                 if cli.json {
@@ -73,5 +84,56 @@ async fn run() -> Result<()> {
                 Ok(())
             }
         },
+
+        Commands::Note { action } => match action {
+            NoteAction::Add {
+                content,
+                project,
+                file,
+                tags,
+            } => {
+                let notes =
+                    commands::note::add::execute(&db, content, project, file, tags).await?;
+
+                for note in &notes {
+                    println!("✓ Created note: {}", note.content);
+                }
+
+                Ok(())
+            }
+            NoteAction::List { project, limit } => {
+                let notes = commands::note::list::execute(&db, project, limit).await?;
+
+                if cli.json {
+                    println!("{}", output::format_notes_json(&notes));
+                } else {
+                    println!("{}", output::format_notes_human(&notes));
+                }
+
+                Ok(())
+            }
+            NoteAction::Remove { ids } => {
+                let count = commands::note::remove::execute(&db, ids).await?;
+                println!("✓ Removed {} note(s)", count);
+                Ok(())
+            }
+        },
+
+        Commands::Kan { project, status } => {
+            let status_filter: Option<Vec<doob::models::TodoStatus>> = status.map(|statuses| {
+                statuses
+                    .iter()
+                    .filter_map(|s| commands::kan::parse_status(s))
+                    .collect()
+            });
+
+            let (todos, filter) =
+                commands::kan::execute(&db, project, status_filter).await?;
+
+            let board = output::kanban::render_board(&todos, filter.as_deref());
+            print!("{}", board);
+
+            Ok(())
+        }
     }
 }

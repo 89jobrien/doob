@@ -1,17 +1,13 @@
-use anyhow::{anyhow, Result};
+use crate::commands::normalize_id;
 use crate::db::DbConnection;
 use crate::models::{Todo, TodoStatus};
+use anyhow::{anyhow, Result};
 
 pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
     let mut undone_count = 0;
 
     for id in ids {
-        // Normalize the record ID format
-        let record_id = if id.contains(':') {
-            id
-        } else {
-            format!("todo:{}", id)
-        };
+        let record_id = normalize_id(id);
 
         // Get existing todo using query
         let query = format!("SELECT * FROM {} LIMIT 1", record_id);
