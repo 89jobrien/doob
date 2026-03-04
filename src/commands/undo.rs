@@ -1,7 +1,7 @@
-use anyhow::{anyhow, Result};
 use crate::commands::normalize_id;
 use crate::db::DbConnection;
 use crate::models::{Todo, TodoStatus};
+use anyhow::{anyhow, Result};
 
 pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
     let mut undone_count = 0;

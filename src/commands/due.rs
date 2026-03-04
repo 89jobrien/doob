@@ -1,8 +1,8 @@
-use anyhow::{anyhow, Result};
-use chrono::{DateTime, NaiveDate, Utc};
 use crate::commands::normalize_id;
 use crate::db::DbConnection;
 use crate::models::Todo;
+use anyhow::{anyhow, Result};
+use chrono::{DateTime, NaiveDate, Utc};
 
 pub async fn execute(db: &DbConnection, id: String, due_date: Option<String>) -> Result<()> {
     let record_id = normalize_id(id);

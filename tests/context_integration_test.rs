@@ -1,10 +1,10 @@
 mod common;
 
+use doob::commands::add;
+use doob::db;
+use git2::Repository;
 use std::env;
 use tempfile::TempDir;
-use git2::Repository;
-use doob::db;
-use doob::commands::add;
 
 #[tokio::test]
 #[cfg_attr(not(feature = "no_parallel"), serial_test::serial)]
@@ -16,7 +16,8 @@ async fn test_context_detection_integration() {
     let repo = Repository::init(repo_path).unwrap();
 
     // Add remote
-    repo.remote("origin", "git@github.com:user/my-project.git").unwrap();
+    repo.remote("origin", "git@github.com:user/my-project.git")
+        .unwrap();
 
     // Change to repo directory
     let original_dir = env::current_dir().unwrap();
@@ -33,7 +34,9 @@ async fn test_context_detection_integration() {
         None, // No project provided
         None, // No file_path provided
         None,
-    ).await.unwrap();
+    )
+    .await
+    .unwrap();
 
     assert_eq!(todos.len(), 1);
     assert_eq!(todos[0].project, Some("my-project".to_string()));
@@ -47,7 +50,9 @@ async fn test_context_detection_integration() {
         Some("explicit-project".to_string()),
         None,
         None,
-    ).await.unwrap();
+    )
+    .await
+    .unwrap();
 
     assert_eq!(todos.len(), 1);
     assert_eq!(todos[0].project, Some("explicit-project".to_string()));
@@ -64,7 +69,8 @@ async fn test_file_path_detection() {
 
     // Initialize git repo
     let repo = Repository::init(repo_path).unwrap();
-    repo.remote("origin", "git@github.com:user/test-repo.git").unwrap();
+    repo.remote("origin", "git@github.com:user/test-repo.git")
+        .unwrap();
 
     // Create subdirectory
     let sub_dir = repo_path.join("src").join("components");
@@ -85,7 +91,9 @@ async fn test_file_path_detection() {
         None,
         None,
         None,
-    ).await.unwrap();
+    )
+    .await
+    .unwrap();
 
     assert_eq!(todos.len(), 1);
     assert_eq!(todos[0].project, Some("test-repo".to_string()));

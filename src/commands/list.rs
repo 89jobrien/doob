@@ -1,6 +1,6 @@
-use anyhow::Result;
 use crate::db::DbConnection;
 use crate::models::Todo;
+use anyhow::Result;
 
 pub async fn execute(
     db: &DbConnection,

@@ -3,7 +3,8 @@ use surrealdb::engine::local::Db;
 use surrealdb::Surreal;
 
 pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
-    db.query(r#"
+    db.query(
+        r#"
         DEFINE TABLE IF NOT EXISTS todo SCHEMAFULL;
         DEFINE FIELD IF NOT EXISTS uuid ON TABLE todo TYPE string;
         DEFINE FIELD IF NOT EXISTS content ON TABLE todo TYPE string;
@@ -22,7 +23,9 @@ pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
 
         DEFINE INDEX IF NOT EXISTS idx_status ON TABLE todo COLUMNS status;
         DEFINE INDEX IF NOT EXISTS idx_project ON TABLE todo COLUMNS project;
-    "#).await?;
+    "#,
+    )
+    .await?;
 
     Ok(())
 }

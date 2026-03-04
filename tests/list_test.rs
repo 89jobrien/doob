@@ -15,7 +15,9 @@ async fn test_list_all_todos() {
         None,
         None,
         None,
-    ).await.unwrap();
+    )
+    .await
+    .unwrap();
 
     // Test list
     let todos = doob::commands::list::execute(&db, None, None, None).await;
@@ -30,18 +32,26 @@ async fn test_list_filter_by_status() {
     let db = setup_test_db().await;
 
     // Add todos
-    doob::commands::add::execute(&db, vec!["Task 1".to_string()], None, None, None, None).await.unwrap();
+    doob::commands::add::execute(&db, vec!["Task 1".to_string()], None, None, None, None)
+        .await
+        .unwrap();
 
     // Complete one
     let todos: Vec<doob::models::Todo> = db.select("todo").await.unwrap();
     let todo_id = todos[0].id.clone().unwrap().to_string();
-    doob::commands::complete::execute(&db, vec![todo_id]).await.unwrap();
+    doob::commands::complete::execute(&db, vec![todo_id])
+        .await
+        .unwrap();
 
     // Add another pending
-    doob::commands::add::execute(&db, vec!["Task 2".to_string()], None, None, None, None).await.unwrap();
+    doob::commands::add::execute(&db, vec!["Task 2".to_string()], None, None, None, None)
+        .await
+        .unwrap();
 
     // List only pending
-    let pending = doob::commands::list::execute(&db, Some("pending".to_string()), None, None).await.unwrap();
+    let pending = doob::commands::list::execute(&db, Some("pending".to_string()), None, None)
+        .await
+        .unwrap();
     assert_eq!(pending.len(), 1);
     assert_eq!(pending[0].content, "Task 2");
 }
