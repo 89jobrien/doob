@@ -50,6 +50,51 @@ doob todo remove <id>
 doob todo remove <id1> <id2>
 ```
 
+## Sync to External Issue Trackers
+
+**Status:** Foundation Complete (Phase 1 & 2) ✅
+
+Sync your doob todos to external issue trackers using a plugin architecture.
+
+### Supported Providers
+
+- ✅ **Beads** (bd CLI) - Complete
+- 🚧 **GitHub Issues** - Planned
+- 🚧 **Jira** - Planned
+- 🚧 **Linear** - Planned
+- 🚧 **kan** - Planned
+
+### Architecture
+
+Built with hexagonal architecture:
+- **Domain Layer** - Business logic, validation, error handling
+- **Ports** - `IssueTracker` trait interface
+- **Adapters** - Provider-specific implementations (CLI delegation)
+- **Tests** - 19 unit/integration tests (100% passing)
+
+### Documentation
+
+- [Testing Guide](docs/sync/testing.md)
+- [Beads Provider](docs/sync/providers/beads.md)
+
+### Roadmap
+
+**Phase 3: Metadata & Repository** (Next)
+- SurrealDB repository for sync metadata
+- Track external IDs, sync timestamps, errors
+- Multi-provider support per todo
+
+**Phase 4: CLI Commands**
+- `doob sync to --provider beads` - Sync todos to provider
+- `doob sync status` - Show sync status
+- `doob sync providers` - List available providers
+
+**Phase 5+: Additional Providers**
+- GitHub Issues adapter
+- Jira adapter
+- Linear adapter
+- kan adapter
+
 ## Agent Integration
 
 Perfect for Claude Code, Cursor, Aider, and other AI coding assistants.
