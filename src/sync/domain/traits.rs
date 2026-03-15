@@ -1,9 +1,70 @@
 // src/sync/domain/traits.rs
 //
-// Interface Segregation Principle (ISP) applied to sync adapters.
+// # Ports (Trait Definitions) for Sync Adapters
 //
-// Instead of one monolithic IssueTracker trait, we provide small, focused
-// traits that adapters can compose based on their capabilities.
+// This module defines the **ports** (interfaces) that external adapters must
+// implement to integrate with the sync system. It applies the **Interface
+// Segregation Principle (ISP)** - instead of one monolithic trait, we provide
+// small, focused traits that adapters compose based on their capabilities.
+//
+// ## Why ISP?
+//
+// Different issue trackers have different capabilities:
+// - Beads (bd CLI): Create only
+// - GitHub Issues: Create, Update, Delete
+// - Linear: Create, Update, Delete, Bidirectional sync
+//
+// With ISP, adapters implement only what they support:
+//
+// ```rust
+// // BeadsAdapter - minimal (create only)
+// impl Provider for BeadsAdapter { }
+// impl HealthCheck for BeadsAdapter { }
+// impl IssueCreator for BeadsAdapter { }
+// // Automatically gets MinimalIssueTracker
+//
+// // GitHubAdapter - standard (create, update, delete)
+// impl Provider for GitHubAdapter { }
+// impl HealthCheck for GitHubAdapter { }
+// impl IssueCreator for GitHubAdapter { }
+// impl IssueUpdater for GitHubAdapter { }
+// impl IssueDeleter for GitHubAdapter { }
+// // Automatically gets StandardIssueTracker
+// ```
+//
+// ## Trait Hierarchy
+//
+// ```text
+// Provider (identity)
+//     +
+// HealthCheck (availability)
+//     +
+// IssueCreator (create)
+//     = MinimalIssueTracker (auto trait)
+//     +
+// IssueUpdater (update)
+//     +
+// IssueDeleter (delete)
+//     = StandardIssueTracker (auto trait)
+//     +
+// ExternalIssueReader (read)
+//     +
+// BatchIssueCreator (batch)
+//     = FullIssueTracker (auto trait)
+// ```
+//
+// ## Auto Traits
+//
+// Blanket implementations automatically provide composite traits:
+// - `MinimalIssueTracker` = Provider + HealthCheck + IssueCreator
+// - `StandardIssueTracker` = MinimalIssueTracker + IssueUpdater + IssueDeleter
+// - `FullIssueTracker` = StandardIssueTracker + ExternalIssueReader + BatchIssueCreator
+//
+// ## Backward Compatibility
+//
+// The deprecated `IssueTracker` trait is automatically implemented for any
+// type that implements the three minimal traits. This allows existing code
+// to continue working during migration.
 
 use super::SyncError;
 use crate::sync::domain::{SyncRecord, SyncableTodo};

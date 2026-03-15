@@ -1,6 +1,41 @@
 // src/sync/domain/types.rs
 //
-// Domain types for sync operations.
+// # Domain Types for Sync Operations
+//
+// This module contains the core domain models (value objects) used throughout
+// the sync module. These types are framework-agnostic and have no external
+// dependencies.
+//
+// ## Types
+//
+// ### Value Objects
+//
+// - **`SyncableTodo`** - Represents a todo prepared for sync
+//   - Contains all fields needed by external trackers
+//   - Derived from doob's internal `Todo` model
+//
+// - **`SyncRecord`** - Metadata about a completed sync
+//   - External issue ID and URL
+//   - Provider name and timestamp
+//   - Stored in local database for tracking
+//
+// - **`TodoStatus`** - Simple status enum
+//   - `Pending` or `InProgress`
+//   - Completed todos are not synced
+//
+// ### Error Type
+//
+// - **`SyncError`** - All sync-related errors
+//   - Uses `thiserror` for ergonomic error handling
+//   - Cloneable for batch operations
+//
+// ## Design Notes
+//
+// All types are:
+// - Serializable (derive `Serialize`, `Deserialize`)
+// - Clonable (for batch operations)
+// - Framework-agnostic (no axum, tokio, etc.)
+// - Pure data structures (no behavior)
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -9,7 +44,7 @@ use thiserror::Error;
 // ERROR TYPES
 // ============================================================================
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum SyncError {
     #[error("Provider '{0}' is not available or not installed")]
     ProviderUnavailable(String),
