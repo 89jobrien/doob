@@ -1,7 +1,7 @@
 // tests/beads_adapter_test.rs
 
 use doob::sync::adapters::BeadsAdapter;
-use doob::sync::domain::IssueTracker;
+use doob::sync::domain::Provider;
 
 #[test]
 fn beads_adapter__returns_correct_name() {
