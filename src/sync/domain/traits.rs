@@ -212,7 +212,10 @@ pub trait MinimalIssueTracker: Provider + HealthCheck + IssueCreator {}
 /// Standard tracker: Creation, updates, and deletion.
 ///
 /// Use this for full-featured API adapters like GitHub or Linear.
-pub trait StandardIssueTracker: Provider + HealthCheck + IssueCreator + IssueUpdater + IssueDeleter {}
+pub trait StandardIssueTracker:
+    Provider + HealthCheck + IssueCreator + IssueUpdater + IssueDeleter
+{
+}
 
 /// Full bidirectional tracker: All operations including external reads.
 ///
@@ -226,7 +229,10 @@ pub trait BatchIssueTracker: MinimalIssueTracker + BatchIssueCreator {}
 
 // Blanket implementations for composed traits
 impl<T> MinimalIssueTracker for T where T: Provider + HealthCheck + IssueCreator {}
-impl<T> StandardIssueTracker for T where T: Provider + HealthCheck + IssueCreator + IssueUpdater + IssueDeleter {}
+impl<T> StandardIssueTracker for T where
+    T: Provider + HealthCheck + IssueCreator + IssueUpdater + IssueDeleter
+{
+}
 impl<T> FullIssueTracker for T where T: StandardIssueTracker + ExternalIssueReader {}
 impl<T> BatchIssueTracker for T where T: MinimalIssueTracker + BatchIssueCreator {}
 

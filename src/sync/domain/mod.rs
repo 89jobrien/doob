@@ -129,19 +129,17 @@
 // - Webhook support for real-time updates
 // - Async/await for concurrent operations
 
+pub mod service;
 pub mod traits;
 pub mod types;
-pub mod service;
 
 // Re-export commonly used items
 pub use traits::{
-    BatchIssueCreator, ExternalIssueReader, HealthCheck, IssueCreator, IssueDeleter,
-    IssueUpdater, Provider, ProviderCapabilities, ProviderHealth,
+    BatchIssueCreator, ExternalIssueReader, HealthCheck, IssueCreator, IssueDeleter, IssueUpdater,
+    Provider, ProviderCapabilities, ProviderHealth,
 };
 
-pub use traits::{
-    BatchIssueTracker, FullIssueTracker, MinimalIssueTracker, StandardIssueTracker,
-};
+pub use traits::{BatchIssueTracker, FullIssueTracker, MinimalIssueTracker, StandardIssueTracker};
 
 pub use types::{SyncError, SyncRecord, SyncableTodo, TodoStatus};
 

@@ -6,8 +6,7 @@ use std::process::Command;
 const PROVIDER_NAME: &str = "beads";
 const BEADS_ISSUE_TYPE: &str = "task";
 
-pub struct BeadsAdapter {
-}
+pub struct BeadsAdapter {}
 
 impl BeadsAdapter {
     pub fn new() -> Self {
