@@ -8,9 +8,7 @@ use doob::output::kanban::render_board;
 async fn test_kan_empty() {
     let db = setup_test_db().await;
 
-    let (todos, filter) = doob::commands::kan::execute(&db, None, None)
-        .await
-        .unwrap();
+    let (todos, filter) = doob::commands::kan::execute(&db, None, None).await.unwrap();
 
     let board = render_board(&todos, filter.as_deref());
     assert!(board.contains("No todos found"));
@@ -46,21 +44,19 @@ async fn test_kan_groups_by_project() {
         &db,
         vec!["Other task".to_string()],
         None,
-        None,
+        Some("other".to_string()),
         None,
         None,
     )
     .await
     .unwrap();
 
-    let (todos, filter) = doob::commands::kan::execute(&db, None, None)
-        .await
-        .unwrap();
+    let (todos, filter) = doob::commands::kan::execute(&db, None, None).await.unwrap();
 
     assert_eq!(todos.len(), 3);
     let board = render_board(&todos, filter.as_deref());
     assert!(board.contains("project: doob"));
-    assert!(board.contains("project: (no project)"));
+    assert!(board.contains("project: other"));
 }
 
 #[tokio::test]
@@ -89,10 +85,9 @@ async fn test_kan_project_filter() {
     .await
     .unwrap();
 
-    let (todos, filter) =
-        doob::commands::kan::execute(&db, Some("alpha".to_string()), None)
-            .await
-            .unwrap();
+    let (todos, filter) = doob::commands::kan::execute(&db, Some("alpha".to_string()), None)
+        .await
+        .unwrap();
 
     assert_eq!(todos.len(), 1);
     let board = render_board(&todos, filter.as_deref());
@@ -115,11 +110,7 @@ async fn test_kan_status_filter() {
     .await
     .unwrap();
 
-    let id = created[0]
-        .id
-        .as_ref()
-        .map(|t| t.id.to_string())
-        .unwrap();
+    let id = created[0].id.as_ref().map(|t| t.id.to_string()).unwrap();
 
     doob::commands::complete::execute(&db, vec![id])
         .await
@@ -136,9 +127,7 @@ async fn test_kan_status_filter() {
     .await
     .unwrap();
 
-    let (todos, _) = doob::commands::kan::execute(&db, None, None)
-        .await
-        .unwrap();
+    let (todos, _) = doob::commands::kan::execute(&db, None, None).await.unwrap();
 
     let filter = vec![TodoStatus::Pending];
     let board = render_board(&todos, Some(&filter));
@@ -161,10 +150,39 @@ async fn test_render_board_truncates_long_content() {
     .await
     .unwrap();
 
-    let (todos, filter) = doob::commands::kan::execute(&db, None, None)
-        .await
-        .unwrap();
+    let (todos, filter) = doob::commands::kan::execute(&db, None, None).await.unwrap();
 
     let board = render_board(&todos, filter.as_deref());
     assert!(board.contains("..."));
+}
+
+#[test]
+fn test_render_board_no_matching_todos_after_filter() {
+    use chrono::Utc;
+    use doob::models::{Todo, TodoStatus};
+    use doob::output::kanban::render_board;
+
+    let todo = Todo {
+        id: None,
+        uuid: "test-uuid-1".to_string(),
+        content: "Pending task".to_string(),
+        status: TodoStatus::Pending,
+        priority: 0,
+        created_at: Utc::now(),
+        updated_at: Utc::now(),
+        completed_at: None,
+        due_date: None,
+        project: Some("my-project".to_string()),
+        project_path: None,
+        file_path: None,
+        tags: vec![],
+        metadata: None,
+        blocks: vec![],
+        blocked_by: vec![],
+    };
+
+    // Filter for Completed only — no todos match
+    let filter = vec![TodoStatus::Completed];
+    let board = render_board(&[todo], Some(&filter));
+    assert!(board.contains("(no matching todos)"));
 }

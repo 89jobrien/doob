@@ -23,9 +23,8 @@ pub async fn execute(
     for text in content {
         let uuid = Uuid::new_v4().to_string();
 
-        let mut query = String::from(
-            "CREATE note SET uuid = $uuid, content = $content, tags = $tags",
-        );
+        let mut query =
+            String::from("CREATE note SET uuid = $uuid, content = $content, tags = $tags");
 
         if project.is_some() {
             query.push_str(", project = $project");

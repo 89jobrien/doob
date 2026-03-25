@@ -1,9 +1,19 @@
+pub mod archive_human;
+pub mod archive_json;
+pub mod deps_human;
+pub mod deps_json;
 pub mod human;
 pub mod json;
 pub mod kanban;
 pub mod note_human;
 pub mod note_json;
+pub mod search_human;
+pub mod search_json;
+pub mod stats_human;
+pub mod stats_json;
 
+pub use deps_human::format_deps as deps_human;
+pub use deps_json::format_deps as deps_json;
 pub use human::format_todos as format_human;
 pub use json::format_todos as format_json;
 pub use note_human::format_notes as format_notes_human;

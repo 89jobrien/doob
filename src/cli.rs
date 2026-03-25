@@ -40,6 +40,53 @@ pub enum Commands {
         #[arg(long, value_delimiter = ',')]
         status: Option<Vec<String>>,
     },
+
+    /// Full-text search across todos and notes
+    Search {
+        /// Search query
+        #[arg(required = true)]
+        query: String,
+
+        /// Filter by type: todo, note, or all
+        #[arg(long = "type", default_value = "all")]
+        search_type: String,
+
+        /// Filter by project
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+    },
+
+    /// Analytics and statistics
+    Stats {
+        /// Filter by project
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+
+        /// Time window in days for recent activity
+        #[arg(long, default_value_t = 7)]
+        window: u32,
+    },
+
+    /// Archive completed/cancelled todos
+    Archive {
+        #[command(subcommand)]
+        action: ArchiveAction,
+    },
+
+    /// Live-updating kanban board
+    Watch {
+        /// Filter by project
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+
+        /// Filter by status (comma-separated)
+        #[arg(long, value_delimiter = ',')]
+        status: Option<Vec<String>>,
+
+        /// Refresh interval in seconds
+        #[arg(long, default_value_t = 5)]
+        interval: u64,
+    },
 }
 
 #[derive(Subcommand)]
@@ -61,6 +108,14 @@ pub enum TodoAction {
 
         #[arg(short = 't', long)]
         tags: Option<String>,
+
+        /// UUIDs this todo blocks (comma-separated)
+        #[arg(long, value_delimiter = ',')]
+        blocks: Option<Vec<String>>,
+
+        /// UUIDs that block this todo (comma-separated)
+        #[arg(long = "blocked-by", value_delimiter = ',')]
+        blocked_by: Option<Vec<String>>,
     },
 
     /// List todos
@@ -106,6 +161,13 @@ pub enum TodoAction {
         #[arg(required = true)]
         ids: Vec<String>,
     },
+
+    /// Show dependency chain for a todo
+    Deps {
+        /// Todo UUID or record ID
+        #[arg(required = true)]
+        id: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -140,5 +202,32 @@ pub enum NoteAction {
         /// Note ID(s)
         #[arg(required = true)]
         ids: Vec<String>,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum ArchiveAction {
+    /// Move old completed/cancelled todos to archive (dry-run by default)
+    Run {
+        /// Archive todos older than N days
+        #[arg(long, default_value_t = 30)]
+        older_than: u32,
+
+        /// Actually perform the move (default is dry-run preview)
+        #[arg(long)]
+        apply: bool,
+
+        /// Filter by project
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+    },
+
+    /// List archived todos
+    List {
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+
+        #[arg(short = 'l', long)]
+        limit: Option<usize>,
     },
 }

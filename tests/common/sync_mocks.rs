@@ -3,8 +3,7 @@
 // Shared mock implementations for sync module testing.
 
 use doob::sync::domain::{
-    HealthCheck, IssueCreator, Provider, ProviderCapabilities, SyncError, SyncRecord,
-    SyncableTodo,
+    HealthCheck, IssueCreator, Provider, ProviderCapabilities, SyncError, SyncRecord, SyncableTodo,
 };
 
 /// Mock tracker for testing MinimalIssueTracker implementations.
@@ -74,7 +73,11 @@ impl IssueCreator for MockMinimalTracker {
 }
 
 /// Create a test todo with configurable fields.
-pub fn make_test_todo(id: &str, title: &str, status: doob::sync::domain::TodoStatus) -> SyncableTodo {
+pub fn make_test_todo(
+    id: &str,
+    title: &str,
+    status: doob::sync::domain::TodoStatus,
+) -> SyncableTodo {
     SyncableTodo {
         id: id.to_string(),
         title: title.to_string(),

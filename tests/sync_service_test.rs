@@ -1,9 +1,13 @@
 // tests/sync_service_test.rs
+#![allow(non_snake_case)]
 
 mod common;
 
 use common::sync_mocks::{make_test_todo, MockMinimalTracker};
-use doob::sync::domain::{SyncError, SyncService, TodoStatus};
+use doob::sync::domain::{
+    HealthCheck, IssueCreator, Provider, SyncError, SyncRecord, SyncService, SyncableTodo,
+    TodoStatus,
+};
 
 #[test]
 fn sync_service__creates_issue__when_todo_is_pending() {
@@ -38,7 +42,10 @@ fn sync_service__rejects__when_provider_unavailable() {
     let result = service.sync_todo(&todo);
 
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), SyncError::ProviderUnavailable(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        SyncError::ProviderUnavailable(_)
+    ));
 }
 
 #[test]
@@ -72,4 +79,47 @@ fn sync_service__partial_failure_continues() {
 
     assert_eq!(results.len(), 2);
     assert!(results.iter().all(|r| r.is_err()));
+}
+
+struct MockTrackerErr {
+    name: String,
+}
+
+impl Provider for MockTrackerErr {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn version(&self) -> &str {
+        "0.0.0-test"
+    }
+}
+
+impl HealthCheck for MockTrackerErr {
+    fn is_available(&self) -> Result<bool, SyncError> {
+        Err(SyncError::ProviderUnavailable("broken tracker".to_string()))
+    }
+}
+
+impl IssueCreator for MockTrackerErr {
+    fn create_issue(&self, _todo: &SyncableTodo) -> Result<SyncRecord, SyncError> {
+        unreachable!("should never be called if is_available errors")
+    }
+}
+
+#[test]
+fn sync_service__propagates_is_available_error() {
+    let tracker = MockTrackerErr {
+        name: "broken".to_string(),
+    };
+    let service = SyncService::new(tracker);
+    let todo = make_test_todo("1", "Test", TodoStatus::Pending);
+
+    let result = service.sync_todo(&todo);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        SyncError::ProviderUnavailable(_)
+    ));
 }

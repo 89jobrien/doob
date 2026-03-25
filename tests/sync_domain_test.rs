@@ -1,4 +1,5 @@
 // tests/sync_domain_test.rs
+#![allow(non_snake_case)]
 
 mod common;
 
@@ -151,4 +152,54 @@ fn issue_tracker__creates_issue_when_available() {
     let record = result.unwrap();
     assert_eq!(record.external_id, "test-1");
     assert_eq!(record.provider, "test");
+}
+
+#[test]
+fn sync_error__formats_todo_already_synced() {
+    let err = SyncError::TodoAlreadySynced("bd-42".to_string());
+    let msg = format!("{}", err);
+    assert!(msg.contains("bd-42"));
+    assert!(msg.contains("already been synced"));
+}
+
+#[test]
+fn sync_error__formats_database_error() {
+    let err = SyncError::DatabaseError("connection refused".to_string());
+    let msg = format!("{}", err);
+    assert!(msg.contains("connection refused"));
+}
+
+#[test]
+fn sync_error__formats_serialization_error() {
+    let err = SyncError::SerializationError("invalid json".to_string());
+    let msg = format!("{}", err);
+    assert!(msg.contains("invalid json"));
+}
+
+#[test]
+fn syncable_todo__round_trips_through_json() {
+    let todo = SyncableTodo {
+        id: "round-trip-1".to_string(),
+        title: "Round trip test".to_string(),
+        description: Some("A description".to_string()),
+        priority: 3,
+        status: TodoStatus::InProgress,
+        tags: vec!["tag-a".to_string(), "tag-b".to_string()],
+        project: Some("my-project".to_string()),
+        file_path: Some("/src/main.rs".to_string()),
+        due_date: Some("2026-12-31".to_string()),
+    };
+
+    let json = serde_json::to_string(&todo).expect("Failed to serialize");
+    let restored: SyncableTodo = serde_json::from_str(&json).expect("Failed to deserialize");
+
+    assert_eq!(restored.id, todo.id);
+    assert_eq!(restored.title, todo.title);
+    assert_eq!(restored.description, todo.description);
+    assert_eq!(restored.priority, todo.priority);
+    assert_eq!(restored.status, todo.status);
+    assert_eq!(restored.tags, todo.tags);
+    assert_eq!(restored.project, todo.project);
+    assert_eq!(restored.file_path, todo.file_path);
+    assert_eq!(restored.due_date, todo.due_date);
 }

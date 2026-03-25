@@ -76,20 +76,35 @@ pub fn render_board(todos: &[Todo], status_filter: Option<&[TodoStatus]>) -> Str
         let max_rows = columns.iter().map(|(_, v)| v.len()).max().unwrap_or(0);
         for row in 0..max_rows {
             let mut line = String::from("  ");
-            for (_, todos) in &columns {
-                if let Some(todo) = todos.get(row) {
+            for (_, col_todos) in &columns {
+                if let Some(todo) = col_todos.get(row) {
                     let short_id = todo
                         .id
                         .as_ref()
-                        .map(|t| t.id.to_string())
+                        .map(|t| {
+                            let s = t.id.to_string();
+                            s[..s.len().min(6)].to_string()
+                        })
                         .unwrap_or_else(|| todo.uuid[..6].to_string());
-                    let cell = format!("{}  {}", short_id, truncate(&todo.content, 16));
+                    let is_blocked = !todo.blocked_by.is_empty()
+                        && todo.blocked_by.iter().any(|uid| {
+                            todos.iter().any(|t| {
+                                t.uuid == *uid
+                                    && t.status != TodoStatus::Completed
+                                    && t.status != TodoStatus::Cancelled
+                            })
+                        });
+                    let cell = if is_blocked {
+                        format!("[BLK] {}  {}", short_id, truncate(&todo.content, 10))
+                    } else {
+                        format!("{}  {}", short_id, truncate(&todo.content, 16))
+                    };
                     line.push_str(&pad_cell(&cell));
                 } else {
                     line.push_str(&" ".repeat(CELL_WIDTH));
                 }
                 line.push_str("  ");
-            }
+            } // end for col_todos
             output.push_str(line.trim_end());
             output.push('\n');
         }

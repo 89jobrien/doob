@@ -65,3 +65,14 @@ async fn test_complete_batch_todos() {
     let all: Vec<doob::models::Todo> = db.select("todo").await.unwrap();
     assert!(all.iter().all(|t| t.status == TodoStatus::Completed));
 }
+
+#[tokio::test]
+async fn test_complete_nonexistent_todo_errors() {
+    let db = setup_test_db().await;
+
+    let result = doob::commands::complete::execute(&db, vec!["nonexistent".to_string()]).await;
+
+    assert!(result.is_err());
+    let msg = result.unwrap_err().to_string();
+    assert!(msg.contains("not found"));
+}

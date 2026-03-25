@@ -1,10 +1,3 @@
-// src/sync/adapters/beads.rs
-//
-// BeadsAdapter: Sync adapter for bd CLI (beads.fyi)
-//
-// This adapter implements MinimalIssueTracker, providing only the essential
-// create operation. It does not support updates, deletes, or bidirectional sync.
-
 use crate::sync::domain::{
     HealthCheck, IssueCreator, Provider, SyncError, SyncRecord, SyncableTodo,
 };
@@ -14,7 +7,6 @@ const PROVIDER_NAME: &str = "beads";
 const BEADS_ISSUE_TYPE: &str = "task";
 
 pub struct BeadsAdapter {
-    // No state needed - delegates to bd CLI
 }
 
 impl BeadsAdapter {
@@ -23,24 +15,19 @@ impl BeadsAdapter {
     }
 
     fn map_priority(&self, priority: u8) -> u8 {
-        // Direct 0-4 mapping
         priority.min(4)
     }
 
     fn extract_issue_id(&self, output: &str) -> Result<String, SyncError> {
-        // Parse "Created issue bd-42" or similar
-        output.split_whitespace()
+        output
+            .split_whitespace()
             .find(|s| s.starts_with("bd-") || s.starts_with("beads-"))
             .map(String::from)
-            .ok_or_else(|| SyncError::ExternalApiError(
-                "Could not parse bd issue ID from output".to_string()
-            ))
+            .ok_or_else(|| {
+                SyncError::ExternalApiError("Could not parse bd issue ID from output".to_string())
+            })
     }
 }
-
-// ============================================================================
-// NEW TRAIT IMPLEMENTATIONS (ISP)
-// ============================================================================
 
 impl Provider for BeadsAdapter {
     fn name(&self) -> &str {
@@ -50,8 +37,6 @@ impl Provider for BeadsAdapter {
     fn version(&self) -> &str {
         env!("CARGO_PKG_VERSION")
     }
-
-    // Uses default implementation (all flags false)
 }
 
 impl HealthCheck for BeadsAdapter {
@@ -106,6 +91,48 @@ impl IssueCreator for BeadsAdapter {
     }
 }
 
-// BeadsAdapter automatically implements MinimalIssueTracker
-// and IssueTracker (via blanket impl) because it implements
-// Provider + HealthCheck + IssueCreator
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extract_issue_id__parses_bd_prefix() {
+        let adapter = BeadsAdapter::new();
+        let output = "Created issue bd-42 successfully";
+        let result = adapter.extract_issue_id(output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "bd-42");
+    }
+
+    #[test]
+    fn extract_issue_id__parses_beads_prefix() {
+        let adapter = BeadsAdapter::new();
+        let output = "Created issue beads-99 in project";
+        let result = adapter.extract_issue_id(output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "beads-99");
+    }
+
+    #[test]
+    fn extract_issue_id__returns_err_on_unrecognized_output() {
+        let adapter = BeadsAdapter::new();
+        let output = "success";
+        let result = adapter.extract_issue_id(output);
+        assert!(result.is_err());
+        assert!(matches!(
+            result.unwrap_err(),
+            SyncError::ExternalApiError(_)
+        ));
+    }
+
+    #[test]
+    fn map_priority__clamps_at_4() {
+        let adapter = BeadsAdapter::new();
+        assert_eq!(adapter.map_priority(10), 4);
+        assert_eq!(adapter.map_priority(5), 4);
+        assert_eq!(adapter.map_priority(4), 4);
+        assert_eq!(adapter.map_priority(2), 2);
+        assert_eq!(adapter.map_priority(0), 0);
+    }
+}

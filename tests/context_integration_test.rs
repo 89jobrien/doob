@@ -1,7 +1,7 @@
 mod common;
 
+use common::setup_test_db;
 use doob::commands::add;
-use doob::db;
 use git2::Repository;
 use std::env;
 use tempfile::TempDir;
@@ -24,7 +24,7 @@ async fn test_context_detection_integration() {
     env::set_current_dir(repo_path).unwrap();
 
     // Create database
-    let db = db::create_connection(None).await.unwrap();
+    let db = setup_test_db().await;
 
     // Test 1: Add todo without explicit project (should auto-detect)
     let todos = add::execute(
@@ -81,7 +81,7 @@ async fn test_file_path_detection() {
     env::set_current_dir(&sub_dir).unwrap();
 
     // Create database
-    let db = db::create_connection(None).await.unwrap();
+    let db = setup_test_db().await;
 
     // Add todo from subdirectory
     let todos = add::execute(

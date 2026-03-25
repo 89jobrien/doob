@@ -77,5 +77,5 @@
 // - See `/docs/sync-architecture-analysis.md` for coupling analysis
 // - See `/tests/common/sync_mocks.rs` for testing utilities
 
-pub mod domain;
 pub mod adapters;
+pub mod domain;

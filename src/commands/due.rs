@@ -29,7 +29,7 @@ pub async fn execute(db: &DbConnection, id: String, due_date: Option<String>) ->
             let parsed_date = parse_date(&date_str)?;
             let formatted_date = parsed_date.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string();
             format!(
-                "UPDATE {} SET due_date = '{}', updated_at = time::now()",
+                "UPDATE {} SET due_date = <datetime>'{}', updated_at = time::now()",
                 record_id, formatted_date
             )
         }

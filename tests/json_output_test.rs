@@ -35,3 +35,13 @@ async fn test_json_output_format() {
     assert_eq!(parsed["todos"][0]["priority"], 1);
     assert_eq!(parsed["todos"][0]["tags"][0], "urgent");
 }
+
+#[test]
+fn test_json_format_empty_todos() {
+    use serde_json::Value;
+    let json = doob::output::json::format_todos(&[]);
+    let parsed: Value = serde_json::from_str(&json).expect("Invalid JSON");
+    assert_eq!(parsed["count"], 0);
+    assert!(parsed["todos"].is_array());
+    assert_eq!(parsed["todos"].as_array().unwrap().len(), 0);
+}

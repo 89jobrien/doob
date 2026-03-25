@@ -2,12 +2,12 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Todo {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchivedTodo {
     pub id: Option<Thing>,
     pub uuid: String,
     pub content: String,
-    pub status: TodoStatus,
+    pub status: String,
     pub priority: u8,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -17,18 +17,9 @@ pub struct Todo {
     pub project_path: Option<String>,
     pub file_path: Option<String>,
     pub tags: Vec<String>,
-    pub metadata: Option<serde_json::Value>,
+    pub archived_at: DateTime<Utc>,
     #[serde(default)]
     pub blocks: Vec<String>,
     #[serde(default)]
     pub blocked_by: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[serde(rename_all = "snake_case")]
-pub enum TodoStatus {
-    Pending,
-    InProgress,
-    Completed,
-    Cancelled,
 }

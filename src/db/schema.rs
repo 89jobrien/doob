@@ -20,6 +20,8 @@ pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
         DEFINE FIELD IF NOT EXISTS file_path ON TABLE todo TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS tags ON TABLE todo TYPE array<string> DEFAULT [];
         DEFINE FIELD IF NOT EXISTS metadata ON TABLE todo TYPE option<object>;
+        DEFINE FIELD IF NOT EXISTS blocks ON TABLE todo TYPE array<string> DEFAULT [];
+        DEFINE FIELD IF NOT EXISTS blocked_by ON TABLE todo TYPE array<string> DEFAULT [];
 
         DEFINE INDEX IF NOT EXISTS idx_status ON TABLE todo COLUMNS status;
         DEFINE INDEX IF NOT EXISTS idx_project ON TABLE todo COLUMNS project;
@@ -34,6 +36,24 @@ pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
         DEFINE FIELD IF NOT EXISTS tags       ON TABLE note TYPE array<string> DEFAULT [];
         DEFINE FIELD IF NOT EXISTS metadata   ON TABLE note TYPE option<object>;
         DEFINE INDEX IF NOT EXISTS idx_note_project ON TABLE note COLUMNS project;
+
+        DEFINE TABLE IF NOT EXISTS archive SCHEMAFULL;
+        DEFINE FIELD IF NOT EXISTS uuid         ON TABLE archive TYPE string;
+        DEFINE FIELD IF NOT EXISTS content      ON TABLE archive TYPE string;
+        DEFINE FIELD IF NOT EXISTS status       ON TABLE archive TYPE string;
+        DEFINE FIELD IF NOT EXISTS priority     ON TABLE archive TYPE int DEFAULT 0;
+        DEFINE FIELD IF NOT EXISTS created_at   ON TABLE archive TYPE datetime;
+        DEFINE FIELD IF NOT EXISTS updated_at   ON TABLE archive TYPE datetime;
+        DEFINE FIELD IF NOT EXISTS completed_at ON TABLE archive TYPE option<datetime>;
+        DEFINE FIELD IF NOT EXISTS due_date     ON TABLE archive TYPE option<datetime>;
+        DEFINE FIELD IF NOT EXISTS project      ON TABLE archive TYPE option<string>;
+        DEFINE FIELD IF NOT EXISTS project_path ON TABLE archive TYPE option<string>;
+        DEFINE FIELD IF NOT EXISTS file_path    ON TABLE archive TYPE option<string>;
+        DEFINE FIELD IF NOT EXISTS tags         ON TABLE archive TYPE array<string> DEFAULT [];
+        DEFINE FIELD IF NOT EXISTS blocks       ON TABLE archive TYPE array<string> DEFAULT [];
+        DEFINE FIELD IF NOT EXISTS blocked_by   ON TABLE archive TYPE array<string> DEFAULT [];
+        DEFINE FIELD IF NOT EXISTS archived_at  ON TABLE archive TYPE datetime DEFAULT time::now();
+        DEFINE INDEX IF NOT EXISTS idx_archive_project ON TABLE archive COLUMNS project;
     "#,
     )
     .await?;

@@ -5,7 +5,7 @@ use std::process;
 
 use anyhow::Result;
 use clap::Parser;
-use doob::cli::{Cli, Commands, NoteAction, TodoAction};
+use doob::cli::{ArchiveAction, Cli, Commands, NoteAction, TodoAction};
 use doob::{commands, db, output};
 
 #[tokio::main]
@@ -30,9 +30,21 @@ async fn run() -> Result<()> {
                 project,
                 file,
                 tags,
+                blocks,
+                blocked_by,
             } => {
                 let todos =
                     commands::add::execute(&db, content, priority, project, file, tags).await?;
+
+                // Link deps if provided
+                let blocks_list = blocks.unwrap_or_default();
+                let blocked_by_list = blocked_by.unwrap_or_default();
+                if !blocks_list.is_empty() || !blocked_by_list.is_empty() {
+                    for todo in &todos {
+                        commands::deps::link(&db, &todo.uuid, &blocks_list, &blocked_by_list)
+                            .await?;
+                    }
+                }
 
                 for todo in &todos {
                     println!("✓ Created todo: {}", todo.content);
@@ -83,6 +95,15 @@ async fn run() -> Result<()> {
                 println!("✓ Undid completion for {} todo(s)", count);
                 Ok(())
             }
+            TodoAction::Deps { id } => {
+                let view = commands::deps::execute(&db, id).await?;
+                if cli.json {
+                    println!("{}", output::deps_json(&view));
+                } else {
+                    println!("{}", output::deps_human(&view));
+                }
+                Ok(())
+            }
         },
 
         Commands::Note { action } => match action {
@@ -92,8 +113,7 @@ async fn run() -> Result<()> {
                 file,
                 tags,
             } => {
-                let notes =
-                    commands::note::add::execute(&db, content, project, file, tags).await?;
+                let notes = commands::note::add::execute(&db, content, project, file, tags).await?;
 
                 for note in &notes {
                     println!("✓ Created note: {}", note.content);
@@ -127,12 +147,77 @@ async fn run() -> Result<()> {
                     .collect()
             });
 
-            let (todos, filter) =
-                commands::kan::execute(&db, project, status_filter).await?;
+            let (todos, filter) = commands::kan::execute(&db, project, status_filter).await?;
 
             let board = output::kanban::render_board(&todos, filter.as_deref());
             print!("{}", board);
 
+            Ok(())
+        }
+
+        Commands::Search {
+            query,
+            search_type,
+            project,
+        } => {
+            let results =
+                commands::search::execute(&db, query.clone(), search_type, project).await?;
+            if cli.json {
+                println!("{}", output::search_json::format_results(&results, &query));
+            } else {
+                println!("{}", output::search_human::format_results(&results));
+            }
+            Ok(())
+        }
+
+        Commands::Stats { project, window } => {
+            let stats = commands::stats::execute(&db, project, window).await?;
+            if cli.json {
+                println!("{}", output::stats_json::format_stats(&stats));
+            } else {
+                println!("{}", output::stats_human::format_stats(&stats));
+            }
+            Ok(())
+        }
+
+        Commands::Archive { action } => match action {
+            ArchiveAction::Run {
+                older_than,
+                apply,
+                project,
+            } => {
+                let result =
+                    commands::archive::run::execute(&db, older_than, apply, project).await?;
+                if cli.json {
+                    println!("{}", output::archive_json::format_run_result(&result));
+                } else {
+                    println!("{}", output::archive_human::format_run_result(&result));
+                }
+                Ok(())
+            }
+            ArchiveAction::List { project, limit } => {
+                let archived = commands::archive::list::execute(&db, project, limit).await?;
+                if cli.json {
+                    println!("{}", output::archive_json::format_list(&archived));
+                } else {
+                    println!("{}", output::archive_human::format_list(&archived));
+                }
+                Ok(())
+            }
+        },
+
+        Commands::Watch {
+            project,
+            status,
+            interval,
+        } => {
+            let status_filter: Option<Vec<doob::models::TodoStatus>> = status.map(|statuses| {
+                statuses
+                    .iter()
+                    .filter_map(|s| commands::kan::parse_status(s))
+                    .collect()
+            });
+            commands::watch::execute(&db, project, status_filter, interval).await?;
             Ok(())
         }
     }

@@ -20,3 +20,31 @@ impl ExitCode {
         }
     }
 }
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod tests {
+    use super::ExitCode;
+    use anyhow::anyhow;
+
+    #[test]
+    fn exit_code__from_not_found_error() {
+        let err = anyhow!("Todo not found: todo:abc");
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::TodoNotFound));
+    }
+
+    #[test]
+    fn exit_code__from_invalid_error() {
+        let err = anyhow!("Invalid date format: 'foo'");
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::InvalidInput));
+    }
+
+    #[test]
+    fn exit_code__from_generic_error_falls_back_to_database_error() {
+        let err = anyhow!("connection refused");
+        assert!(matches!(
+            ExitCode::from_error(&err),
+            ExitCode::DatabaseError
+        ));
+    }
+}

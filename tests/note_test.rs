@@ -129,11 +129,7 @@ async fn test_remove_note() {
     .await
     .unwrap();
 
-    let id = created[0]
-        .id
-        .as_ref()
-        .map(|t| t.id.to_string())
-        .unwrap();
+    let id = created[0].id.as_ref().map(|t| t.id.to_string()).unwrap();
 
     let count = doob::commands::note::remove::execute(&db, vec![id])
         .await
@@ -151,8 +147,8 @@ async fn test_remove_note() {
 async fn test_remove_nonexistent_note_errors() {
     let db = setup_test_db().await;
 
-    let result = doob::commands::note::remove::execute(&db, vec!["nonexistent_id".to_string()])
-        .await;
+    let result =
+        doob::commands::note::remove::execute(&db, vec!["nonexistent_id".to_string()]).await;
 
     assert!(result.is_err());
 }
