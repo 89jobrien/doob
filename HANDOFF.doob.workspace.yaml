@@ -1,11 +1,35 @@
+project: doob
+id: doob
+updated: 2026-04-03
+branch: main
+state:
+  tests: 3 passing
+  build: clean
+  notes: dead_code warning on ExitCode variant (non-blocking)
+items:
 - id: doob-1
-  doob_uuid: 4fdccae2-8cc2-4a16-b159-26a7163ae61f
+  doob_uuid: 40013d74-6df1-4d1a-8c0d-0003b09d0362
   name: dead-code-warning-exit-code
   priority: P2
   status: open
   title: Fix dead_code warning on ExitCode::ContextError variant
   description: |
-    cargo check surfaces a dead_code warning on `ExitCode::ContextError = 4`. Either use it in an error path or suppress with #[allow(dead_code)].
+    cargo check surfaces a dead_code warning on `ExitCode::ContextError = 4`.
+    Either use it in an error path or suppress with #[allow(dead_code)].
   files:
   - src/main.rs
   extra: []
+log:
+- date: 2026-04-03
+  summary: Added handoff command with bidirectional HANDOFF.yaml sync; added search, stats, deps, archive, watch commands; ISP trait refactor; batch sync optimisation
+  commits:
+  - '7087027'
+  - c28c8e2
+  - 820db3b
+  - 6fda57c
+- date: 2026-04-03
+  summary: Added BeadsAdapter implementation and integration/unit tests
+  commits:
+  - 718ed64
+  - d03249e
+  - ec97de3

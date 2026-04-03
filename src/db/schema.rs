@@ -55,19 +55,7 @@ pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
         DEFINE FIELD IF NOT EXISTS archived_at  ON TABLE archive TYPE datetime DEFAULT time::now();
         DEFINE INDEX IF NOT EXISTS idx_archive_project ON TABLE archive COLUMNS project;
 
-        DEFINE TABLE IF NOT EXISTS handoff_item SCHEMAFULL;
-        DEFINE FIELD IF NOT EXISTS uuid         ON TABLE handoff_item TYPE string;
-        DEFINE FIELD IF NOT EXISTS handoff_id   ON TABLE handoff_item TYPE string;
-        DEFINE FIELD IF NOT EXISTS project      ON TABLE handoff_item TYPE string;
-        DEFINE FIELD IF NOT EXISTS title        ON TABLE handoff_item TYPE string;
-        DEFINE FIELD IF NOT EXISTS description  ON TABLE handoff_item TYPE option<string>;
-        DEFINE FIELD IF NOT EXISTS priority     ON TABLE handoff_item TYPE string;
-        DEFINE FIELD IF NOT EXISTS status       ON TABLE handoff_item TYPE string DEFAULT 'open';
-        DEFINE FIELD IF NOT EXISTS files        ON TABLE handoff_item TYPE array<string> DEFAULT [];
-        DEFINE FIELD IF NOT EXISTS extra        ON TABLE handoff_item TYPE array<object> DEFAULT [];
-        DEFINE FIELD IF NOT EXISTS created_at   ON TABLE handoff_item TYPE datetime DEFAULT time::now();
-        DEFINE FIELD IF NOT EXISTS updated_at   ON TABLE handoff_item TYPE datetime DEFAULT time::now();
-        DEFINE FIELD IF NOT EXISTS completed_at ON TABLE handoff_item TYPE option<datetime>;
+        DEFINE TABLE IF NOT EXISTS handoff_item SCHEMALESS;
         DEFINE INDEX IF NOT EXISTS idx_handoff_project ON TABLE handoff_item COLUMNS project;
         DEFINE INDEX IF NOT EXISTS idx_handoff_id      ON TABLE handoff_item COLUMNS handoff_id UNIQUE;
     "#,
