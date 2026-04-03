@@ -245,6 +245,15 @@ pub enum HandoffAction {
         #[arg(long)]
         note: String,
     },
+
+    /// Update the status of a handoff item
+    UpdateStatus {
+        /// Handoff item ID (e.g. doob-1)
+        handoff_id: String,
+
+        /// New status: open, done, parked, blocked
+        status: String,
+    },
 }
 
 #[derive(Subcommand)]

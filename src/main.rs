@@ -241,6 +241,12 @@ async fn run() -> Result<()> {
                 println!("✓ Added extra to {}", handoff_id);
                 Ok(())
             }
+            HandoffAction::UpdateStatus { handoff_id, status } => {
+                commands::handoff::update_status::execute(&db, handoff_id.clone(), status.clone())
+                    .await?;
+                println!("✓ Updated {} status to {}", handoff_id, status);
+                Ok(())
+            }
         },
 
         Commands::Watch {

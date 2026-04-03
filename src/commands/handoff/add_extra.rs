@@ -9,12 +9,10 @@ pub async fn execute(
     entry_type: String,
     note: String,
 ) -> Result<()> {
-    // Look up existing item
-    let mut result = db
-        .query("SELECT * FROM handoff_item WHERE handoff_id = $id LIMIT 1")
-        .bind(("id", handoff_id.clone()))
-        .await?;
-    let items: Vec<HandoffItem> = result.take(0)?;
+    let hid = handoff_id.replace('\'', "\\'");
+    let select_sql = format!("SELECT * FROM handoff_item WHERE handoff_id = '{hid}' LIMIT 1");
+    let mut result = db.query(&select_sql).await?;
+    let items: Vec<HandoffItem> = result.take(0).unwrap_or_default();
     let item = items
         .into_iter()
         .next()
@@ -32,13 +30,12 @@ pub async fn execute(
     let mut new_extra = item.extra.clone();
     new_extra.push(entry);
 
-    let now = Utc::now();
-
-    db.query("UPDATE handoff_item SET extra = $extra, updated_at = $now WHERE handoff_id = $id")
-        .bind(("extra", serde_json::to_value(&new_extra)?))
-        .bind(("now", now))
-        .bind(("id", handoff_id))
-        .await?;
+    let now_str = Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ").to_string();
+    let extra_json = serde_json::to_string(&new_extra)?;
+    let update_sql = format!(
+        r#"UPDATE handoff_item MERGE {{ "extra": {extra_json}, "updated_at": d"{now_str}" }} WHERE handoff_id = '{hid}'"#
+    );
+    db.query(&update_sql).await?;
 
     Ok(())
 }
