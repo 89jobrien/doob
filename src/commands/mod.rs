@@ -1,5 +1,6 @@
 pub mod add;
 pub mod archive;
+pub mod handoff;
 pub mod complete;
 pub mod deps;
 pub mod due;

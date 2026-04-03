@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "doob")]
@@ -71,6 +72,12 @@ pub enum Commands {
     Archive {
         #[command(subcommand)]
         action: ArchiveAction,
+    },
+
+    /// Manage handoff items (bidirectional sync with HANDOFF.yaml)
+    Handoff {
+        #[command(subcommand)]
+        action: HandoffAction,
     },
 
     /// Live-updating kanban board
@@ -202,6 +209,41 @@ pub enum NoteAction {
         /// Note ID(s)
         #[arg(required = true)]
         ids: Vec<String>,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum HandoffAction {
+    /// Bidirectional sync between HANDOFF.yaml and the handoff_item table
+    Sync {
+        /// Path to the HANDOFF.yaml file
+        #[arg(long)]
+        file: PathBuf,
+    },
+
+    /// List handoff items
+    List {
+        /// Filter by project name
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+
+        /// Filter by status (open, done, parked, blocked)
+        #[arg(long)]
+        status: Option<String>,
+    },
+
+    /// Append an extra entry to a handoff item
+    AddExtra {
+        /// Handoff item ID (e.g. cci-7)
+        handoff_id: String,
+
+        /// Entry type: note, blocker, decision, discovery, escalation
+        #[arg(long = "type")]
+        entry_type: String,
+
+        /// Note text
+        #[arg(long)]
+        note: String,
     },
 }
 

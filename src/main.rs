@@ -5,7 +5,7 @@ use std::process;
 
 use anyhow::Result;
 use clap::Parser;
-use doob::cli::{ArchiveAction, Cli, Commands, NoteAction, TodoAction};
+use doob::cli::{ArchiveAction, Cli, Commands, HandoffAction, NoteAction, TodoAction};
 use doob::{commands, db, output};
 
 #[tokio::main]
@@ -202,6 +202,40 @@ async fn run() -> Result<()> {
                 } else {
                     println!("{}", output::archive_human::format_list(&archived));
                 }
+                Ok(())
+            }
+        },
+
+        Commands::Handoff { action } => match action {
+            HandoffAction::Sync { file } => {
+                let summary = commands::handoff::sync::execute(&db, &file).await?;
+                if cli.json {
+                    println!(
+                        "{}",
+                        output::handoff_json::format_sync_summary(&summary)
+                    );
+                } else {
+                    print!("{}", output::handoff_human::format_sync_summary(&summary));
+                }
+                Ok(())
+            }
+            HandoffAction::List { project, status } => {
+                let items = commands::handoff::list::execute(&db, project, status).await?;
+                if cli.json {
+                    println!("{}", output::handoff_json::format_list(&items));
+                } else {
+                    print!("{}", output::handoff_human::format_list(&items));
+                }
+                Ok(())
+            }
+            HandoffAction::AddExtra {
+                handoff_id,
+                entry_type,
+                note,
+            } => {
+                commands::handoff::add_extra::execute(&db, handoff_id.clone(), entry_type, note)
+                    .await?;
+                println!("✓ Added extra to {}", handoff_id);
                 Ok(())
             }
         },
