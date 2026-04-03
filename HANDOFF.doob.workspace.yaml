@@ -5,7 +5,7 @@ branch: main
 state:
   tests: 113 passing
   build: clean
-  notes: dead_code warning on ExitCode variants (non-blocking)
+  notes: null
 items:
 - id: doob-1
   doob_uuid: 40013d74-6df1-4d1a-8c0d-0003b09d0362
@@ -19,7 +19,12 @@ items:
   files:
   - src/error.rs
   extra: []
+  completed: 2026-04-03
 log:
+- date: 2026-04-03
+  summary: Fixed dead_code warnings — used ExitCode::Success on happy path, ContextError in from_error
+  commits:
+  - 6f32124
 - date: 2026-04-03
   summary: Fixed SurrealKV persistence — raw SQL datetime literals, SCHEMALESS table, inline JSON to bypass SurrealDB 2.x parameterized query bug; moved DB to ~/.ctx/doob/db
   commits:
