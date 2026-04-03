@@ -10,10 +10,13 @@ use doob::{commands, db, output};
 
 #[tokio::main]
 async fn main() {
-    if let Err(e) = run().await {
-        eprintln!("Error: {}", e);
-        let code = ExitCode::from_error(&e);
-        process::exit(code as i32);
+    match run().await {
+        Ok(()) => process::exit(ExitCode::Success as i32),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            let code = ExitCode::from_error(&e);
+            process::exit(code as i32);
+        }
     }
 }
 
