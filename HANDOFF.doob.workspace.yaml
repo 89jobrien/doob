@@ -1,7 +1,25 @@
 project: doob
 id: doob
-updated: 2026-04-03
+updated: 2026-04-04
 items:
+- id: doob-3
+  doob_uuid: 54f315d6-1176-42ba-a8f6-698d896419e5
+  name: doobdash-tui-redesign
+  priority: P1
+  status: open
+  title: Redesign doobdash TUI — tabs + kanban + detail pane + semantic colors
+  description: |
+    Full redesign of crates/doobdash. Layout: tabs (Items | Log | Stats | Help) where
+    the Items tab is a kanban column view (Active | Waiting | Done). Add: right detail
+    pane for selected item, context-sensitive footer keybinding hints, live search (/),
+    semantic color theme (Catppuccin-style), stats tab with bar charts, help modal (?),
+    scrollbar + count per column, focused-pane border highlight, vim h/l column nav,
+    header status summary with color-coded counts.
+  files:
+  - crates/doobdash/src/app.rs
+  - crates/doobdash/src/ui.rs
+  - crates/doobdash/src/main.rs
+  extra: []
 - id: doob-2
   doob_uuid: a6198154-de7a-4dd7-b702-4ffc8bde36b9
   name: doob-dash-tui-crate
@@ -20,6 +38,7 @@ items:
   - crates/doob-dash/src/main.rs
   - src/main.rs
   extra: []
+  completed: 2026-04-03
 - id: doob-1
   doob_uuid: 0b4dbae2-eb05-4994-ba12-a5823fb583ae
   name: dead-code-warning-exit-code
@@ -34,6 +53,8 @@ items:
   extra: []
   completed: 2026-04-03
 log:
+- date: 2026-04-04
+  summary: Brainstormed doobdash TUI redesign — tabs+kanban+detail pane selected, all 10 features scoped, CLAUDE.md updated
 - date: 2026-04-03
   summary: Designed doob-dash TUI crate — architecture agreed, B option selected, doob-2 item created
 - date: 2026-04-03
@@ -53,9 +74,3 @@ log:
   - c28c8e2
   - 820db3b
   - 6fda57c
-- date: 2026-04-03
-  summary: Added BeadsAdapter implementation and integration/unit tests
-  commits:
-  - 718ed64
-  - d03249e
-  - ec97de3
