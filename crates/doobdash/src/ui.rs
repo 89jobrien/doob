@@ -133,6 +133,7 @@ fn render_tabs(app: &App, frame: &mut Frame, area: Rect) {
         (Tab::Log, "2: Log"),
         (Tab::Stats, "3: Stats"),
         (Tab::Help, "4: Help"),
+        (Tab::Db, "5: DB"),
     ];
 
     let spans: Vec<Span> = tabs
@@ -553,16 +554,21 @@ fn render_help_tab(frame: &mut Frame, area: Rect) {
         Line::from(Span::styled("Actions", Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD))),
         Line::from(Span::raw("")),
         help_row("Enter", "Open full detail overlay"),
-        help_row("Esc (overlay)", "Close overlay, back to kanban"),
-        help_row("j/k (overlay)", "Scroll overlay"),
         help_row("z", "Toggle description strip on/off"),
         help_row("z + j/k", "Shrink/expand strip height (hold z)"),
-        help_row("s", "Set status (o=open d=done p=parked b=blocked)"),
-        help_row("n", "Add note to selected item"),
-        help_row("w", "Save + sync to doob"),
-        help_row("/", "Search / filter items"),
         help_row("Esc (search)", "Clear search, return to Normal"),
         help_row("q / Esc", "Quit"),
+        Line::from(Span::raw("")),
+        Line::from(Span::styled("Space Leader", Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD))),
+        Line::from(Span::raw("")),
+        help_row("Space", "Enter space leader (action mode)"),
+        help_row("Space s", "Set status (o=open d=done p=parked b=blocked)"),
+        help_row("Space n", "Add note to selected item"),
+        help_row("Space w", "Save + sync to doob"),
+        help_row("Space /", "Search / filter items"),
+        help_row("Space 1-5", "Switch tabs"),
+        help_row("Space ?", "Help tab"),
+        help_row("Esc (leader)", "Cancel space leader"),
     ];
 
     let para = Paragraph::new(text)
@@ -598,26 +604,19 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         (Mode::InputNote, _) => {
             format!(" INPUT NOTE  Enter=save  Esc=cancel  > {}", app.input_buf)
         }
+        (Mode::SpaceLeader, _) => {
+            " SPACE  s=status  n=note  w=save  /=search  1-5=tabs  ?=help  Esc=cancel"
+                .to_string()
+        }
         (Mode::Normal, Tab::Items) => {
-            " j/k=nav  h/l=col  gg/G=top/btm  Enter=detail  s=status  n=note  /=search  w=save  q=quit".to_string()
+            " j/k=nav  h/l=col  gg/G=top/btm  Enter=detail  Space=actions  q=quit".to_string()
         }
-        (Mode::Normal, Tab::Log) => {
-            " 1=items  3=stats  4=help  q=quit".to_string()
-        }
-        (Mode::Normal, Tab::Stats) => {
-            " 1=items  2=log  4=help  q=quit".to_string()
-        }
-        (Mode::Normal, Tab::Help) => {
-            " 1=items  2=log  3=stats  q=quit".to_string()
-        }
+        (Mode::Normal, Tab::Log) => " Space=actions  q=quit".to_string(),
+        (Mode::Normal, Tab::Stats) => " Space=actions  q=quit".to_string(),
+        (Mode::Normal, Tab::Help) => " Space=actions  q=quit".to_string(),
+        (Mode::Normal, Tab::Db) => " j/k=nav  Space=actions  q=quit".to_string(),
         (Mode::Overlay, _) => {
             " j/k=scroll  s=status  n=note  Esc=back".to_string()
-        }
-        (Mode::SpaceLeader, _) => {
-            " SPACE LEADER  waiting for action key...  Esc=cancel".to_string()
-        }
-        (Mode::Normal, Tab::Db) => {
-            " j/k=nav  /=search  q=quit".to_string()
         }
     };
 
@@ -634,7 +633,7 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         Mode::InputNote => Style::default().fg(C_ACCENT),
         Mode::Normal => Style::default().fg(C_MUTED),
         Mode::Overlay => Style::default().fg(C_ACCENT),
-        Mode::SpaceLeader => Style::default().fg(C_WARNING),
+        Mode::SpaceLeader => Style::default().fg(C_ACCENT),
     };
 
     let footer = Paragraph::new(display).style(footer_style).block(
@@ -650,45 +649,92 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
 // ---------------------------------------------------------------------------
 
 fn render_db_tab(app: &App, frame: &mut Frame, area: Rect) {
-    let filtered = app.db_filtered();
-
-    if !app.db_loaded {
-        let msg = if let Some(ref e) = app.db_error {
-            format!(" DB error: {e}")
-        } else {
-            " Loading DB...".to_string()
-        };
-        let p = Paragraph::new(msg)
-            .style(Style::default().fg(C_MUTED))
-            .block(Block::default().borders(Borders::ALL).title(" DB "));
-        frame.render_widget(p, area);
+    if let Some(ref err) = app.db_error {
+        let para = Paragraph::new(err.as_str())
+            .style(Style::default().fg(C_ERROR))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(Span::styled(" DB  error ", Style::default().fg(C_ERROR)))
+                    .border_style(Style::default().fg(C_MUTED)),
+            );
+        frame.render_widget(para, area);
         return;
     }
+
+    if !app.db_loaded {
+        let para = Paragraph::new("Loading\u{2026}")
+            .style(Style::default().fg(C_MUTED))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(Span::styled(" DB ", Style::default().fg(C_ACCENT)))
+                    .border_style(Style::default().fg(C_MUTED)),
+            );
+        frame.render_widget(para, area);
+        return;
+    }
+
+    let filtered = app.db_filtered();
+    let total = filtered.len();
+    let title = format!(" DB  {} todos ", total);
+
+    let inner_height = area.height.saturating_sub(2) as usize;
+    let offset = scroll_offset(app.db_selected, app.db_offset, inner_height);
 
     let items: Vec<ListItem> = filtered
         .iter()
         .enumerate()
-        .map(|(i, t)| {
-            let style = if i == app.db_selected {
-                Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD)
-            } else {
-                Style::default().fg(C_BODY)
+        .skip(offset)
+        .take(inner_height)
+        .map(|(i, todo)| {
+            let is_selected = i == app.db_selected;
+            let status_color = match todo.status.as_str() {
+                "done" => C_SUCCESS,
+                "parked" | "waiting" => C_WARNING,
+                "blocked" => C_ERROR,
+                _ => C_ACTIVE,
             };
-            ListItem::new(format!(
-                " [{status}] {title}  ({project})",
-                status = t.status,
-                title = t.title,
-                project = t.project,
-            ))
-            .style(style)
+            let line = Line::from(vec![
+                Span::styled(
+                    format!(" {:>4}  ", todo.priority),
+                    Style::default().fg(C_MUTED),
+                ),
+                Span::styled(
+                    format!("{:<10}  ", todo.project),
+                    Style::default().fg(C_ACCENT),
+                ),
+                Span::styled(
+                    format!("{:<8}  ", todo.status),
+                    Style::default().fg(status_color),
+                ),
+                Span::styled(todo.title.clone(), Style::default().fg(C_BODY)),
+            ]);
+            if is_selected {
+                ListItem::new(line)
+                    .style(Style::default().bg(ratatui::style::Color::DarkGray))
+            } else {
+                ListItem::new(line)
+            }
         })
         .collect();
 
-    let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title(format!(
-            " DB ({} todos) ",
-            filtered.len()
-        )))
-        .highlight_style(Style::default().add_modifier(Modifier::REVERSED));
+    let list = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(Span::styled(title, Style::default().fg(C_ACCENT)))
+            .border_style(Style::default().fg(C_MUTED)),
+    );
+
     frame.render_widget(list, area);
+}
+
+fn scroll_offset(selected: usize, current_offset: usize, height: usize) -> usize {
+    if selected < current_offset {
+        selected
+    } else if selected >= current_offset + height {
+        selected.saturating_sub(height - 1)
+    } else {
+        current_offset
+    }
 }
