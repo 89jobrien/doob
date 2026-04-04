@@ -551,6 +551,11 @@ fn render_help_tab(frame: &mut Frame, area: Rect) {
         Line::from(Span::raw("")),
         Line::from(Span::styled("Actions", Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD))),
         Line::from(Span::raw("")),
+        help_row("Enter", "Open full detail overlay"),
+        help_row("Esc (overlay)", "Close overlay, back to kanban"),
+        help_row("j/k (overlay)", "Scroll overlay"),
+        help_row("z", "Toggle description strip on/off"),
+        help_row("z + j/k", "Shrink/expand strip height (hold z)"),
         help_row("s", "Set status (o=open d=done p=parked b=blocked)"),
         help_row("n", "Add note to selected item"),
         help_row("w", "Save + sync to doob"),
@@ -593,7 +598,7 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
             format!(" INPUT NOTE  Enter=save  Esc=cancel  > {}", app.input_buf)
         }
         (Mode::Normal, Tab::Items) => {
-            " j/k=nav  h/l=col  gg/G=top/btm  s=status  n=note  /=search  w=save  q=quit".to_string()
+            " j/k=nav  h/l=col  gg/G=top/btm  Enter=detail  s=status  n=note  /=search  w=save  q=quit".to_string()
         }
         (Mode::Normal, Tab::Log) => {
             " 1=items  3=stats  4=help  q=quit".to_string()
