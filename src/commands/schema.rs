@@ -1,48 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-// Command names - use byte literals to avoid obfsck pattern matching on string literals
-fn get_cmd_todo_add() -> String {
-    String::from_utf8_lossy(b"todo add").to_string()
-}
-fn get_cmd_todo_list() -> String {
-    String::from_utf8_lossy(b"todo list").to_string()
-}
-fn get_cmd_todo_complete() -> String {
-    String::from_utf8_lossy(b"todo complete").to_string()
-}
-fn get_cmd_todo_undo() -> String {
-    String::from_utf8_lossy(b"todo undo").to_string()
-}
-fn get_cmd_todo_remove() -> String {
-    String::from_utf8_lossy(b"todo remove").to_string()
-}
-fn get_cmd_todo_due() -> String {
-    String::from_utf8_lossy(b"todo due").to_string()
-}
-fn get_cmd_todo_deps() -> String {
-    String::from_utf8_lossy(b"todo deps").to_string()
-}
-fn get_cmd_note_add() -> String {
-    String::from_utf8_lossy(b"note add").to_string()
-}
-fn get_cmd_note_list() -> String {
-    String::from_utf8_lossy(b"note list").to_string()
-}
-fn get_cmd_note_remove() -> String {
-    String::from_utf8_lossy(b"note remove").to_string()
-}
-fn get_cmd_search() -> String { "search".to_string() }
-fn get_cmd_stats() -> String { "stats".to_string() }
-fn get_cmd_handoff_list() -> String {
-    String::from_utf8_lossy(b"handoff list").to_string()
-}
-fn get_cmd_handoff_sync() -> String {
-    String::from_utf8_lossy(b"handoff sync").to_string()
-}
-fn get_cmd_archive_list() -> String {
-    String::from_utf8_lossy(b"archive list").to_string()
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CliManifest {
     pub name: String,
@@ -76,7 +33,7 @@ pub fn build_manifest() -> CliManifest {
         version: env!("CARGO_PKG_VERSION").to_string(),
         commands: vec![
             CommandSchema {
-                name: get_cmd_todo_add().to_string(),
+                name: "todo add".to_string(),
                 description: "Add one or more todos".to_string(),
                 json_output: true,
                 params: vec![
@@ -125,7 +82,7 @@ pub fn build_manifest() -> CliManifest {
                 ],
             },
             CommandSchema {
-                name: get_cmd_todo_list().to_string(),
+                name: "todo list".to_string(),
                 description: "List todos".to_string(),
                 json_output: true,
                 params: vec![
@@ -153,7 +110,7 @@ pub fn build_manifest() -> CliManifest {
                 ],
             },
             CommandSchema {
-                name: get_cmd_todo_complete().to_string(),
+                name: "todo complete".to_string(),
                 description: "Complete one or more todos".to_string(),
                 json_output: true,
                 params: vec![ParamSchema {
@@ -165,7 +122,7 @@ pub fn build_manifest() -> CliManifest {
                 }],
             },
             CommandSchema {
-                name: get_cmd_todo_undo().to_string(),
+                name: "todo undo".to_string(),
                 description: "Undo completion — mark todos as pending".to_string(),
                 json_output: true,
                 params: vec![ParamSchema {
@@ -177,7 +134,7 @@ pub fn build_manifest() -> CliManifest {
                 }],
             },
             CommandSchema {
-                name: get_cmd_todo_remove().to_string(),
+                name: "todo remove".to_string(),
                 description: "Remove todos".to_string(),
                 json_output: true,
                 params: vec![ParamSchema {
@@ -189,7 +146,7 @@ pub fn build_manifest() -> CliManifest {
                 }],
             },
             CommandSchema {
-                name: get_cmd_todo_due().to_string(),
+                name: "todo due".to_string(),
                 description: "Set or clear due date for a todo".to_string(),
                 json_output: true,
                 params: vec![
@@ -210,7 +167,7 @@ pub fn build_manifest() -> CliManifest {
                 ],
             },
             CommandSchema {
-                name: get_cmd_todo_deps().to_string(),
+                name: "todo deps".to_string(),
                 description: "Show dependency chain for a todo".to_string(),
                 json_output: true,
                 params: vec![ParamSchema {
@@ -222,7 +179,7 @@ pub fn build_manifest() -> CliManifest {
                 }],
             },
             CommandSchema {
-                name: get_cmd_note_add().to_string(),
+                name: "note add".to_string(),
                 description: "Add one or more notes".to_string(),
                 json_output: true,
                 params: vec![
@@ -250,7 +207,7 @@ pub fn build_manifest() -> CliManifest {
                 ],
             },
             CommandSchema {
-                name: get_cmd_note_list().to_string(),
+                name: "note list".to_string(),
                 description: "List notes".to_string(),
                 json_output: true,
                 params: vec![ParamSchema {
@@ -262,7 +219,7 @@ pub fn build_manifest() -> CliManifest {
                 }],
             },
             CommandSchema {
-                name: get_cmd_note_remove().to_string(),
+                name: "note remove".to_string(),
                 description: "Remove notes".to_string(),
                 json_output: true,
                 params: vec![ParamSchema {
@@ -274,7 +231,7 @@ pub fn build_manifest() -> CliManifest {
                 }],
             },
             CommandSchema {
-                name: get_cmd_search().to_string(),
+                name: "search".to_string(),
                 description: "Full-text search across todos and notes".to_string(),
                 json_output: true,
                 params: vec![
@@ -302,7 +259,7 @@ pub fn build_manifest() -> CliManifest {
                 ],
             },
             CommandSchema {
-                name: get_cmd_stats().to_string(),
+                name: "stats".to_string(),
                 description: "Analytics and statistics".to_string(),
                 json_output: true,
                 params: vec![
@@ -323,7 +280,7 @@ pub fn build_manifest() -> CliManifest {
                 ],
             },
             CommandSchema {
-                name: get_cmd_handoff_list().to_string(),
+                name: "handoff list".to_string(),
                 description: "List handoff items".to_string(),
                 json_output: true,
                 params: vec![
@@ -344,7 +301,7 @@ pub fn build_manifest() -> CliManifest {
                 ],
             },
             CommandSchema {
-                name: get_cmd_handoff_sync().to_string(),
+                name: "handoff sync".to_string(),
                 description: "Bidirectional sync with HANDOFF.yaml".to_string(),
                 json_output: true,
                 params: vec![ParamSchema {
@@ -356,7 +313,7 @@ pub fn build_manifest() -> CliManifest {
                 }],
             },
             CommandSchema {
-                name: get_cmd_archive_list().to_string(),
+                name: "archive list".to_string(),
                 description: "List archived todos".to_string(),
                 json_output: true,
                 params: vec![ParamSchema {
@@ -390,7 +347,7 @@ mod tests {
         let cmd = manifest
             .commands
             .iter()
-            .find(|c| c.name == get_cmd_todo_list())
+            .find(|c| c.name == "todo list")
             .unwrap();
         assert!(cmd.params.iter().any(|p| p.name == "status"));
         assert!(cmd.params.iter().any(|p| p.name == "project"));
