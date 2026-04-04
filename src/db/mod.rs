@@ -13,7 +13,7 @@ pub async fn create_connection(path: Option<&str>) -> Result<DbConnection> {
     let db_path = path.map(PathBuf::from).unwrap_or_else(|| {
         let mut home = dirs_next::home_dir().expect("Could not find home directory");
         home.push(".ctx/doob/db");
-        std::fs::create_dir_all(&home).ok();  // create ~/.ctx/doob/db/ for SurrealKV
+        std::fs::create_dir_all(&home).ok(); // create ~/.ctx/doob/db/ for SurrealKV
         home
     });
 

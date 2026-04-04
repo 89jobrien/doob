@@ -1,6 +1,5 @@
 use crate::app::{App, Column, Mode, Tab};
 use ratatui::{
-    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     symbols,
@@ -9,6 +8,7 @@ use ratatui::{
         BarChart, Block, Borders, List, ListItem, ListState, Paragraph, Scrollbar,
         ScrollbarOrientation, ScrollbarState, Wrap,
     },
+    Frame,
 };
 
 // ---------------------------------------------------------------------------
@@ -114,8 +114,8 @@ fn render_header(app: &App, frame: &mut Frame, area: Rect) {
         Span::styled(" done ", Style::default().fg(C_MUTED)),
     ]);
 
-    let header = Paragraph::new(line)
-        .block(Block::default().borders(Borders::ALL).title(Span::styled(
+    let header =
+        Paragraph::new(line).block(Block::default().borders(Borders::ALL).title(Span::styled(
             " doobdash ",
             Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
         )));
@@ -165,15 +165,16 @@ fn render_tabs(app: &App, frame: &mut Frame, area: Rect) {
 
 fn render_items_tab(app: &App, frame: &mut Frame, area: Rect) {
     // Optional search bar at top
-    let (search_area, kanban_area) = if matches!(app.mode, Mode::Search) || !app.search_query.is_empty() {
-        let split = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Length(3), Constraint::Min(0)])
-            .split(area);
-        (Some(split[0]), split[1])
-    } else {
-        (None, area)
-    };
+    let (search_area, kanban_area) =
+        if matches!(app.mode, Mode::Search) || !app.search_query.is_empty() {
+            let split = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Length(3), Constraint::Min(0)])
+                .split(area);
+            (Some(split[0]), split[1])
+        } else {
+            (None, area)
+        };
 
     if let Some(sa) = search_area {
         let query_display = if matches!(app.mode, Mode::Search) {
@@ -232,8 +233,11 @@ fn render_strip(app: &App, frame: &mut Frame, area: Rect) {
     let border_style = Style::default().fg(C_MUTED);
 
     let Some(idx) = app.selected_item_index() else {
-        let p = Paragraph::new("")
-            .block(Block::default().borders(Borders::TOP).border_style(border_style));
+        let p = Paragraph::new("").block(
+            Block::default()
+                .borders(Borders::TOP)
+                .border_style(border_style),
+        );
         frame.render_widget(p, area);
         return;
     };
@@ -256,12 +260,18 @@ fn render_strip(app: &App, frame: &mut Frame, area: Rect) {
             .collect();
         let last = all_lines[max_lines - 1];
         let truncated = format!("{}…", last);
-        v.push(Line::from(Span::styled(truncated, Style::default().fg(C_BODY))));
+        v.push(Line::from(Span::styled(
+            truncated,
+            Style::default().fg(C_BODY),
+        )));
         v
     };
 
-    let para = Paragraph::new(lines)
-        .block(Block::default().borders(Borders::TOP).border_style(border_style));
+    let para = Paragraph::new(lines).block(
+        Block::default()
+            .borders(Borders::TOP)
+            .border_style(border_style),
+    );
     frame.render_widget(para, area);
 }
 
@@ -270,7 +280,11 @@ fn render_overlay(app: &App, frame: &mut Frame, area: Rect) {
         frame.render_widget(
             Paragraph::new("No item selected")
                 .style(Style::default().fg(C_MUTED))
-                .block(Block::default().borders(Borders::ALL).border_style(Style::default().fg(C_MUTED))),
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .border_style(Style::default().fg(C_MUTED)),
+                ),
             area,
         );
         return;
@@ -284,14 +298,22 @@ fn render_overlay(app: &App, frame: &mut Frame, area: Rect) {
             Span::styled("id: ", Style::default().fg(C_MUTED)),
             Span::styled(item.id.clone(), Style::default().fg(C_ACCENT)),
             Span::styled("  priority: ", Style::default().fg(C_MUTED)),
-            Span::styled(item.priority.clone(), Style::default().fg(priority_color(&item.priority))),
+            Span::styled(
+                item.priority.clone(),
+                Style::default().fg(priority_color(&item.priority)),
+            ),
             Span::styled("  status: ", Style::default().fg(C_MUTED)),
-            Span::styled(item.status.clone(), Style::default().fg(status_color(&item.status))),
+            Span::styled(
+                item.status.clone(),
+                Style::default().fg(status_color(&item.status)),
+            ),
         ]),
         Line::from(Span::raw("")),
         Line::from(Span::styled(
             item.title.clone(),
-            Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
         )),
         Line::from(Span::raw("")),
     ];
@@ -302,7 +324,10 @@ fn render_overlay(app: &App, frame: &mut Frame, area: Rect) {
             Style::default().fg(C_MUTED).add_modifier(Modifier::DIM),
         )));
         for l in desc.lines() {
-            lines.push(Line::from(Span::styled(l.to_owned(), Style::default().fg(C_BODY))));
+            lines.push(Line::from(Span::styled(
+                l.to_owned(),
+                Style::default().fg(C_BODY),
+            )));
         }
         lines.push(Line::from(Span::raw("")));
     }
@@ -332,13 +357,7 @@ fn render_overlay(app: &App, frame: &mut Frame, area: Rect) {
     frame.render_widget(para, area);
 }
 
-fn render_kanban_col(
-    app: &App,
-    frame: &mut Frame,
-    area: Rect,
-    col: Column,
-    title: &str,
-) {
+fn render_kanban_col(app: &App, frame: &mut Frame, area: Rect, col: Column, title: &str) {
     let is_focused = app.active_col == col && app.active_tab == Tab::Items;
     let border_style = if is_focused {
         Style::default().fg(C_ACTIVE)
@@ -486,7 +505,10 @@ fn render_stats_tab(app: &App, frame: &mut Frame, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(Span::styled(" Status Distribution ", Style::default().fg(C_ACCENT)))
+                .title(Span::styled(
+                    " Status Distribution ",
+                    Style::default().fg(C_ACCENT),
+                ))
                 .border_style(Style::default().fg(C_MUTED)),
         )
         .data(&bar_data)
@@ -504,11 +526,7 @@ fn render_stats_tab(app: &App, frame: &mut Frame, area: Rect) {
         .map(|p| {
             (
                 *p,
-                app.data
-                    .items
-                    .iter()
-                    .filter(|i| i.priority == *p)
-                    .count() as u64,
+                app.data.items.iter().filter(|i| i.priority == *p).count() as u64,
             )
         })
         .collect();
@@ -517,7 +535,10 @@ fn render_stats_tab(app: &App, frame: &mut Frame, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(Span::styled(" Priority Distribution ", Style::default().fg(C_ACCENT)))
+                .title(Span::styled(
+                    " Priority Distribution ",
+                    Style::default().fg(C_ACCENT),
+                ))
                 .border_style(Style::default().fg(C_MUTED)),
         )
         .data(&pri_data)
@@ -535,21 +556,30 @@ fn render_stats_tab(app: &App, frame: &mut Frame, area: Rect) {
 
 fn render_help_tab(frame: &mut Frame, area: Rect) {
     let text = vec![
-        Line::from(Span::styled("Navigation", Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(
+            "Navigation",
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
+        )),
         Line::from(Span::raw("")),
         help_row("j / k", "Move down / up within column"),
         help_row("h / l", "Switch column left / right"),
         help_row("gg", "Jump to top of column"),
         help_row("G", "Jump to bottom of column"),
         Line::from(Span::raw("")),
-        Line::from(Span::styled("Tabs", Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(
+            "Tabs",
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
+        )),
         Line::from(Span::raw("")),
         help_row("1", "Items tab (kanban)"),
         help_row("2", "Log tab"),
         help_row("3", "Stats tab"),
         help_row("4 / ?", "Help tab"),
         Line::from(Span::raw("")),
-        Line::from(Span::styled("Actions", Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(
+            "Actions",
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
+        )),
         Line::from(Span::raw("")),
         help_row("Enter", "Open full detail overlay"),
         help_row("Esc (overlay)", "Close overlay, back to kanban"),

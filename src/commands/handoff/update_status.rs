@@ -28,7 +28,8 @@ pub async fn execute(db: &DbConnection, handoff_id: String, status: String) -> R
 
     // Verify the record exists first, then update.
     let hid_check = handoff_id.replace('\'', "\\'");
-    let check_sql = format!("SELECT handoff_id FROM handoff_item WHERE handoff_id = '{hid_check}' LIMIT 1");
+    let check_sql =
+        format!("SELECT handoff_id FROM handoff_item WHERE handoff_id = '{hid_check}' LIMIT 1");
     let mut check = db.query(&check_sql).await?;
     let found: Vec<serde_json::Value> = check.take(0).unwrap_or_default();
     if found.is_empty() {

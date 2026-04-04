@@ -213,10 +213,7 @@ async fn run() -> Result<()> {
             HandoffAction::Sync { file } => {
                 let summary = commands::handoff::sync::execute(&db, &file).await?;
                 if cli.json {
-                    println!(
-                        "{}",
-                        output::handoff_json::format_sync_summary(&summary)
-                    );
+                    println!("{}", output::handoff_json::format_sync_summary(&summary));
                 } else {
                     print!("{}", output::handoff_human::format_sync_summary(&summary));
                 }

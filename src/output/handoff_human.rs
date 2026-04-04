@@ -24,9 +24,18 @@ pub fn format_list(items: &[HandoffItem]) -> String {
 
 pub fn format_sync_summary(summary: &SyncSummary) -> String {
     let mut out = String::from("Handoff sync complete\n");
-    out.push_str(&format!("  Created : {}\n", summary.created.join(", ").or_empty()));
-    out.push_str(&format!("  Updated : {}\n", summary.updated.join(", ").or_empty()));
-    out.push_str(&format!("  Pulled  : {}\n", summary.pulled.join(", ").or_empty()));
+    out.push_str(&format!(
+        "  Created : {}\n",
+        summary.created.join(", ").or_empty()
+    ));
+    out.push_str(&format!(
+        "  Updated : {}\n",
+        summary.updated.join(", ").or_empty()
+    ));
+    out.push_str(&format!(
+        "  Pulled  : {}\n",
+        summary.pulled.join(", ").or_empty()
+    ));
     out
 }
 
@@ -36,6 +45,10 @@ trait OrEmpty {
 
 impl OrEmpty for String {
     fn or_empty(&self) -> &str {
-        if self.is_empty() { "(none)" } else { self.as_str() }
+        if self.is_empty() {
+            "(none)"
+        } else {
+            self.as_str()
+        }
     }
 }

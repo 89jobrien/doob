@@ -20,10 +20,7 @@ fn find_handoff() -> Option<PathBuf> {
         for entry in std::fs::read_dir(dir).ok()?.flatten() {
             let name = entry.file_name();
             let s = name.to_string_lossy();
-            if s.starts_with("HANDOFF.")
-                && s.ends_with(".yaml")
-                && s != "HANDOFF.state.yaml"
-            {
+            if s.starts_with("HANDOFF.") && s.ends_with(".yaml") && s != "HANDOFF.state.yaml" {
                 return Some(entry.path());
             }
         }
@@ -36,9 +33,7 @@ async fn main() -> Result<()> {
     let handoff_path = match env::args().nth(1) {
         Some(p) => PathBuf::from(p),
         None => find_handoff().ok_or_else(|| {
-            anyhow::anyhow!(
-                "No HANDOFF.*.yaml found. Pass path as argument or run from repo root."
-            )
+            anyhow::anyhow!("No HANDOFF.*.yaml found. Pass path as argument or run from repo root.")
         })?,
     };
 
@@ -78,10 +73,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn run_app<B: ratatui::backend::Backend>(
-    terminal: &mut Terminal<B>,
-    app: &mut App,
-) -> Result<()> {
+fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<()> {
     loop {
         terminal.draw(|f| ui::render(app, f))?;
 
@@ -216,9 +208,8 @@ fn handle_normal(app: &mut App, code: KeyCode) {
         }
         KeyCode::Char('s') => {
             app.mode = Mode::PickStatus;
-            app.status_message = Some(
-                "[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string(),
-            );
+            app.status_message =
+                Some("[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string());
             app.last_key = None;
         }
         KeyCode::Char('n') => {
@@ -263,9 +254,8 @@ fn handle_overlay(app: &mut App, code: KeyCode) {
         }
         KeyCode::Char('s') => {
             app.mode = Mode::PickStatus;
-            app.status_message = Some(
-                "[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string(),
-            );
+            app.status_message =
+                Some("[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string());
         }
         KeyCode::Char('n') => {
             app.mode = Mode::InputNote;
