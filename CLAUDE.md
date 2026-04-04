@@ -17,6 +17,8 @@
 - `./ci.sh` — full local CI gate (fmt + clippy + test + audit)
 - `doob handoff sync --file HANDOFF.doob.workspace.yaml` — sync after every HANDOFF edit
 - `doob handoff update-status <id> <status>` — set status in doob (doob wins on sync conflict)
+- **Sync conflict order**: call `doob handoff update-status` BEFORE editing YAML — doob DB status
+  overwrites YAML on pull, reverting manual edits
 - Wipe DB: `rm -rf ~/.ctx/doob/db` — safe; re-sync from HANDOFF.yaml to repopulate
 
 ## doobdash (TUI)
