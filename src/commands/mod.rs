@@ -8,6 +8,7 @@ pub mod kan;
 pub mod list;
 pub mod note;
 pub mod remove;
+pub mod schema;
 pub mod search;
 pub mod stats;
 pub mod undo;
