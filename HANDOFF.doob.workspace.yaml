@@ -1,12 +1,25 @@
 project: doob
 id: doob
 updated: 2026-04-03
-branch: main
-state:
-  tests: 113 passing
-  build: clean
-  notes: null
 items:
+- id: doob-2
+  doob_uuid: a6198154-de7a-4dd7-b702-4ffc8bde36b9
+  name: doob-dash-tui-crate
+  priority: P1
+  status: open
+  title: Implement doob-dash ratatui TUI crate with handoff session-end dashboard
+  description: |
+    New workspace crate at crates/doob-dash/ producing a doob-dash binary, wired as
+    `doob tui` subcommand. Single-screen dashboard for the handoff session-end workflow:
+    shows HANDOFF.yaml items + log, .ctx/HANDOFF.state.yaml state, supports human
+    intervention (edit items, override status, append notes) with save-is-save semantics.
+    Follows dashbox tab/CachedSource pattern. Automation-first — most writes from LLMs,
+    human override allowed, git is the audit trail. Apply hexagonal arch / SOLID via
+    writing-solid-rust principles.
+  files:
+  - crates/doob-dash/src/main.rs
+  - src/main.rs
+  extra: []
 - id: doob-1
   doob_uuid: 0b4dbae2-eb05-4994-ba12-a5823fb583ae
   name: dead-code-warning-exit-code
@@ -21,6 +34,8 @@ items:
   extra: []
   completed: 2026-04-03
 log:
+- date: 2026-04-03
+  summary: Designed doob-dash TUI crate — architecture agreed, B option selected, doob-2 item created
 - date: 2026-04-03
   summary: Fixed dead_code warnings — used ExitCode::Success on happy path, ContextError in from_error
   commits:
