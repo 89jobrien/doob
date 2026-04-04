@@ -6,7 +6,7 @@ items:
   doob_uuid: 54f315d6-1176-42ba-a8f6-698d896419e5
   name: doobdash-tui-redesign
   priority: P1
-  status: open
+  status: done
   title: Redesign doobdash TUI — tabs + kanban + detail pane + semantic colors
   description: |
     Full redesign of crates/doobdash. Layout: tabs (Items | Log | Stats | Help) where
@@ -20,6 +20,7 @@ items:
   - crates/doobdash/src/ui.rs
   - crates/doobdash/src/main.rs
   extra: []
+  completed: 2026-04-04
 - id: doob-2
   doob_uuid: a6198154-de7a-4dd7-b702-4ffc8bde36b9
   name: doob-dash-tui-crate
@@ -53,6 +54,8 @@ items:
   extra: []
   completed: 2026-04-03
 log:
+- date: 2026-04-04
+  summary: doob-3 closed — redesign was complete from prior session; verified build+tests pass, all 10 features confirmed present
 - date: 2026-04-04
   summary: Brainstormed doobdash TUI redesign — tabs+kanban+detail pane selected, all 10 features scoped, CLAUDE.md updated
 - date: 2026-04-03
