@@ -55,6 +55,8 @@ items:
   completed: 2026-04-03
 log:
 - date: 2026-04-04
+  summary: 'PR #2 (feat/cli-schema) open: adds schema command. fmt/clippy fixed, CI pending. Unblocks mcpipe PR #1 (merge order critical: doob #2 first).'
+- date: 2026-04-04
   summary: doob-3 closed — redesign was complete from prior session; verified build+tests pass, all 10 features confirmed present
 - date: 2026-04-04
   summary: Brainstormed doobdash TUI redesign — tabs+kanban+detail pane selected, all 10 features scoped, CLAUDE.md updated
