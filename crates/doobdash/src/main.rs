@@ -1,6 +1,7 @@
 mod actions;
 mod app;
 mod data;
+mod db;
 mod ui;
 
 use anyhow::Result;
@@ -108,6 +109,12 @@ fn handle_key(app: &mut App, code: KeyCode) {
         Mode::InputNote => handle_input_note(app, code),
         Mode::Search => handle_search(app, code),
         Mode::Overlay => handle_overlay(app, code),
+        Mode::SpaceLeader => {
+            // Space leader mode: Esc cancels, other keys may be bound later
+            if code == KeyCode::Esc {
+                app.mode = Mode::Normal;
+            }
+        }
     }
 }
 
