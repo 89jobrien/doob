@@ -1,3 +1,7 @@
+[workspace]
+members = [".", "crates/doobdash"]
+resolver = "2"
+
 [package]
 name = "doob"
 version = "0.1.0"
