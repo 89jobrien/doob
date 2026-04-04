@@ -6,6 +6,7 @@ mod ui;
 
 use anyhow::Result;
 use app::{App, Column, Mode, Tab};
+use db::TodoStore;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
     execute,
@@ -95,6 +96,29 @@ fn run_app<B: ratatui::backend::Backend>(
             }
         }
 
+        // Lazy DB load when DB tab first activated
+        if app.db_load_requested && !app.db_loaded {
+            app.db_load_requested = false;
+            match db::SurrealKvAdapter::default_path() {
+                Ok(adapter) => match adapter.list_todos() {
+                    Ok(todos) => {
+                        app.db_todos = todos;
+                        app.db_selected = 0;
+                        app.db_loaded = true;
+                        app.db_error = None;
+                    }
+                    Err(e) => {
+                        app.db_error = Some(format!("DB error: {e}"));
+                        app.db_loaded = true;
+                    }
+                },
+                Err(e) => {
+                    app.db_error = Some(format!("DB path error: {e}"));
+                    app.db_loaded = true;
+                }
+            }
+        }
+
         if app.should_quit || app.should_save {
             break;
         }
@@ -105,16 +129,11 @@ fn run_app<B: ratatui::backend::Backend>(
 fn handle_key(app: &mut App, code: KeyCode) {
     match app.mode {
         Mode::Normal => handle_normal(app, code),
+        Mode::SpaceLeader => handle_space_leader(app, code),
         Mode::PickStatus => handle_pick_status(app, code),
         Mode::InputNote => handle_input_note(app, code),
         Mode::Search => handle_search(app, code),
         Mode::Overlay => handle_overlay(app, code),
-        Mode::SpaceLeader => {
-            // Space leader mode: Esc cancels, other keys may be bound later
-            if code == KeyCode::Esc {
-                app.mode = Mode::Normal;
-            }
-        }
     }
 }
 
@@ -151,43 +170,26 @@ fn handle_normal(app: &mut App, code: KeyCode) {
         return;
     }
 
-    // Tab switching — close overlay if open, then switch
-    match code {
-        KeyCode::Char('1') => {
-            app.mode = Mode::Normal;
-            app.active_tab = Tab::Items;
-            app.last_key = None;
-            return;
-        }
-        KeyCode::Char('2') => {
-            app.mode = Mode::Normal;
-            app.active_tab = Tab::Log;
-            app.last_key = None;
-            return;
-        }
-        KeyCode::Char('3') => {
-            app.mode = Mode::Normal;
-            app.active_tab = Tab::Stats;
-            app.last_key = None;
-            return;
-        }
-        KeyCode::Char('4') | KeyCode::Char('?') => {
-            app.mode = Mode::Normal;
-            app.active_tab = Tab::Help;
-            app.last_key = None;
-            return;
-        }
-        _ => {}
-    }
-
     // Normal navigation and actions
     match code {
+        KeyCode::Char(' ') => {
+            app.mode = Mode::SpaceLeader;
+            app.last_key = None;
+        }
         KeyCode::Char('j') | KeyCode::Down => {
-            app.select_next();
+            if app.active_tab == Tab::Db {
+                app.db_select_next();
+            } else {
+                app.select_next();
+            }
             app.last_key = Some(code);
         }
         KeyCode::Char('k') | KeyCode::Up => {
-            app.select_prev();
+            if app.active_tab == Tab::Db {
+                app.db_select_prev();
+            } else {
+                app.select_prev();
+            }
             app.last_key = Some(code);
         }
         KeyCode::Char('h') | KeyCode::Left => {
@@ -221,27 +223,6 @@ fn handle_normal(app: &mut App, code: KeyCode) {
             }
             app.last_key = None;
         }
-        KeyCode::Char('s') => {
-            app.mode = Mode::PickStatus;
-            app.status_message = Some(
-                "[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string(),
-            );
-            app.last_key = None;
-        }
-        KeyCode::Char('n') => {
-            app.mode = Mode::InputNote;
-            app.input_buf.clear();
-            app.status_message = Some("Note: ".to_string());
-            app.last_key = None;
-        }
-        KeyCode::Char('w') => {
-            app.should_save = true;
-            app.last_key = None;
-        }
-        KeyCode::Char('/') => {
-            app.mode = Mode::Search;
-            app.last_key = None;
-        }
         KeyCode::Char('q') | KeyCode::Esc => {
             app.should_quit = true;
         }
@@ -253,6 +234,56 @@ fn handle_normal(app: &mut App, code: KeyCode) {
     // Release z hold if a non-resize key was processed
     if app.z_is_held() {
         app.z_release();
+    }
+}
+
+fn handle_space_leader(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Char('1') => {
+            app.active_tab = Tab::Items;
+            app.mode = Mode::Normal;
+        }
+        KeyCode::Char('2') => {
+            app.active_tab = Tab::Log;
+            app.mode = Mode::Normal;
+        }
+        KeyCode::Char('3') => {
+            app.active_tab = Tab::Stats;
+            app.mode = Mode::Normal;
+        }
+        KeyCode::Char('4') | KeyCode::Char('?') => {
+            app.active_tab = Tab::Help;
+            app.mode = Mode::Normal;
+        }
+        KeyCode::Char('5') => {
+            app.active_tab = Tab::Db;
+            app.mode = Mode::Normal;
+            app.db_load_requested = true;
+        }
+        KeyCode::Char('s') => {
+            app.mode = Mode::PickStatus;
+            app.status_message = Some(
+                "[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string(),
+            );
+        }
+        KeyCode::Char('n') => {
+            app.mode = Mode::InputNote;
+            app.input_buf.clear();
+            app.status_message = Some("Note: ".to_string());
+        }
+        KeyCode::Char('w') => {
+            app.should_save = true;
+            app.mode = Mode::Normal;
+        }
+        KeyCode::Char('/') => {
+            app.mode = Mode::Search;
+        }
+        KeyCode::Esc | KeyCode::Char(' ') => {
+            app.mode = Mode::Normal;
+        }
+        _ => {
+            app.mode = Mode::Normal;
+        }
     }
 }
 
