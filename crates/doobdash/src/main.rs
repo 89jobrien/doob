@@ -109,12 +109,10 @@ fn run_app<B: ratatui::backend::Backend>(
                     }
                     Err(e) => {
                         app.db_error = Some(format!("DB error: {e}"));
-                        app.db_loaded = true;
                     }
                 },
                 Err(e) => {
                     app.db_error = Some(format!("DB path error: {e}"));
-                    app.db_loaded = true;
                 }
             }
         }
@@ -309,6 +307,9 @@ fn handle_overlay(app: &mut App, code: KeyCode) {
             app.mode = Mode::InputNote;
             app.input_buf.clear();
             app.status_message = Some("Note: ".to_string());
+        }
+        KeyCode::Char('q') => {
+            app.should_quit = true;
         }
         _ => {}
     }
