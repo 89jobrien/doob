@@ -61,7 +61,13 @@ pub fn render(app: &App, frame: &mut Frame) {
     render_tabs(app, frame, chunks[1]);
 
     match app.active_tab {
-        Tab::Items => render_items_tab(app, frame, chunks[2]),
+        Tab::Items => {
+            if app.mode == Mode::Overlay {
+                render_overlay(app, frame, chunks[2]);
+            } else {
+                render_items_tab(app, frame, chunks[2]);
+            }
+        }
         Tab::Log => render_log_tab(app, frame, chunks[2]),
         Tab::Stats => render_stats_tab(app, frame, chunks[2]),
         Tab::Help => render_help_tab(frame, chunks[2]),
@@ -256,6 +262,73 @@ fn render_strip(app: &App, frame: &mut Frame, area: Rect) {
 
     let para = Paragraph::new(lines)
         .block(Block::default().borders(Borders::TOP).border_style(border_style));
+    frame.render_widget(para, area);
+}
+
+fn render_overlay(app: &App, frame: &mut Frame, area: Rect) {
+    let Some(idx) = app.selected_item_index() else {
+        frame.render_widget(
+            Paragraph::new("No item selected")
+                .style(Style::default().fg(C_MUTED))
+                .block(Block::default().borders(Borders::ALL).border_style(Style::default().fg(C_MUTED))),
+            area,
+        );
+        return;
+    };
+
+    let item = &app.data.items[idx];
+
+    let mut lines: Vec<Line> = vec![
+        // id · priority · status on one line
+        Line::from(vec![
+            Span::styled("id: ", Style::default().fg(C_MUTED)),
+            Span::styled(item.id.clone(), Style::default().fg(C_ACCENT)),
+            Span::styled("  priority: ", Style::default().fg(C_MUTED)),
+            Span::styled(item.priority.clone(), Style::default().fg(priority_color(&item.priority))),
+            Span::styled("  status: ", Style::default().fg(C_MUTED)),
+            Span::styled(item.status.clone(), Style::default().fg(status_color(&item.status))),
+        ]),
+        Line::from(Span::raw("")),
+        Line::from(Span::styled(
+            item.title.clone(),
+            Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
+        )),
+        Line::from(Span::raw("")),
+    ];
+
+    if let Some(desc) = &item.description {
+        lines.push(Line::from(Span::styled(
+            "DESCRIPTION",
+            Style::default().fg(C_MUTED).add_modifier(Modifier::DIM),
+        )));
+        for l in desc.lines() {
+            lines.push(Line::from(Span::styled(l.to_owned(), Style::default().fg(C_BODY))));
+        }
+        lines.push(Line::from(Span::raw("")));
+    }
+
+    if !item.extra.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "NOTES",
+            Style::default().fg(C_MUTED).add_modifier(Modifier::DIM),
+        )));
+        for entry in &item.extra {
+            lines.push(Line::from(vec![
+                Span::styled(format!("[{}] ", entry.date), Style::default().fg(C_MUTED)),
+                Span::styled(entry.note.clone(), Style::default().fg(C_BODY)),
+            ]));
+        }
+    }
+
+    let para = Paragraph::new(lines)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(C_ACCENT)),
+        )
+        .wrap(Wrap { trim: false })
+        .scroll((app.overlay_scroll as u16, 0));
+
     frame.render_widget(para, area);
 }
 
@@ -531,8 +604,9 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         (Mode::Normal, Tab::Help) => {
             " 1=items  2=log  3=stats  q=quit".to_string()
         }
-        // Overlay hint wired in Task 3
-        (Mode::Overlay, _) => " OVERLAY  j/k=scroll  Esc=close".to_string()
+        (Mode::Overlay, _) => {
+            " j/k=scroll  s=status  n=note  Esc=back".to_string()
+        }
     };
 
     // Show status_message override if set
@@ -547,8 +621,7 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         Mode::PickStatus => Style::default().fg(C_WARNING),
         Mode::InputNote => Style::default().fg(C_ACCENT),
         Mode::Normal => Style::default().fg(C_MUTED),
-        // Overlay style wired in Task 3
-        Mode::Overlay => Style::default().fg(C_MUTED),
+        Mode::Overlay => Style::default().fg(C_ACCENT),
     };
 
     let footer = Paragraph::new(display).style(footer_style).block(
