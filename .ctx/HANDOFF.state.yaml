@@ -1,0 +1,5 @@
+updated: 2026-04-03
+branch: feature/doobdash
+build: clean
+tests: "118 passing"
+notes: "doobdash TUI implemented — workspace converted, binary installs, doob tui wired"

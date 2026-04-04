@@ -6,7 +6,7 @@ items:
   doob_uuid: a6198154-de7a-4dd7-b702-4ffc8bde36b9
   name: doob-dash-tui-crate
   priority: P1
-  status: open
+  status: done
   title: Implement doob-dash ratatui TUI crate with handoff session-end dashboard
   description: |
     New workspace crate at crates/doob-dash/ producing a doob-dash binary, wired as
