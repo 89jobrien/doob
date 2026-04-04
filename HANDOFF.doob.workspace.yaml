@@ -2,6 +2,23 @@ project: doob
 id: doob
 updated: 2026-04-04
 items:
+- id: doob-4
+  name: cli-schema-pr
+  priority: P1
+  status: done
+  title: Merge PR #2 — add schema command
+  description: |
+    PR #2 (feat/cli-schema) adds doob schema command, exporting all CLI commands as
+    structured CommandDef array. Unblocks mcpipe PR #1 (CLI backend discovery).
+    Both merged: doob#2 first, then mcpipe#1.
+  files:
+  - src/commands/schema.rs
+  - src/main.rs
+  extra:
+  - date: 2026-04-04
+    type: note
+    note: PR merged. Unblocked mcpipe PR #1 (merge order: doob first).
+  completed: 2026-04-04
 - id: doob-3
   doob_uuid: 54f315d6-1176-42ba-a8f6-698d896419e5
   name: doobdash-tui-redesign
@@ -54,6 +71,8 @@ items:
   extra: []
   completed: 2026-04-03
 log:
+- date: 2026-04-04
+  summary: 'PR #2 merged. Both PRs now merged (doob#2 → mcpipe#1). Worktrees cleaned. Ready for doob.openapi.yaml generation.'
 - date: 2026-04-04
   summary: 'PR #2 (feat/cli-schema) open: adds schema command. fmt/clippy fixed, CI pending. Unblocks mcpipe PR #1 (merge order critical: doob #2 first).'
 - date: 2026-04-04
