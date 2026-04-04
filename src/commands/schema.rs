@@ -352,4 +352,13 @@ mod tests {
         assert!(cmd.params.iter().any(|p| p.name == "status"));
         assert!(cmd.params.iter().any(|p| p.name == "project"));
     }
+
+    #[test]
+    fn schema_command_outputs_valid_json() {
+        let manifest = build_manifest();
+        let json = serde_json::to_string_pretty(&manifest).unwrap();
+        let back: CliManifest = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.name, "doob");
+        assert!(!back.version.is_empty());
+    }
 }

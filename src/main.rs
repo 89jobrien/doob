@@ -277,5 +277,11 @@ async fn run() -> Result<()> {
             }
             Ok(())
         }
+
+        Commands::Schema => {
+            let manifest = doob::commands::schema::build_manifest();
+            println!("{}", serde_json::to_string_pretty(&manifest)?);
+            Ok(())
+        }
     }
 }

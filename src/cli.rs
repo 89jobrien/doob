@@ -101,6 +101,9 @@ pub enum Commands {
         #[arg(long, default_value_t = 5)]
         interval: u64,
     },
+
+    /// Print machine-readable JSON manifest of all commands and params
+    Schema,
 }
 
 #[derive(Subcommand)]
