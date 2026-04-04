@@ -107,6 +107,8 @@ fn handle_key(app: &mut App, code: KeyCode) {
         Mode::PickStatus => handle_pick_status(app, code),
         Mode::InputNote => handle_input_note(app, code),
         Mode::Search => handle_search(app, code),
+        // Overlay input wired in Task 4
+        Mode::Overlay => {}
     }
 }
 

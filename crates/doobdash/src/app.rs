@@ -10,6 +10,23 @@ pub enum Mode {
     PickStatus,
     /// Live search / filter mode
     Search,
+    /// Full-screen detail overlay for selected item
+    Overlay,
+}
+
+#[derive(Debug, Clone)]
+pub struct StripState {
+    pub visible: bool,
+    /// Current height in lines (min 1, default 3)
+    pub height: u16,
+    /// Unix timestamp (secs) of last `z` keydown; None when z not held
+    pub z_held_since: Option<u64>,
+}
+
+impl Default for StripState {
+    fn default() -> Self {
+        StripState { visible: true, height: 3, z_held_since: None }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Copy)]
@@ -81,6 +98,9 @@ pub struct App {
     pub col_offsets: [usize; 3],
     /// Last key pressed, used for gg detection
     pub last_key: Option<KeyCode>,
+    pub strip: StripState,
+    /// Scroll offset for the overlay (lines from top)
+    pub overlay_scroll: usize,
 }
 
 impl App {
@@ -99,6 +119,8 @@ impl App {
             col_selected: [0; 3],
             col_offsets: [0; 3],
             last_key: None,
+            strip: StripState::default(),
+            overlay_scroll: 0,
         }
     }
 
@@ -217,6 +239,47 @@ impl App {
             .filter(|i| i.status == "done")
             .count()
     }
+
+    // ---- strip methods ----
+
+    pub fn strip_toggle(&mut self) {
+        self.strip.visible = !self.strip.visible;
+    }
+
+    pub fn strip_expand(&mut self) {
+        self.strip.height += 1;
+    }
+
+    pub fn strip_shrink(&mut self) {
+        if self.strip.height > 1 {
+            self.strip.height -= 1;
+        }
+    }
+
+    /// Returns true if z is currently considered "held" (pressed within last 1 second).
+    pub fn z_is_held(&self) -> bool {
+        if let Some(t) = self.strip.z_held_since {
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs();
+            now.saturating_sub(t) < 1
+        } else {
+            false
+        }
+    }
+
+    pub fn z_press(&mut self) {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        self.strip.z_held_since = Some(now);
+    }
+
+    pub fn z_release(&mut self) {
+        self.strip.z_held_since = None;
+    }
 }
 
 #[cfg(test)]
@@ -304,5 +367,38 @@ mod tests {
         assert_eq!(app.active_count(), 2);
         assert_eq!(app.waiting_count(), 1);
         assert_eq!(app.done_count(), 1);
+    }
+
+    #[test]
+    fn test_strip_default_height() {
+        let app = make_app(1);
+        assert_eq!(app.strip.height, 3);
+        assert!(app.strip.visible);
+    }
+
+    #[test]
+    fn test_strip_toggle() {
+        let mut app = make_app(1);
+        app.strip_toggle();
+        assert!(!app.strip.visible);
+        app.strip_toggle();
+        assert!(app.strip.visible);
+    }
+
+    #[test]
+    fn test_strip_expand_shrink() {
+        let mut app = make_app(1);
+        app.strip_expand();
+        assert_eq!(app.strip.height, 4);
+        app.strip_shrink();
+        assert_eq!(app.strip.height, 3);
+    }
+
+    #[test]
+    fn test_strip_shrink_floor() {
+        let mut app = make_app(1);
+        app.strip.height = 1;
+        app.strip_shrink();
+        assert_eq!(app.strip.height, 1); // floor at 1
     }
 }

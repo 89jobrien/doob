@@ -532,6 +532,8 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         (Mode::Normal, Tab::Help) => {
             " 1=items  2=log  3=stats  q=quit".to_string()
         }
+        // Overlay hint wired in Task 3
+        (Mode::Overlay, _) => " OVERLAY  j/k=scroll  Esc=close".to_string()
     };
 
     // Show status_message override if set
@@ -546,6 +548,8 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         Mode::PickStatus => Style::default().fg(C_WARNING),
         Mode::InputNote => Style::default().fg(C_ACCENT),
         Mode::Normal => Style::default().fg(C_MUTED),
+        // Overlay style wired in Task 3
+        Mode::Overlay => Style::default().fg(C_MUTED),
     };
 
     let footer = Paragraph::new(display).style(footer_style).block(
