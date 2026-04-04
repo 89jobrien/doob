@@ -279,6 +279,7 @@ async fn run() -> Result<()> {
         }
 
         Commands::Schema => {
+            // Schema output is always JSON regardless of the --json flag.
             let manifest = doob::commands::schema::build_manifest();
             println!("{}", serde_json::to_string_pretty(&manifest)?);
             Ok(())
