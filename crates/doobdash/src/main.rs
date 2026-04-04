@@ -4,7 +4,7 @@ mod data;
 mod ui;
 
 use anyhow::Result;
-use app::{App, Mode};
+use app::{App, Column, Mode, Tab};
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
     execute,
@@ -103,66 +103,163 @@ fn run_app<B: ratatui::backend::Backend>(
 
 fn handle_key(app: &mut App, code: KeyCode) {
     match app.mode {
-        Mode::Normal => match code {
-            KeyCode::Char('j') | KeyCode::Down => app.select_next(),
-            KeyCode::Char('k') | KeyCode::Up => app.select_prev(),
-            KeyCode::Char('s') => {
-                app.mode = Mode::PickStatus;
-                app.status_message = Some(
-                    "[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string(),
-                );
+        Mode::Normal => handle_normal(app, code),
+        Mode::PickStatus => handle_pick_status(app, code),
+        Mode::InputNote => handle_input_note(app, code),
+        Mode::Search => handle_search(app, code),
+    }
+}
+
+fn handle_normal(app: &mut App, code: KeyCode) {
+    // Tab switching
+    match code {
+        KeyCode::Char('1') => {
+            app.active_tab = Tab::Items;
+            app.last_key = None;
+            return;
+        }
+        KeyCode::Char('2') => {
+            app.active_tab = Tab::Log;
+            app.last_key = None;
+            return;
+        }
+        KeyCode::Char('3') => {
+            app.active_tab = Tab::Stats;
+            app.last_key = None;
+            return;
+        }
+        KeyCode::Char('4') | KeyCode::Char('?') => {
+            app.active_tab = Tab::Help;
+            app.last_key = None;
+            return;
+        }
+        _ => {}
+    }
+
+    match code {
+        KeyCode::Char('j') | KeyCode::Down => {
+            app.select_next();
+            app.last_key = Some(code);
+        }
+        KeyCode::Char('k') | KeyCode::Up => {
+            app.select_prev();
+            app.last_key = Some(code);
+        }
+        KeyCode::Char('h') | KeyCode::Left => {
+            if app.active_tab == Tab::Items {
+                app.col_prev();
             }
-            KeyCode::Char('n') => {
-                app.mode = Mode::InputNote;
-                app.input_buf.clear();
-                app.status_message = Some("Note: ".to_string());
+            app.last_key = Some(code);
+        }
+        KeyCode::Char('l') | KeyCode::Right => {
+            if app.active_tab == Tab::Items {
+                app.col_next();
             }
-            KeyCode::Char('w') => {
-                app.should_save = true;
+            app.last_key = Some(code);
+        }
+        KeyCode::Char('g') => {
+            if app.last_key == Some(KeyCode::Char('g')) {
+                // gg — jump to top
+                app.select_top();
+                app.last_key = None;
+            } else {
+                app.last_key = Some(KeyCode::Char('g'));
             }
-            KeyCode::Char('q') | KeyCode::Esc => {
-                app.should_quit = true;
-            }
-            _ => {}
-        },
-        Mode::PickStatus => match code {
-            KeyCode::Char('o') => commit_status(app, "open"),
-            KeyCode::Char('d') => commit_status(app, "done"),
-            KeyCode::Char('p') => commit_status(app, "parked"),
-            KeyCode::Char('b') => commit_status(app, "blocked"),
-            KeyCode::Esc => {
-                app.mode = Mode::Normal;
-                app.status_message = None;
-            }
-            _ => {}
-        },
-        Mode::InputNote => match code {
-            KeyCode::Enter => {
-                let text = app.input_buf.trim().to_string();
-                if !text.is_empty() {
-                    if let Some(id) = app.selected_id().map(|s| s.to_string()) {
-                        let _ = actions::add_note(&app.data.handoff_path, &id, &text);
-                    }
+        }
+        KeyCode::Char('G') => {
+            app.select_bottom();
+            app.last_key = None;
+        }
+        KeyCode::Char('s') => {
+            app.mode = Mode::PickStatus;
+            app.status_message = Some(
+                "[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string(),
+            );
+            app.last_key = None;
+        }
+        KeyCode::Char('n') => {
+            app.mode = Mode::InputNote;
+            app.input_buf.clear();
+            app.status_message = Some("Note: ".to_string());
+            app.last_key = None;
+        }
+        KeyCode::Char('w') => {
+            app.should_save = true;
+            app.last_key = None;
+        }
+        KeyCode::Char('/') => {
+            app.mode = Mode::Search;
+            app.last_key = None;
+        }
+        KeyCode::Char('q') | KeyCode::Esc => {
+            app.should_quit = true;
+        }
+        _ => {
+            app.last_key = Some(code);
+        }
+    }
+}
+
+fn handle_pick_status(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Char('o') => commit_status(app, "open"),
+        KeyCode::Char('d') => commit_status(app, "done"),
+        KeyCode::Char('p') => commit_status(app, "parked"),
+        KeyCode::Char('b') => commit_status(app, "blocked"),
+        KeyCode::Esc => {
+            app.mode = Mode::Normal;
+            app.status_message = None;
+        }
+        _ => {}
+    }
+}
+
+fn handle_input_note(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Enter => {
+            let text = app.input_buf.trim().to_string();
+            if !text.is_empty() {
+                if let Some(id) = app.selected_id().map(|s| s.to_string()) {
+                    let _ = actions::add_note(&app.data.handoff_path, &id, &text);
                 }
-                app.mode = Mode::Normal;
-                app.input_buf.clear();
-                app.status_message = None;
             }
-            KeyCode::Esc => {
-                app.mode = Mode::Normal;
-                app.input_buf.clear();
-                app.status_message = None;
-            }
-            KeyCode::Backspace => {
-                app.input_buf.pop();
-                app.status_message = Some(format!("Note: {}", app.input_buf));
-            }
-            KeyCode::Char(c) => {
-                app.input_buf.push(c);
-                app.status_message = Some(format!("Note: {}", app.input_buf));
-            }
-            _ => {}
-        },
+            app.mode = Mode::Normal;
+            app.input_buf.clear();
+            app.status_message = None;
+        }
+        KeyCode::Esc => {
+            app.mode = Mode::Normal;
+            app.input_buf.clear();
+            app.status_message = None;
+        }
+        KeyCode::Backspace => {
+            app.input_buf.pop();
+            app.status_message = Some(format!("Note: {}", app.input_buf));
+        }
+        KeyCode::Char(c) => {
+            app.input_buf.push(c);
+            app.status_message = Some(format!("Note: {}", app.input_buf));
+        }
+        _ => {}
+    }
+}
+
+fn handle_search(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Esc => {
+            app.mode = Mode::Normal;
+            app.search_query.clear();
+        }
+        KeyCode::Enter => {
+            app.mode = Mode::Normal;
+        }
+        KeyCode::Backspace => {
+            app.search_query.pop();
+        }
+        KeyCode::Char(c) => {
+            app.search_query.push(c);
+        }
+        _ => {}
     }
 }
 
@@ -170,9 +267,19 @@ fn commit_status(app: &mut App, status: &str) {
     if let Some(id) = app.selected_id().map(|s| s.to_string()) {
         let path = app.data.handoff_path.clone();
         let _ = actions::set_status(&path, &id, status);
-        if let Some(item) = app.data.items.get_mut(app.selected) {
-            item.status = status.to_string();
+        // Update in-memory state
+        if let Some(idx) = app.selected_item_index() {
+            if let Some(item) = app.data.items.get_mut(idx) {
+                item.status = status.to_string();
+            }
         }
+        // After status change the item may move columns — re-sync
+        let new_col = match status {
+            "done" => Column::Done,
+            "parked" | "waiting" => Column::Waiting,
+            _ => Column::Active,
+        };
+        app.active_col = new_col;
     }
     app.mode = Mode::Normal;
     app.status_message = None;

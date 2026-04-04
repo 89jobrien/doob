@@ -3,6 +3,16 @@ use serde::Deserialize;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Deserialize, Default)]
+pub struct ExtraEntry {
+    #[serde(default)]
+    pub date: String,
+    #[serde(default, rename = "type")]
+    pub r#type: String,
+    #[serde(default)]
+    pub note: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
 pub struct YamlItem {
     pub id: String,
     #[serde(default)]
@@ -12,6 +22,8 @@ pub struct YamlItem {
     pub title: String,
     #[serde(default)]
     pub description: Option<String>,
+    #[serde(default)]
+    pub extra: Vec<ExtraEntry>,
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -37,6 +49,7 @@ pub struct StateData {
     #[serde(default)]
     pub tests: String,
     #[serde(default)]
+    #[allow(dead_code)]
     pub notes: String,
 }
 
@@ -110,5 +123,25 @@ log:
         f.write_all(yaml.as_bytes()).unwrap();
         let data = load(f.path()).unwrap();
         assert!(data.state.branch.is_empty());
+    }
+
+    #[test]
+    fn test_load_extra_entries() {
+        let yaml = r#"
+items:
+- id: doob-2
+  priority: P0
+  status: blocked
+  title: Blocked item
+  extra:
+  - date: "2026-04-01"
+    type: note
+    note: "This is blocked by X"
+"#;
+        let mut f = NamedTempFile::new().unwrap();
+        f.write_all(yaml.as_bytes()).unwrap();
+        let data = load(f.path()).unwrap();
+        assert_eq!(data.items[0].extra.len(), 1);
+        assert_eq!(data.items[0].extra[0].note, "This is blocked by X");
     }
 }
