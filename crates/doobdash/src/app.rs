@@ -14,13 +14,23 @@ pub enum Mode {
     Overlay,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct StripState {
     pub visible: bool,
     /// Current height in lines (min 1, default 3)
     pub height: u16,
-    /// Unix timestamp (secs) of last `z` keydown; None when z not held
-    pub z_held_since: Option<u64>,
+    /// Instant of last `z` keydown; None when z not held
+    pub z_held_since: Option<std::time::Instant>,
+}
+
+impl Clone for StripState {
+    fn clone(&self) -> Self {
+        StripState {
+            visible: self.visible,
+            height: self.height,
+            z_held_since: None, // Instant is not meaningful to clone; reset on clone
+        }
+    }
 }
 
 impl Default for StripState {
@@ -258,23 +268,14 @@ impl App {
 
     /// Returns true if z is currently considered "held" (pressed within last 1 second).
     pub fn z_is_held(&self) -> bool {
-        if let Some(t) = self.strip.z_held_since {
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs();
-            now.saturating_sub(t) < 1
-        } else {
-            false
-        }
+        self.strip
+            .z_held_since
+            .map(|t| t.elapsed().as_millis() < 1000)
+            .unwrap_or(false)
     }
 
     pub fn z_press(&mut self) {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
-        self.strip.z_held_since = Some(now);
+        self.strip.z_held_since = Some(std::time::Instant::now());
     }
 
     pub fn z_release(&mut self) {

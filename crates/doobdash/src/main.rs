@@ -107,30 +107,65 @@ fn handle_key(app: &mut App, code: KeyCode) {
         Mode::PickStatus => handle_pick_status(app, code),
         Mode::InputNote => handle_input_note(app, code),
         Mode::Search => handle_search(app, code),
-        // Overlay input wired in Task 4
-        Mode::Overlay => {}
+        Mode::Overlay => handle_overlay(app, code),
     }
 }
 
 fn handle_normal(app: &mut App, code: KeyCode) {
-    // Tab switching
+    // If z was held and this keypress is not a resize key, treat the z as a tap (toggle)
+    // and release the hold.
+    let z_was_held = app.z_is_held();
+    let is_resize_key = matches!(
+        code,
+        KeyCode::Up | KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('k')
+    );
+    if z_was_held && !is_resize_key && code != KeyCode::Char('z') {
+        // z pressed then something unrelated — treat as tap (toggle strip)
+        app.strip_toggle();
+        app.z_release();
+    } else if !z_was_held && code == KeyCode::Char('z') {
+        // fresh z press — record timestamp, wait to see what comes next
+        app.z_press();
+        app.last_key = Some(code);
+        return;
+    } else if z_was_held && code == KeyCode::Char('z') {
+        // z pressed again while held — ignore
+        return;
+    }
+
+    // z held + resize key → adjust strip height
+    if z_was_held && is_resize_key {
+        match code {
+            KeyCode::Up | KeyCode::Char('k') => app.strip_expand(),
+            KeyCode::Down | KeyCode::Char('j') => app.strip_shrink(),
+            _ => {}
+        }
+        app.last_key = Some(code);
+        return;
+    }
+
+    // Tab switching — close overlay if open, then switch
     match code {
         KeyCode::Char('1') => {
+            app.mode = Mode::Normal;
             app.active_tab = Tab::Items;
             app.last_key = None;
             return;
         }
         KeyCode::Char('2') => {
+            app.mode = Mode::Normal;
             app.active_tab = Tab::Log;
             app.last_key = None;
             return;
         }
         KeyCode::Char('3') => {
+            app.mode = Mode::Normal;
             app.active_tab = Tab::Stats;
             app.last_key = None;
             return;
         }
         KeyCode::Char('4') | KeyCode::Char('?') => {
+            app.mode = Mode::Normal;
             app.active_tab = Tab::Help;
             app.last_key = None;
             return;
@@ -138,6 +173,7 @@ fn handle_normal(app: &mut App, code: KeyCode) {
         _ => {}
     }
 
+    // Normal navigation and actions
     match code {
         KeyCode::Char('j') | KeyCode::Down => {
             app.select_next();
@@ -161,7 +197,6 @@ fn handle_normal(app: &mut App, code: KeyCode) {
         }
         KeyCode::Char('g') => {
             if app.last_key == Some(KeyCode::Char('g')) {
-                // gg — jump to top
                 app.select_top();
                 app.last_key = None;
             } else {
@@ -170,6 +205,13 @@ fn handle_normal(app: &mut App, code: KeyCode) {
         }
         KeyCode::Char('G') => {
             app.select_bottom();
+            app.last_key = None;
+        }
+        KeyCode::Enter => {
+            if app.active_tab == Tab::Items && app.selected_item_index().is_some() {
+                app.mode = Mode::Overlay;
+                app.overlay_scroll = 0;
+            }
             app.last_key = None;
         }
         KeyCode::Char('s') => {
@@ -199,6 +241,38 @@ fn handle_normal(app: &mut App, code: KeyCode) {
         _ => {
             app.last_key = Some(code);
         }
+    }
+
+    // Release z hold if a non-resize key was processed
+    if app.z_is_held() {
+        app.z_release();
+    }
+}
+
+fn handle_overlay(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Esc => {
+            app.mode = Mode::Normal;
+            app.overlay_scroll = 0;
+        }
+        KeyCode::Char('j') | KeyCode::Down => {
+            app.overlay_scroll = app.overlay_scroll.saturating_add(1);
+        }
+        KeyCode::Char('k') | KeyCode::Up => {
+            app.overlay_scroll = app.overlay_scroll.saturating_sub(1);
+        }
+        KeyCode::Char('s') => {
+            app.mode = Mode::PickStatus;
+            app.status_message = Some(
+                "[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string(),
+            );
+        }
+        KeyCode::Char('n') => {
+            app.mode = Mode::InputNote;
+            app.input_buf.clear();
+            app.status_message = Some("Note: ".to_string());
+        }
+        _ => {}
     }
 }
 
