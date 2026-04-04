@@ -3,7 +3,7 @@ mod error;
 use error::ExitCode;
 use std::process;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Parser;
 use doob::cli::{ArchiveAction, Cli, Commands, HandoffAction, NoteAction, TodoAction};
 use doob::{commands, db, output};
@@ -261,6 +261,20 @@ async fn run() -> Result<()> {
                     .collect()
             });
             commands::watch::execute(&db, project, status_filter, interval).await?;
+            Ok(())
+        }
+
+        Commands::Tui { file } => {
+            let mut cmd = std::process::Command::new("doobdash");
+            if let Some(f) = file {
+                cmd.arg(f);
+            }
+            let status = cmd
+                .status()
+                .context("Failed to launch doobdash — is it installed?")?;
+            if !status.success() {
+                anyhow::bail!("doobdash exited with: {}", status);
+            }
             Ok(())
         }
     }

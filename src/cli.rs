@@ -80,6 +80,13 @@ pub enum Commands {
         action: HandoffAction,
     },
 
+    /// Launch the doobdash TUI dashboard
+    Tui {
+        /// Path to HANDOFF.yaml (auto-detected if omitted)
+        #[arg(short = 'f', long)]
+        file: Option<String>,
+    },
+
     /// Live-updating kanban board
     Watch {
         /// Filter by project
