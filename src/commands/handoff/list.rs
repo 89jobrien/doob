@@ -26,7 +26,7 @@ pub async fn execute(
     query.push_str(" ORDER BY created_at DESC");
 
     let mut result = db.query(&query).await?;
-    let items: Vec<HandoffItem> = result.take(0)?;
 
+    let items: Vec<HandoffItem> = result.take(0)?;
     Ok(items)
 }

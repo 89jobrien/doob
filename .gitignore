@@ -2,6 +2,7 @@
 .claude/
 *.md
 !README.md
+!CLAUDE.md
 Cargo.lock
 *.db
 *.swp

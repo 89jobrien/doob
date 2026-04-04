@@ -15,6 +15,8 @@ impl ExitCode {
             ExitCode::TodoNotFound
         } else if msg.contains("invalid") {
             ExitCode::InvalidInput
+        } else if msg.contains("context") {
+            ExitCode::ContextError
         } else {
             ExitCode::DatabaseError
         }

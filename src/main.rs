@@ -3,17 +3,20 @@ mod error;
 use error::ExitCode;
 use std::process;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Parser;
 use doob::cli::{ArchiveAction, Cli, Commands, HandoffAction, NoteAction, TodoAction};
 use doob::{commands, db, output};
 
 #[tokio::main]
 async fn main() {
-    if let Err(e) = run().await {
-        eprintln!("Error: {}", e);
-        let code = ExitCode::from_error(&e);
-        process::exit(code as i32);
+    match run().await {
+        Ok(()) => process::exit(ExitCode::Success as i32),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            let code = ExitCode::from_error(&e);
+            process::exit(code as i32);
+        }
     }
 }
 
@@ -210,10 +213,7 @@ async fn run() -> Result<()> {
             HandoffAction::Sync { file } => {
                 let summary = commands::handoff::sync::execute(&db, &file).await?;
                 if cli.json {
-                    println!(
-                        "{}",
-                        output::handoff_json::format_sync_summary(&summary)
-                    );
+                    println!("{}", output::handoff_json::format_sync_summary(&summary));
                 } else {
                     print!("{}", output::handoff_human::format_sync_summary(&summary));
                 }
@@ -238,6 +238,12 @@ async fn run() -> Result<()> {
                 println!("✓ Added extra to {}", handoff_id);
                 Ok(())
             }
+            HandoffAction::UpdateStatus { handoff_id, status } => {
+                commands::handoff::update_status::execute(&db, handoff_id.clone(), status.clone())
+                    .await?;
+                println!("✓ Updated {} status to {}", handoff_id, status);
+                Ok(())
+            }
         },
 
         Commands::Watch {
@@ -252,6 +258,27 @@ async fn run() -> Result<()> {
                     .collect()
             });
             commands::watch::execute(&db, project, status_filter, interval).await?;
+            Ok(())
+        }
+
+        Commands::Tui { file } => {
+            let mut cmd = std::process::Command::new("doobdash");
+            if let Some(f) = file {
+                cmd.arg(f);
+            }
+            let status = cmd
+                .status()
+                .context("Failed to launch doobdash — is it installed?")?;
+            if !status.success() {
+                anyhow::bail!("doobdash exited with: {}", status);
+            }
+            Ok(())
+        }
+
+        Commands::Schema => {
+            // Schema output is always JSON regardless of the --json flag.
+            let manifest = doob::commands::schema::build_manifest();
+            println!("{}", serde_json::to_string_pretty(&manifest)?);
             Ok(())
         }
     }

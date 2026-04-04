@@ -80,6 +80,13 @@ pub enum Commands {
         action: HandoffAction,
     },
 
+    /// Launch the doobdash TUI dashboard
+    Tui {
+        /// Path to HANDOFF.yaml (auto-detected if omitted)
+        #[arg(short = 'f', long)]
+        file: Option<String>,
+    },
+
     /// Live-updating kanban board
     Watch {
         /// Filter by project
@@ -94,6 +101,9 @@ pub enum Commands {
         #[arg(long, default_value_t = 5)]
         interval: u64,
     },
+
+    /// Print machine-readable JSON manifest of all commands and params
+    Schema,
 }
 
 #[derive(Subcommand)]
@@ -244,6 +254,15 @@ pub enum HandoffAction {
         /// Note text
         #[arg(long)]
         note: String,
+    },
+
+    /// Update the status of a handoff item
+    UpdateStatus {
+        /// Handoff item ID (e.g. doob-1)
+        handoff_id: String,
+
+        /// New status: open, done, parked, blocked
+        status: String,
     },
 }
 

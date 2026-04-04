@@ -1,7 +1,7 @@
 use crate::db::DbConnection;
 use crate::models::handoff_item::{ExtraEntry, ExtraType, HandoffItem};
 use anyhow::{Context, Result};
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::path::Path;
@@ -50,9 +50,31 @@ pub struct SyncSummary {
     pub pulled: Vec<String>,
 }
 
+/// Payload used for CREATE — omits datetime fields to avoid SurrealDB JSON coercion issues.
+/// Datetimes are set via raw SQL literals in the query string instead.
+#[derive(Debug, Serialize, Deserialize)]
+struct CreatePayload {
+    pub uuid: String,
+    pub handoff_id: String,
+    pub project: String,
+    pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub priority: String,
+    pub status: String,
+    pub files: Vec<String>,
+    pub extra: Vec<ExtraEntry>,
+}
+
+/// Payload used for UPDATE — omits datetime fields for the same reason.
+#[derive(Debug, Serialize, Deserialize)]
+struct UpdatePayload {
+    pub status: String,
+    pub extra: Vec<ExtraEntry>,
+}
+
 pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
-    let raw =
-        std::fs::read_to_string(file).with_context(|| format!("Cannot read {:?}", file))?;
+    let raw = std::fs::read_to_string(file).with_context(|| format!("Cannot read {:?}", file))?;
 
     // Parse: support both bare list and map with "items" key
     let yaml_items: Vec<YamlItem> = {
@@ -78,22 +100,21 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
     let mut updated_yaml_items = yaml_items.clone();
 
     for (idx, yaml_item) in yaml_items.iter().enumerate() {
-        // Look up by handoff_id in doob
-        let mut result = db
-            .query("SELECT * FROM handoff_item WHERE handoff_id = $id LIMIT 1")
-            .bind(("id", yaml_item.id.clone()))
-            .await?;
-        let existing: Vec<HandoffItem> = result.take(0)?;
+        // Look up by handoff_id using raw interpolated SQL (avoids parameterized query bug).
+        let hid = yaml_item.id.replace('\'', "\\'");
+        let select_sql = format!("SELECT * FROM handoff_item WHERE handoff_id = '{hid}' LIMIT 1");
+        let mut result = db.query(&select_sql).await?;
+        let existing: Vec<HandoffItem> = result.take(0).unwrap_or_default();
 
         if existing.is_empty() {
-            // CREATE
             let new_uuid = Uuid::new_v4().to_string();
-            let now = Utc::now();
-            let completed_at: Option<DateTime<Utc>> = yaml_item.completed.as_ref().and_then(|d| {
-                NaiveDate::parse_from_str(d, "%Y-%m-%d")
-                    .ok()
-                    .map(|nd| nd.and_hms_opt(0, 0, 0).unwrap().and_utc())
-            });
+            let now_str = Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ").to_string();
+            let completed_at_lit = yaml_item
+                .completed
+                .as_ref()
+                .and_then(|d| NaiveDate::parse_from_str(d, "%Y-%m-%d").ok())
+                .map(|nd| format!("d\"{}T00:00:00.000000Z\"", nd.format("%Y-%m-%d")))
+                .unwrap_or_else(|| "NONE".to_string());
 
             let extra: Vec<ExtraEntry> = yaml_item
                 .extra
@@ -101,34 +122,29 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
                 .map(yaml_extra_to_entry)
                 .collect::<Result<Vec<_>>>()?;
 
-            db.query(
-                r#"CREATE handoff_item SET
-                    uuid = $uuid,
-                    handoff_id = $handoff_id,
-                    project = $project,
-                    title = $title,
-                    description = $description,
-                    priority = $priority,
-                    status = $status,
-                    files = $files,
-                    extra = $extra,
-                    created_at = $now,
-                    updated_at = $now,
-                    completed_at = $completed_at
-                "#,
-            )
-            .bind(("uuid", new_uuid.clone()))
-            .bind(("handoff_id", yaml_item.id.clone()))
-            .bind(("project", project.clone()))
-            .bind(("title", yaml_item.title.clone()))
-            .bind(("description", yaml_item.description.clone()))
-            .bind(("priority", yaml_item.priority.clone()))
-            .bind(("status", yaml_item.status.clone()))
-            .bind(("files", yaml_item.files.clone()))
-            .bind(("extra", serde_json::to_value(&extra)?))
-            .bind(("now", now))
-            .bind(("completed_at", completed_at))
-            .await?;
+            let payload = CreatePayload {
+                uuid: new_uuid.clone(),
+                handoff_id: yaml_item.id.clone(),
+                project: project.clone(),
+                title: yaml_item.title.clone(),
+                description: yaml_item.description.clone(),
+                priority: yaml_item.priority.clone(),
+                status: yaml_item.status.clone(),
+                files: yaml_item.files.clone(),
+                extra,
+            };
+
+            // Inject datetime literals directly into SQL — SurrealDB 2.x rejects ISO strings
+            // in CONTENT when the field type is datetime, even with SCHEMALESS tables.
+            let payload_json = serde_json::to_string(&payload)
+                .with_context(|| "Failed to serialize handoff_item payload")?;
+            let payload_json = payload_json.trim_end_matches('}');
+            let sql = format!(
+                r#"CREATE handoff_item CONTENT {payload_json}, "created_at": d"{now_str}", "updated_at": d"{now_str}", "completed_at": {completed_at_lit} }}"#
+            );
+            db.query(&sql).await.map_err(|e| {
+                anyhow::anyhow!("CREATE handoff_item failed for {}: {e}", yaml_item.id)
+            })?;
 
             updated_yaml_items[idx].doob_uuid = Some(new_uuid.clone());
             summary.created.push(yaml_item.id.clone());
@@ -155,15 +171,22 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
             // doob wins on status conflict
             let final_status = doob.status.clone();
 
-            let now = Utc::now();
-            db.query(
-                "UPDATE handoff_item SET status = $status, extra = $extra, updated_at = $now WHERE handoff_id = $id",
-            )
-            .bind(("status", final_status))
-            .bind(("extra", serde_json::to_value(&merged_extra)?))
-            .bind(("now", now))
-            .bind(("id", yaml_item.id.clone()))
-            .await?;
+            // UPDATE via raw SQL with inline JSON + datetime literals.
+            let now_str = Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ").to_string();
+            let update_payload = UpdatePayload {
+                status: final_status,
+                extra: merged_extra.clone(),
+            };
+            let update_json = serde_json::to_string(&update_payload)
+                .with_context(|| "Failed to serialize update payload")?;
+            let update_json = update_json.trim_end_matches('}');
+            let hid_escaped = yaml_item.id.replace('\'', "\\'");
+            let update_sql = format!(
+                r#"UPDATE handoff_item MERGE {update_json}, "updated_at": d"{now_str}" }} WHERE handoff_id = '{hid_escaped}'"#
+            );
+            db.query(&update_sql)
+                .await
+                .with_context(|| format!("UPDATE handoff_item failed for {}", yaml_item.id))?;
 
             // Pull doob status back to yaml if different
             if doob.status != yaml_item.status {
@@ -194,8 +217,19 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
         }
     }
 
-    // Write updated HANDOFF.yaml back
-    let out = serde_yaml::to_string(&updated_yaml_items)?;
+    // Write updated HANDOFF.yaml back — preserve full document structure.
+    // Parse the original as a generic Value so we only replace the items list.
+    let original_val: serde_yaml::Value = serde_yaml::from_str(&raw)?;
+    let items_val = serde_yaml::to_value(&updated_yaml_items)?;
+    let out = if original_val.is_sequence() {
+        serde_yaml::to_string(&items_val)?
+    } else {
+        let mut doc = original_val;
+        if let serde_yaml::Value::Mapping(ref mut m) = doc {
+            m.insert(serde_yaml::Value::String("items".to_string()), items_val);
+        }
+        serde_yaml::to_string(&doc)?
+    };
     std::fs::write(file, out)?;
 
     Ok(summary)

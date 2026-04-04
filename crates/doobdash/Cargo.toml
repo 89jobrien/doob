@@ -1,0 +1,19 @@
+[package]
+name = "doobdash"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "doobdash"
+path = "src/main.rs"
+
+[dependencies]
+ratatui = "0.29"
+crossterm = "0.28"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+anyhow = "1"
+
+[dev-dependencies]
+tempfile = "3"
