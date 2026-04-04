@@ -730,6 +730,9 @@ fn render_db_tab(app: &App, frame: &mut Frame, area: Rect) {
 }
 
 fn scroll_offset(selected: usize, current_offset: usize, height: usize) -> usize {
+    if height == 0 {
+        return 0;
+    }
     if selected < current_offset {
         selected
     } else if selected >= current_offset + height {
