@@ -184,21 +184,79 @@ fn render_items_tab(app: &App, frame: &mut Frame, area: Rect) {
         frame.render_widget(search_bar, sa);
     }
 
-    // Split kanban area into 3 columns + detail pane
+    // Split vertically: kanban on top, optional strip below
+    let (kanban_rect, strip_rect) = if app.strip.visible {
+        // Cap strip height so kanban always has at least 5 lines
+        let max_strip = kanban_area.height.saturating_sub(5);
+        let raw_height = app.strip.height + 2; // +2 for top border + padding
+        let strip_height = raw_height.min(max_strip);
+        if strip_height == 0 {
+            (kanban_area, None)
+        } else {
+            let split = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Min(0), Constraint::Length(strip_height)])
+                .split(kanban_area);
+            (split[0], Some(split[1]))
+        }
+    } else {
+        (kanban_area, None)
+    };
+
+    // 3 equal kanban columns
     let cols = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
-            Constraint::Ratio(1, 4),
-            Constraint::Ratio(1, 4),
-            Constraint::Ratio(1, 4),
-            Constraint::Ratio(1, 4),
+            Constraint::Ratio(1, 3),
+            Constraint::Ratio(1, 3),
+            Constraint::Ratio(1, 3),
         ])
-        .split(kanban_area);
+        .split(kanban_rect);
 
     render_kanban_col(app, frame, cols[0], Column::Active, "Active");
     render_kanban_col(app, frame, cols[1], Column::Waiting, "Waiting");
     render_kanban_col(app, frame, cols[2], Column::Done, "Done");
-    render_detail_pane(app, frame, cols[3]);
+
+    if let Some(sr) = strip_rect {
+        render_strip(app, frame, sr);
+    }
+}
+
+fn render_strip(app: &App, frame: &mut Frame, area: Rect) {
+    let border_style = Style::default().fg(C_MUTED);
+
+    let Some(idx) = app.selected_item_index() else {
+        let p = Paragraph::new("")
+            .block(Block::default().borders(Borders::TOP).border_style(border_style));
+        frame.render_widget(p, area);
+        return;
+    };
+
+    let item = &app.data.items[idx];
+    let desc = item.description.as_deref().unwrap_or("");
+
+    // Collect lines up to strip height, truncate last with … if needed
+    let max_lines = app.strip.height as usize;
+    let all_lines: Vec<&str> = desc.lines().collect();
+    let lines: Vec<Line> = if all_lines.len() <= max_lines {
+        all_lines
+            .iter()
+            .map(|l| Line::from(Span::styled(l.to_string(), Style::default().fg(C_BODY))))
+            .collect()
+    } else {
+        let mut v: Vec<Line> = all_lines[..max_lines - 1]
+            .iter()
+            .map(|l| Line::from(Span::styled(l.to_string(), Style::default().fg(C_BODY))))
+            .collect();
+        let last = all_lines[max_lines - 1];
+        let truncated = format!("{}…", last);
+        v.push(Line::from(Span::styled(truncated, Style::default().fg(C_BODY))));
+        v
+    };
+
+    let para = Paragraph::new(lines)
+        .block(Block::default().borders(Borders::TOP).border_style(border_style));
+    frame.render_widget(para, area);
 }
 
 fn render_kanban_col(
@@ -299,65 +357,6 @@ fn render_kanban_col(
             &mut scroll_state,
         );
     }
-}
-
-fn render_detail_pane(app: &App, frame: &mut Frame, area: Rect) {
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .title(Span::styled(" Detail ", Style::default().fg(C_MUTED)))
-        .border_style(Style::default().fg(C_MUTED));
-
-    let Some(idx) = app.selected_item_index() else {
-        frame.render_widget(
-            Paragraph::new("No item selected").style(Style::default().fg(C_MUTED)).block(block),
-            area,
-        );
-        return;
-    };
-
-    let item = &app.data.items[idx];
-
-    let mut lines: Vec<Line> = vec![
-        Line::from(vec![
-            Span::styled("ID: ", Style::default().fg(C_MUTED)),
-            Span::styled(&item.id, Style::default().fg(C_ACCENT)),
-        ]),
-        Line::from(vec![
-            Span::styled("Priority: ", Style::default().fg(C_MUTED)),
-            Span::styled(&item.priority, Style::default().fg(priority_color(&item.priority))),
-        ]),
-        Line::from(vec![
-            Span::styled("Status: ", Style::default().fg(C_MUTED)),
-            Span::styled(&item.status, Style::default().fg(status_color(&item.status))),
-        ]),
-        Line::from(Span::raw("")),
-        Line::from(Span::styled(&item.title, Style::default().fg(Color::White).add_modifier(Modifier::BOLD))),
-        Line::from(Span::raw("")),
-    ];
-
-    if let Some(desc) = &item.description {
-        lines.push(Line::from(Span::styled("Description:", Style::default().fg(C_MUTED))));
-        for text_line in desc.lines() {
-            lines.push(Line::from(Span::styled(text_line.to_owned(), Style::default().fg(C_BODY))));
-        }
-        lines.push(Line::from(Span::raw("")));
-    }
-
-    if !item.extra.is_empty() {
-        lines.push(Line::from(Span::styled("Notes:", Style::default().fg(C_MUTED))));
-        for entry in &item.extra {
-            lines.push(Line::from(vec![
-                Span::styled(format!("[{}] ", entry.date), Style::default().fg(C_MUTED)),
-                Span::styled(format!("{}: ", entry.r#type), Style::default().fg(C_ACCENT)),
-                Span::styled(&entry.note, Style::default().fg(C_BODY)),
-            ]));
-        }
-    }
-
-    let para = Paragraph::new(lines)
-        .block(block)
-        .wrap(Wrap { trim: false });
-    frame.render_widget(para, area);
 }
 
 // ---------------------------------------------------------------------------
