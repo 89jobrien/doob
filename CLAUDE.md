@@ -25,7 +25,9 @@
 - Lives in `crates/doobdash/` — workspace member, separate binary
 - `cargo install --path crates/doobdash` — install `doobdash` binary
 - Launch: `doobdash [path/to/HANDOFF.yaml]` — auto-discovers `HANDOFF.*.yaml` walking up from CWD
-- Keybindings: `j/k` navigate · `s` pick status · `n` add note · `w` save+sync · `q` quit
+- Keybindings: `j/k` nav col · `h/l` switch col · `Enter` overlay · `Space` leader (actions/tabs)
+  Space leader: `s`=status · `n`=note · `w`=save · `/`=search · `1-5`=tabs · `?`=help · `Esc`=cancel
+  `z` toggle strip · `z+j/k` resize strip · `q` quit · `5: DB` tab browses SurrealKV todos
 - Status values: `open` · `done` · `parked` · `blocked`
 
 ## Hooks
