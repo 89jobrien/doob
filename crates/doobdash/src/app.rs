@@ -12,6 +12,9 @@ pub enum Mode {
     Search,
     /// Full-screen detail overlay for selected item
     Overlay,
+    /// Space was pressed; waiting for action key
+    #[allow(dead_code)]
+    SpaceLeader,
 }
 
 #[derive(Debug)]
@@ -45,6 +48,8 @@ pub enum Tab {
     Log,
     Stats,
     Help,
+    #[allow(dead_code)]
+    Db,
 }
 
 #[derive(Debug, Clone, PartialEq, Copy)]
@@ -111,6 +116,16 @@ pub struct App {
     pub strip: StripState,
     /// Scroll offset for the overlay (lines from top)
     pub overlay_scroll: usize,
+    // DB tab state
+    pub db_todos: Vec<crate::db::DbTodo>,
+    pub db_loaded: bool,
+    pub db_error: Option<String>,
+    pub db_selected: usize,
+    #[allow(dead_code)]
+    pub db_offset: usize,
+    pub db_search: String,
+    #[allow(dead_code)]
+    pub db_load_requested: bool,
 }
 
 impl App {
@@ -131,6 +146,13 @@ impl App {
             last_key: None,
             strip: StripState::default(),
             overlay_scroll: 0,
+            db_todos: Vec::new(),
+            db_loaded: false,
+            db_error: None,
+            db_selected: 0,
+            db_offset: 0,
+            db_search: String::new(),
+            db_load_requested: false,
         }
     }
 
@@ -281,6 +303,32 @@ impl App {
     pub fn z_release(&mut self) {
         self.strip.z_held_since = None;
     }
+
+    pub fn db_filtered(&self) -> Vec<&crate::db::DbTodo> {
+        let q = self.db_search.to_lowercase();
+        self.db_todos
+            .iter()
+            .filter(|t| {
+                q.is_empty()
+                    || t.title.to_lowercase().contains(&q)
+                    || t.project.to_lowercase().contains(&q)
+                    || t.status.to_lowercase().contains(&q)
+            })
+            .collect()
+    }
+
+    #[allow(dead_code)]
+    pub fn db_select_next(&mut self) {
+        let len = self.db_filtered().len();
+        if len > 0 {
+            self.db_selected = (self.db_selected + 1).min(len - 1);
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn db_select_prev(&mut self) {
+        self.db_selected = self.db_selected.saturating_sub(1);
+    }
 }
 
 #[cfg(test)]
@@ -401,5 +449,71 @@ mod tests {
         app.strip.height = 1;
         app.strip_shrink();
         assert_eq!(app.strip.height, 1); // floor at 1
+    }
+
+    #[test]
+    fn test_db_filtered_empty_query_returns_all() {
+        let mut app = make_app(1);
+        app.db_todos = vec![
+            crate::db::DbTodo {
+                id: "t1".into(),
+                title: "Fix bug".into(),
+                status: "open".into(),
+                project: "doob".into(),
+                priority: "P1".into(),
+                notes: vec![],
+            },
+            crate::db::DbTodo {
+                id: "t2".into(),
+                title: "Write docs".into(),
+                status: "done".into(),
+                project: "minibox".into(),
+                priority: "P2".into(),
+                notes: vec![],
+            },
+        ];
+        assert_eq!(app.db_filtered().len(), 2);
+    }
+
+    #[test]
+    fn test_db_filtered_by_project() {
+        let mut app = make_app(1);
+        app.db_todos = vec![
+            crate::db::DbTodo {
+                id: "t1".into(),
+                title: "Fix bug".into(),
+                status: "open".into(),
+                project: "doob".into(),
+                priority: "P1".into(),
+                notes: vec![],
+            },
+            crate::db::DbTodo {
+                id: "t2".into(),
+                title: "Write docs".into(),
+                status: "done".into(),
+                project: "minibox".into(),
+                priority: "P2".into(),
+                notes: vec![],
+            },
+        ];
+        app.db_search = "doob".into();
+        assert_eq!(app.db_filtered().len(), 1);
+        assert_eq!(app.db_filtered()[0].id, "t1");
+    }
+
+    #[test]
+    fn test_db_select_next_clamps() {
+        let mut app = make_app(1);
+        app.db_todos = vec![crate::db::DbTodo {
+            id: "t1".into(),
+            title: "T".into(),
+            status: "open".into(),
+            project: "p".into(),
+            priority: "P1".into(),
+            notes: vec![],
+        }];
+        app.db_selected = 0;
+        app.db_select_next();
+        assert_eq!(app.db_selected, 0); // clamped at 0 (only 1 item)
     }
 }

@@ -71,6 +71,7 @@ pub fn render(app: &App, frame: &mut Frame) {
         Tab::Log => render_log_tab(app, frame, chunks[2]),
         Tab::Stats => render_stats_tab(app, frame, chunks[2]),
         Tab::Help => render_help_tab(frame, chunks[2]),
+        Tab::Db => render_db_tab(app, frame, chunks[2]),
     }
 
     render_footer(app, frame, chunks[3]);
@@ -612,6 +613,12 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         (Mode::Overlay, _) => {
             " j/k=scroll  s=status  n=note  Esc=back".to_string()
         }
+        (Mode::SpaceLeader, _) => {
+            " SPACE LEADER  waiting for action key...  Esc=cancel".to_string()
+        }
+        (Mode::Normal, Tab::Db) => {
+            " j/k=nav  /=search  q=quit".to_string()
+        }
     };
 
     // Show status_message override if set
@@ -627,6 +634,7 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         Mode::InputNote => Style::default().fg(C_ACCENT),
         Mode::Normal => Style::default().fg(C_MUTED),
         Mode::Overlay => Style::default().fg(C_ACCENT),
+        Mode::SpaceLeader => Style::default().fg(C_WARNING),
     };
 
     let footer = Paragraph::new(display).style(footer_style).block(
@@ -635,4 +643,52 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
             .border_style(Style::default().fg(C_MUTED)),
     );
     frame.render_widget(footer, area);
+}
+
+// ---------------------------------------------------------------------------
+// DB tab
+// ---------------------------------------------------------------------------
+
+fn render_db_tab(app: &App, frame: &mut Frame, area: Rect) {
+    let filtered = app.db_filtered();
+
+    if !app.db_loaded {
+        let msg = if let Some(ref e) = app.db_error {
+            format!(" DB error: {e}")
+        } else {
+            " Loading DB...".to_string()
+        };
+        let p = Paragraph::new(msg)
+            .style(Style::default().fg(C_MUTED))
+            .block(Block::default().borders(Borders::ALL).title(" DB "));
+        frame.render_widget(p, area);
+        return;
+    }
+
+    let items: Vec<ListItem> = filtered
+        .iter()
+        .enumerate()
+        .map(|(i, t)| {
+            let style = if i == app.db_selected {
+                Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(C_BODY)
+            };
+            ListItem::new(format!(
+                " [{status}] {title}  ({project})",
+                status = t.status,
+                title = t.title,
+                project = t.project,
+            ))
+            .style(style)
+        })
+        .collect();
+
+    let list = List::new(items)
+        .block(Block::default().borders(Borders::ALL).title(format!(
+            " DB ({} todos) ",
+            filtered.len()
+        )))
+        .highlight_style(Style::default().add_modifier(Modifier::REVERSED));
+    frame.render_widget(list, area);
 }
