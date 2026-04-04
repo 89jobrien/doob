@@ -3,21 +3,21 @@ id: doob
 updated: 2026-04-04
 items:
 - id: doob-4
+  doob_uuid: 0b7c3d7e-994a-45d4-b06a-07c2d5560dac
   name: cli-schema-pr
   priority: P1
   status: done
-  title: Merge PR #2 — add schema command
+  title: Merge PR #2
   description: |
     PR #2 (feat/cli-schema) adds doob schema command, exporting all CLI commands as
     structured CommandDef array. Unblocks mcpipe PR #1 (CLI backend discovery).
-    Both merged: doob#2 first, then mcpipe#1.
   files:
   - src/commands/schema.rs
   - src/main.rs
   extra:
   - date: 2026-04-04
     type: note
-    note: PR merged. Unblocked mcpipe PR #1 (merge order: doob first).
+    note: PR merged. Unblocked mcpipe PR #1 (merged in correct order).
   completed: 2026-04-04
 - id: doob-3
   doob_uuid: 54f315d6-1176-42ba-a8f6-698d896419e5
