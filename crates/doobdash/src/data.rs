@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 pub struct ExtraEntry {
     #[serde(default)]
     pub date: String,
+    #[allow(dead_code)]
     #[serde(default, rename = "type")]
     pub r#type: String,
     #[serde(default)]
