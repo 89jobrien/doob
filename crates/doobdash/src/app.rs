@@ -38,7 +38,11 @@ impl Clone for StripState {
 
 impl Default for StripState {
     fn default() -> Self {
-        StripState { visible: true, height: 3, z_held_since: None }
+        StripState {
+            visible: true,
+            height: 3,
+            z_held_since: None,
+        }
     }
 }
 
@@ -245,7 +249,11 @@ impl App {
     // ---- stats helpers ----
 
     pub fn count_by_status(&self, status: &str) -> usize {
-        self.data.items.iter().filter(|i| i.status == status).count()
+        self.data
+            .items
+            .iter()
+            .filter(|i| i.status == status)
+            .count()
     }
 
     pub fn active_count(&self) -> usize {

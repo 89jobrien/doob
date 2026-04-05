@@ -213,10 +213,7 @@ async fn run() -> Result<()> {
             HandoffAction::Sync { file } => {
                 let summary = commands::handoff::sync::execute(&db, &file).await?;
                 if cli.json {
-                    println!(
-                        "{}",
-                        output::handoff_json::format_sync_summary(&summary)
-                    );
+                    println!("{}", output::handoff_json::format_sync_summary(&summary));
                 } else {
                     print!("{}", output::handoff_human::format_sync_summary(&summary));
                 }
@@ -275,6 +272,13 @@ async fn run() -> Result<()> {
             if !status.success() {
                 anyhow::bail!("doobdash exited with: {}", status);
             }
+            Ok(())
+        }
+
+        Commands::Schema => {
+            // Schema output is always JSON regardless of the --json flag.
+            let manifest = doob::commands::schema::build_manifest();
+            println!("{}", serde_json::to_string_pretty(&manifest)?);
             Ok(())
         }
     }

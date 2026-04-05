@@ -74,8 +74,7 @@ struct UpdatePayload {
 }
 
 pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
-    let raw =
-        std::fs::read_to_string(file).with_context(|| format!("Cannot read {:?}", file))?;
+    let raw = std::fs::read_to_string(file).with_context(|| format!("Cannot read {:?}", file))?;
 
     // Parse: support both bare list and map with "items" key
     let yaml_items: Vec<YamlItem> = {
@@ -103,9 +102,7 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
     for (idx, yaml_item) in yaml_items.iter().enumerate() {
         // Look up by handoff_id using raw interpolated SQL (avoids parameterized query bug).
         let hid = yaml_item.id.replace('\'', "\\'");
-        let select_sql = format!(
-            "SELECT * FROM handoff_item WHERE handoff_id = '{hid}' LIMIT 1"
-        );
+        let select_sql = format!("SELECT * FROM handoff_item WHERE handoff_id = '{hid}' LIMIT 1");
         let mut result = db.query(&select_sql).await?;
         let existing: Vec<HandoffItem> = result.take(0).unwrap_or_default();
 
@@ -187,7 +184,8 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
             let update_sql = format!(
                 r#"UPDATE handoff_item MERGE {update_json}, "updated_at": d"{now_str}" }} WHERE handoff_id = '{hid_escaped}'"#
             );
-            db.query(&update_sql).await
+            db.query(&update_sql)
+                .await
                 .with_context(|| format!("UPDATE handoff_item failed for {}", yaml_item.id))?;
 
             // Pull doob status back to yaml if different
@@ -228,10 +226,7 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
     } else {
         let mut doc = original_val;
         if let serde_yaml::Value::Mapping(ref mut m) = doc {
-            m.insert(
-                serde_yaml::Value::String("items".to_string()),
-                items_val,
-            );
+            m.insert(serde_yaml::Value::String("items".to_string()), items_val);
         }
         serde_yaml::to_string(&doc)?
     };

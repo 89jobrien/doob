@@ -6,11 +6,12 @@ use std::process::Command;
 const PROVIDER_NAME: &str = "beads";
 const BEADS_ISSUE_TYPE: &str = "task";
 
+#[derive(Default)]
 pub struct BeadsAdapter {}
 
 impl BeadsAdapter {
     pub fn new() -> Self {
-        Self {}
+        Self::default()
     }
 
     fn map_priority(&self, priority: u8) -> u8 {
