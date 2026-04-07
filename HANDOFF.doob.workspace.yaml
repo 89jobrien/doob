@@ -1,7 +1,26 @@
 project: doob
 id: doob
-updated: 2026-04-04
+updated: 2026-04-07
 items:
+- id: doob-5
+  name: ci-standardize
+  priority: P2
+  status: done
+  title: Standardize CI — ci.yml, nightly.yml, deny.toml, git hooks
+  description: |
+    Add canonical three-tier CI (compile-check → test + audit + machete), nightly geiger
+    unsafe audit, deny.toml with full license allowlist, and git hooks via Justfile.
+    Fixed: license field missing on doob + doobdash crates, BUSL-1.1/CDLA/Unlicense
+    missing from allow list, bincode unmaintained advisory (transitive surrealdb).
+  files:
+  - .github/workflows/ci.yml
+  - .github/workflows/nightly.yml
+  - deny.toml
+  - Justfile
+  - Cargo.toml
+  - crates/doobdash/Cargo.toml
+  extra: []
+  completed: 2026-04-07
 - id: doob-4
   doob_uuid: 0b7c3d7e-994a-45d4-b06a-07c2d5560dac
   name: cli-schema-pr
@@ -71,6 +90,15 @@ items:
   extra: []
   completed: 2026-04-03
 log:
+- date: 2026-04-07
+  summary: Standardized CI — ci.yml, nightly.yml, deny.toml, Justfile, git hooks. Fixed
+    missing license fields, BUSL-1.1/CDLA/Unlicense allow list, bincode advisory ignore.
+    All CI jobs green.
+  commits:
+  - daf8685
+  - 19afd65
+  - 180f489
+  - 2801b2b
 - date: 2026-04-04
   summary: 'PR #2 merged. Both PRs now merged (doob#2 → mcpipe#1). Worktrees cleaned. Ready for doob.openapi.yaml generation.'
 - date: 2026-04-04
@@ -79,22 +107,3 @@ log:
   summary: doob-3 closed — redesign was complete from prior session; verified build+tests pass, all 10 features confirmed present
 - date: 2026-04-04
   summary: Brainstormed doobdash TUI redesign — tabs+kanban+detail pane selected, all 10 features scoped, CLAUDE.md updated
-- date: 2026-04-03
-  summary: Designed doob-dash TUI crate — architecture agreed, B option selected, doob-2 item created
-- date: 2026-04-03
-  summary: Fixed dead_code warnings — used ExitCode::Success on happy path, ContextError in from_error
-  commits:
-  - 6f32124
-- date: 2026-04-03
-  summary: Fixed SurrealKV persistence — raw SQL datetime literals, SCHEMALESS table, inline JSON to bypass SurrealDB 2.x parameterized query bug; moved DB to ~/.ctx/doob/db
-  commits:
-  - d85bedf
-  - b71c0b8
-  - 1f4cf30
-- date: 2026-04-03
-  summary: Added handoff command with bidirectional HANDOFF.yaml sync; added search, stats, deps, archive, watch commands; ISP trait refactor; batch sync optimisation
-  commits:
-  - '7087027'
-  - c28c8e2
-  - 820db3b
-  - 6fda57c
