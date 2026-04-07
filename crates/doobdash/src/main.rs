@@ -6,12 +6,12 @@ mod ui;
 
 use anyhow::Result;
 use app::{App, Column, Mode, Tab};
-use db::TodoStore;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use db::TodoStore;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{env, io, path::PathBuf, process::Command, time::Duration};
 
@@ -252,9 +252,8 @@ fn handle_space_leader(app: &mut App, code: KeyCode) {
         }
         KeyCode::Char('s') => {
             app.mode = Mode::PickStatus;
-            app.status_message = Some(
-                "[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string(),
-            );
+            app.status_message =
+                Some("[s]tatus: [o]pen  [d]one  [p]arked  [b]locked  Esc=cancel".to_string());
         }
         KeyCode::Char('n') => {
             app.mode = Mode::InputNote;

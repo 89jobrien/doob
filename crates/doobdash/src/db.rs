@@ -47,9 +47,8 @@ impl TodoStore for SurrealKvAdapter {
         // SurrealDB requires a tokio runtime — use block_in_place since doobdash
         // runs inside a tokio::main context.
         tokio::task::block_in_place(|| {
-            tokio::runtime::Handle::current().block_on(async {
-                list_todos_async(&self.db_path).await
-            })
+            tokio::runtime::Handle::current()
+                .block_on(async { list_todos_async(&self.db_path).await })
         })
     }
 }
@@ -101,7 +100,14 @@ fn parse_todo(v: serde_json::Value) -> Option<DbTodo> {
         })
         .unwrap_or_default();
 
-    Some(DbTodo { id, title, status, project, priority, notes })
+    Some(DbTodo {
+        id,
+        title,
+        status,
+        project,
+        priority,
+        notes,
+    })
 }
 
 // ---------------------------------------------------------------------------

@@ -589,7 +589,10 @@ fn render_help_tab(frame: &mut Frame, area: Rect) {
         help_row("Esc (search)", "Clear search, return to Normal"),
         help_row("q / Esc", "Quit"),
         Line::from(Span::raw("")),
-        Line::from(Span::styled("Space Leader", Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(
+            "Space Leader",
+            Style::default().fg(C_ACCENT).add_modifier(Modifier::BOLD),
+        )),
         Line::from(Span::raw("")),
         help_row("Space", "Enter space leader (action mode)"),
         help_row("Space s", "Set status (o=open d=done p=parked b=blocked)"),
@@ -626,7 +629,10 @@ fn help_row(key: &str, desc: &str) -> Line<'static> {
 fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
     let hint = match (&app.mode, &app.active_tab) {
         (Mode::Search, _) => {
-            format!(" SEARCH  type to filter  Esc=clear  /search: {}", app.search_query)
+            format!(
+                " SEARCH  type to filter  Esc=clear  /search: {}",
+                app.search_query
+            )
         }
         (Mode::PickStatus, _) => {
             " PICK STATUS  o=open  d=done  p=parked  b=blocked  Esc=cancel".to_string()
@@ -635,8 +641,7 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
             format!(" INPUT NOTE  Enter=save  Esc=cancel  > {}", app.input_buf)
         }
         (Mode::SpaceLeader, _) => {
-            " SPACE  s=status  n=note  w=save  /=search  1-5=tabs  ?=help  Esc=cancel"
-                .to_string()
+            " SPACE  s=status  n=note  w=save  /=search  1-5=tabs  ?=help  Esc=cancel".to_string()
         }
         (Mode::Normal, Tab::Items) => {
             " j/k=nav  h/l=col  gg/G=top/btm  Enter=detail  Space=actions  q=quit".to_string()
@@ -645,9 +650,7 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
         (Mode::Normal, Tab::Stats) => " Space=actions  q=quit".to_string(),
         (Mode::Normal, Tab::Help) => " Space=actions  q=quit".to_string(),
         (Mode::Normal, Tab::Db) => " j/k=nav  Space=actions  q=quit".to_string(),
-        (Mode::Overlay, _) => {
-            " j/k=scroll  s=status  n=note  Esc=back".to_string()
-        }
+        (Mode::Overlay, _) => " j/k=scroll  s=status  n=note  Esc=back".to_string(),
     };
 
     // Show status_message override if set
@@ -741,8 +744,7 @@ fn render_db_tab(app: &App, frame: &mut Frame, area: Rect) {
                 Span::styled(todo.title.clone(), Style::default().fg(C_BODY)),
             ]);
             if is_selected {
-                ListItem::new(line)
-                    .style(Style::default().bg(ratatui::style::Color::DarkGray))
+                ListItem::new(line).style(Style::default().bg(ratatui::style::Color::DarkGray))
             } else {
                 ListItem::new(line)
             }
