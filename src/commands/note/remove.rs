@@ -9,7 +9,7 @@ pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
     for id in ids {
         let record_id = normalize_note_id(id);
 
-        let query = format!("SELECT * FROM {} LIMIT 1", record_id);
+        let query = format!("SELECT * FROM `{}` LIMIT 1", record_id);
         let mut result = db.query(&query).await?;
         let notes: Vec<Note> = result.take(0)?;
 
@@ -17,7 +17,7 @@ pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
             return Err(anyhow!("Note not found: {}", record_id));
         }
 
-        let delete_query = format!("DELETE {}", record_id);
+        let delete_query = format!("DELETE `{}`", record_id);
         db.query(&delete_query).await?;
 
         removed_count += 1;

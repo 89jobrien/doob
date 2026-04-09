@@ -92,7 +92,7 @@ pub async fn execute(
             .check()?;
 
         if let Some(ref record_id) = todo.id {
-            let delete_query = format!("DELETE {}", record_id);
+            let delete_query = format!("DELETE `{}`", record_id);
             let _ = db.query(&delete_query).await;
             archived_count += 1;
         }

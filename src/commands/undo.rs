@@ -10,7 +10,7 @@ pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
         let record_id = normalize_id(id);
 
         // Get existing todo using query
-        let query = format!("SELECT * FROM {} LIMIT 1", record_id);
+        let query = format!("SELECT * FROM `{}` LIMIT 1", record_id);
         let mut result = db.query(&query).await?;
         let todos: Vec<Todo> = result.take(0)?;
 
@@ -31,7 +31,7 @@ pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
 
         // Update status back to pending
         let update_query = format!(
-            "UPDATE {} SET status = 'pending', updated_at = time::now()",
+            "UPDATE `{}` SET status = 'pending', updated_at = time::now()",
             record_id
         );
         db.query(&update_query).await?;
