@@ -1,4 +1,4 @@
-use crate::commands::normalize_id;
+use crate::commands::{normalize_id, quote_record_id};
 use crate::db::DbConnection;
 use crate::models::Todo;
 use anyhow::{anyhow, Result};
@@ -8,7 +8,7 @@ pub async fn execute(db: &DbConnection, id: String, due_date: Option<String>) ->
     let record_id = normalize_id(id);
 
     // Verify the todo exists
-    let query = format!("SELECT * FROM `{}` LIMIT 1", record_id);
+    let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
     let mut result = db.query(&query).await?;
     let todos: Vec<Todo> = result.take(0)?;
 
@@ -21,23 +21,24 @@ pub async fn execute(db: &DbConnection, id: String, due_date: Option<String>) ->
         if date_str.to_lowercase() == "clear" {
             // Clear the due date
             format!(
-                "UPDATE `{}` SET due_date = NONE, updated_at = time::now()",
-                record_id
+                "UPDATE {} SET due_date = NONE, updated_at = time::now()",
+                quote_record_id(&record_id)
             )
         } else {
             // Parse and set the due date
             let parsed_date = parse_date(&date_str)?;
             let formatted_date = parsed_date.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string();
             format!(
-                "UPDATE `{}` SET due_date = <datetime>'{}', updated_at = time::now()",
-                record_id, formatted_date
+                "UPDATE {} SET due_date = <datetime>'{}', updated_at = time::now()",
+                quote_record_id(&record_id),
+                formatted_date
             )
         }
     } else {
         // No date provided, clear it
         format!(
-            "UPDATE `{}` SET due_date = NONE, updated_at = time::now()",
-            record_id
+            "UPDATE {} SET due_date = NONE, updated_at = time::now()",
+            quote_record_id(&record_id)
         )
     };
 

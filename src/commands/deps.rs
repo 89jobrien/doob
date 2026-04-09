@@ -1,3 +1,4 @@
+use crate::commands::quote_record_id;
 use crate::db::DbConnection;
 use crate::models::Todo;
 use anyhow::Result;
@@ -58,7 +59,7 @@ async fn fetch_by_id(db: &DbConnection, id: &str) -> Result<Option<Todo>> {
     } else {
         format!("todo:{}", id)
     };
-    let query = format!("SELECT * FROM `{}` LIMIT 1", record_id);
+    let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
     let mut result = db.query(&query).await?;
     let todos: Vec<Todo> = result.take(0)?;
     Ok(todos.into_iter().next())

@@ -1,3 +1,4 @@
+use crate::commands::quote_record_id;
 use crate::db::DbConnection;
 use crate::models::{Todo, TodoStatus};
 use anyhow::Result;
@@ -92,7 +93,8 @@ pub async fn execute(
             .check()?;
 
         if let Some(ref record_id) = todo.id {
-            let delete_query = format!("DELETE `{}`", record_id);
+            let record_id_str = record_id.to_string();
+            let delete_query = format!("DELETE {}", quote_record_id(&record_id_str));
             let _ = db.query(&delete_query).await;
             archived_count += 1;
         }

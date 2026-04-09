@@ -1,4 +1,4 @@
-use crate::commands::normalize_id;
+use crate::commands::{normalize_id, quote_record_id};
 use crate::db::DbConnection;
 use crate::models::{Todo, TodoStatus};
 use anyhow::{anyhow, Result};
@@ -10,7 +10,7 @@ pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
         let record_id = normalize_id(id);
 
         // Get existing todo using query
-        let query = format!("SELECT * FROM `{}` LIMIT 1", record_id);
+        let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
         let mut result = db.query(&query).await?;
         let todos: Vec<Todo> = result.take(0)?;
 
@@ -31,8 +31,8 @@ pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
 
         // Update status back to pending
         let update_query = format!(
-            "UPDATE `{}` SET status = 'pending', updated_at = time::now()",
-            record_id
+            "UPDATE {} SET status = 'pending', updated_at = time::now()",
+            quote_record_id(&record_id)
         );
         db.query(&update_query).await?;
 

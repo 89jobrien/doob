@@ -1,4 +1,4 @@
-use crate::commands::normalize_id;
+use crate::commands::{normalize_id, quote_record_id};
 use crate::db::DbConnection;
 use crate::models::Todo;
 use anyhow::{anyhow, Result};
@@ -48,7 +48,7 @@ pub async fn execute(db: &DbConnection, id: String, fields: UpdateFields) -> Res
     let record_id = normalize_id(id);
 
     // Verify the todo exists
-    let query = format!("SELECT * FROM `{}` LIMIT 1", record_id);
+    let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
     let mut result = db.query(&query).await?;
     let todos: Vec<Todo> = result.take(0)?;
 
@@ -88,14 +88,14 @@ pub async fn execute(db: &DbConnection, id: String, fields: UpdateFields) -> Res
     }
 
     let update_query = format!(
-        "UPDATE `{}` SET {}",
-        record_id,
+        "UPDATE {} SET {}",
+        quote_record_id(&record_id),
         set_parts.join(", ")
     );
     db.query(&update_query).await?;
 
     // Fetch and return the updated todo
-    let fetch_query = format!("SELECT * FROM `{}` LIMIT 1", record_id);
+    let fetch_query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
     let mut fetch_result = db.query(&fetch_query).await?;
     let updated: Vec<Todo> = fetch_result.take(0)?;
 
