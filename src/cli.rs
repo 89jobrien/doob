@@ -185,6 +185,33 @@ pub enum TodoAction {
         #[arg(required = true)]
         id: String,
     },
+
+    /// Update fields of an existing todo in place
+    Update {
+        /// Todo UUID or todo:<id> format
+        #[arg(required = true)]
+        id: String,
+
+        /// Priority (1-5)
+        #[arg(long)]
+        priority: Option<u8>,
+
+        /// Status: pending | in_progress | completed
+        #[arg(long)]
+        status: Option<String>,
+
+        /// Project name
+        #[arg(short = 'p', long)]
+        project: Option<String>,
+
+        /// Comma-separated tags (replaces existing tags)
+        #[arg(short = 't', long)]
+        tags: Option<String>,
+
+        /// New todo description
+        #[arg(long)]
+        content: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]

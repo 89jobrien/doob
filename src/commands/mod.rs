@@ -12,6 +12,7 @@ pub mod schema;
 pub mod search;
 pub mod stats;
 pub mod undo;
+pub mod update;
 pub mod watch;
 
 /// Normalize a todo ID to the `todo:<id>` record format.

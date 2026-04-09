@@ -98,6 +98,25 @@ async fn run() -> Result<()> {
                 println!("✓ Undid completion for {} todo(s)", count);
                 Ok(())
             }
+            TodoAction::Update {
+                id,
+                priority,
+                status,
+                project,
+                tags,
+                content,
+            } => {
+                let fields = commands::update::UpdateFields {
+                    priority,
+                    status,
+                    project,
+                    tags,
+                    content,
+                };
+                let todo = commands::update::execute(&db, id, fields).await?;
+                println!("✓ Updated todo: {}", todo.content);
+                Ok(())
+            }
             TodoAction::Deps { id } => {
                 let view = commands::deps::execute(&db, id).await?;
                 if cli.json {
