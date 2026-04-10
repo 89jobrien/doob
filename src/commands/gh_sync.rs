@@ -18,10 +18,7 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
             eprintln!("gh-sync: invalid UUID format: {}", uuid);
             return Ok(());
         }
-        let query = format!(
-            "SELECT * FROM todo WHERE uuid = '{}' LIMIT 1",
-            uuid
-        );
+        let query = format!("SELECT * FROM todo WHERE uuid = '{}' LIMIT 1", uuid);
         let mut result = db.query(&query).await?;
         let todos: Vec<crate::models::Todo> = result.take(0)?;
         let todo = match todos.into_iter().next() {
