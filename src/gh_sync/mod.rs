@@ -37,6 +37,11 @@ pub fn sync_todo(todo: &Todo, action: &str, dry_run: bool) -> Result<()> {
 
     let mut state = state::load()?;
 
+    // Check gh is available before any action (skip in dry-run)
+    if !dry_run {
+        github::check_gh_available()?;
+    }
+
     match action {
         "add" => {
             if state::has_issue(&state, &todo.uuid) {
@@ -47,7 +52,6 @@ pub fn sync_todo(todo: &Todo, action: &str, dry_run: bool) -> Result<()> {
                 println!("[dry-run] Would create issue in {}: {}", repo, todo.content);
                 return Ok(());
             }
-            github::check_gh_available()?;
             let issue_number = github::create_issue(&repo, &todo.content, &body)?;
             state::upsert(&mut state, &todo.uuid, &repo, issue_number);
             state::save(&state)?;
@@ -68,7 +72,6 @@ pub fn sync_todo(todo: &Todo, action: &str, dry_run: bool) -> Result<()> {
                 );
                 return Ok(());
             }
-            github::check_gh_available()?;
             github::close_issue(&entry.repo, entry.issue_number)?;
             println!("✓ Closed issue #{} in {}", entry.issue_number, entry.repo);
         }
@@ -87,7 +90,6 @@ pub fn sync_todo(todo: &Todo, action: &str, dry_run: bool) -> Result<()> {
                 );
                 return Ok(());
             }
-            github::check_gh_available()?;
             github::add_comment(
                 &entry.repo,
                 entry.issue_number,

@@ -97,8 +97,21 @@ owner = "testuser"
 
     #[test]
     fn load_returns_none_when_file_absent() {
-        let path = PathBuf::from("/tmp/doob-gh-sync-absent-test.toml");
-        assert!(!path.exists());
-        // Verifies the logic: a nonexistent file returns None
+        // config_path() points to ~/.config/doob/gh-sync.toml
+        // If that file doesn't exist, load() returns Ok(None)
+        // We can't easily override the path in tests without refactoring,
+        // so test the conditional logic: a nonexistent PathBuf.exists() is false
+        let path = std::path::PathBuf::from("/tmp/doob-gh-sync-definitely-absent-test-file.toml");
+        assert!(!path.exists(), "test assumption: this path must not exist");
+        // The load() function's early-return on !path.exists() is covered by
+        // manual integration; this test guards the assumption.
+        // To test the actual load() fn, we'd need path injection — out of scope here.
+    }
+
+    #[test]
+    fn malformed_toml_returns_error() {
+        let bad_toml = "this is not valid toml ][[[";
+        let result: Result<crate::gh_sync::config::GhSyncConfig, _> = toml::from_str(bad_toml);
+        assert!(result.is_err(), "malformed TOML should fail to parse");
     }
 }

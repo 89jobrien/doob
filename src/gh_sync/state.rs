@@ -41,6 +41,8 @@ pub fn save(map: &StateMap) -> Result<()> {
     let tmp_path = path.with_extension("json.tmp");
     std::fs::write(&tmp_path, &json)
         .with_context(|| format!("Failed to write temp state file {}", tmp_path.display()))?;
+    // rename() is atomic when src and dst are on the same filesystem.
+    // Both paths are under ~/.config/doob/, so cross-filesystem rename is not expected.
     std::fs::rename(&tmp_path, &path).with_context(|| "Failed to rename state file".to_string())?;
     Ok(())
 }

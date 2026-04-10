@@ -13,9 +13,14 @@ pub struct GhSyncOptions {
 pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
     if let Some(uuid) = opts.uuid {
         // Single-todo sync by UUID
+        // Validate UUID format before interpolation — UUIDs are [0-9a-f-] only
+        if !uuid.chars().all(|c| c.is_ascii_hexdigit() || c == '-') {
+            eprintln!("gh-sync: invalid UUID format: {}", uuid);
+            return Ok(());
+        }
         let query = format!(
             "SELECT * FROM todo WHERE uuid = '{}' LIMIT 1",
-            uuid.replace('\'', "")
+            uuid
         );
         let mut result = db.query(&query).await?;
         let todos: Vec<crate::models::Todo> = result.take(0)?;
@@ -66,6 +71,7 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
             }
             match action_hint {
                 "add" => {
+                    // --force only applies to "add" — re-closing or re-tombstoning is not supported
                     if !opts.force && crate::gh_sync::state::has_issue(&state, &todo.uuid) {
                         continue;
                     }
