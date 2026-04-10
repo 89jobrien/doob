@@ -192,9 +192,9 @@ pub enum TodoAction {
         #[arg(long)]
         uuid: Option<String>,
 
-        /// Print what would happen without making API calls
+        /// Actually perform the sync (default is dry-run preview)
         #[arg(long)]
-        dry_run: bool,
+        execute: bool,
 
         /// Re-sync todos already in state file
         #[arg(long)]

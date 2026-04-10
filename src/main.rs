@@ -128,7 +128,7 @@ async fn run() -> Result<()> {
             }
             TodoAction::GhSync {
                 uuid,
-                dry_run,
+                execute: do_execute,
                 force,
                 action,
             } => {
@@ -136,7 +136,7 @@ async fn run() -> Result<()> {
                     &db,
                     commands::gh_sync::GhSyncOptions {
                         uuid,
-                        dry_run,
+                        dry_run: !do_execute,
                         force,
                         action,
                     },
