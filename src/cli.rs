@@ -199,6 +199,10 @@ pub enum TodoAction {
         /// Re-sync todos already in state file
         #[arg(long)]
         force: bool,
+
+        /// Action hint: "add", "complete", or "remove" (used by hook)
+        #[arg(long)]
+        action: Option<String>,
     },
 
     /// Update fields of an existing todo in place

@@ -130,6 +130,7 @@ async fn run() -> Result<()> {
                 uuid,
                 dry_run,
                 force,
+                action,
             } => {
                 commands::gh_sync::execute(
                     &db,
@@ -137,6 +138,7 @@ async fn run() -> Result<()> {
                         uuid,
                         dry_run,
                         force,
+                        action,
                     },
                 )
                 .await?;

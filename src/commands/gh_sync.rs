@@ -7,6 +7,7 @@ pub struct GhSyncOptions {
     pub uuid: Option<String>,
     pub dry_run: bool,
     pub force: bool,
+    pub action: Option<String>,
 }
 
 pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
@@ -32,12 +33,7 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
         };
         gh_sync::sync_todo(&todo, action, opts.dry_run)?;
     } else {
-        // Bulk sync — all pending todos in allowlisted projects not yet in state
-        let query = "SELECT * FROM todo WHERE status = 'pending'".to_string();
-        let mut result = db.query(&query).await?;
-        let todos: Vec<crate::models::Todo> = result.take(0)?;
-
-        let state = crate::gh_sync::state::load()?;
+        // Bulk sync — query status based on action hint
         let cfg = match crate::gh_sync::config::load()? {
             Some(c) => c,
             None => {
@@ -45,6 +41,20 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
                 return Ok(());
             }
         };
+
+        let action_hint = opts.action.as_deref().unwrap_or("add");
+
+        let status_filter = match action_hint {
+            "complete" => "completed",
+            "remove" => "cancelled",
+            _ => "pending",
+        };
+
+        let query = format!("SELECT * FROM todo WHERE status = '{}'", status_filter);
+        let mut result = db.query(&query).await?;
+        let todos: Vec<crate::models::Todo> = result.take(0)?;
+
+        let state = crate::gh_sync::state::load()?;
 
         for todo in todos {
             let project = match &todo.project {
@@ -54,10 +64,19 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
             if crate::gh_sync::mapper::resolve(&project, &cfg).is_none() {
                 continue;
             }
-            if !opts.force && crate::gh_sync::state::has_issue(&state, &todo.uuid) {
-                continue;
+            match action_hint {
+                "add" => {
+                    if !opts.force && crate::gh_sync::state::has_issue(&state, &todo.uuid) {
+                        continue;
+                    }
+                }
+                _ => {
+                    if !crate::gh_sync::state::has_issue(&state, &todo.uuid) {
+                        continue;
+                    }
+                }
             }
-            gh_sync::sync_todo(&todo, "add", opts.dry_run)?;
+            gh_sync::sync_todo(&todo, action_hint, opts.dry_run)?;
         }
     }
 
