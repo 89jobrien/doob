@@ -1,7 +1,31 @@
 project: doob
 id: doob
-updated: 2026-04-07
+updated: 2026-04-10
 items:
+- id: doob-6
+  name: gh-sync
+  priority: P1
+  status: done
+  title: GitHub issue sync — doob todo gh-sync subcommand + PostToolUse hook
+  description: |
+    New gh_sync lib module syncs doob todos to GitHub issues. Subcommand
+    `doob todo gh-sync` with --execute (dry-run by default), --uuid, --force,
+    --action, --json. PostToolUse hook fires on doob todo add/complete/remove
+    and passes --action hint. Config at ~/.config/doob/gh-sync.toml with owner,
+    allowlist, close_on_complete, tombstone_on_remove. State file at
+    ~/.config/doob/gh-sync-state.json (atomic writes). Table output grouped by
+    repo, colorized, JSON-serializable via --json global flag.
+  files:
+  - src/gh_sync/config.rs
+  - src/gh_sync/mapper.rs
+  - src/gh_sync/state.rs
+  - src/gh_sync/github.rs
+  - src/gh_sync/mod.rs
+  - src/commands/gh_sync.rs
+  - src/cli.rs
+  - src/main.rs
+  extra: []
+  completed: 2026-04-10
 - id: doob-5
   name: ci-standardize
   priority: P2
@@ -90,6 +114,18 @@ items:
   extra: []
   completed: 2026-04-03
 log:
+- date: 2026-04-10
+  summary: Implemented doob todo gh-sync — full GitHub issue sync with config, state,
+    gh CLI wrapper, subcommand, PostToolUse hook, colorized table output, --json flag.
+    Dry-run by default, --execute to apply. Hook passes --action hint for complete/remove.
+  commits:
+  - 27a4ea2
+  - 1a96f8b
+  - acd2129
+  - abb684c
+  - 66fc52a
+  - c11a791
+  - 5468256
 - date: 2026-04-07
   summary: Standardized CI — ci.yml, nightly.yml, deny.toml, Justfile, git hooks. Fixed
     missing license fields, BUSL-1.1/CDLA/Unlicense allow list, bincode advisory ignore.
