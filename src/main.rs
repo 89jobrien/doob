@@ -126,6 +126,14 @@ async fn run() -> Result<()> {
                 }
                 Ok(())
             }
+            TodoAction::GhSync { uuid, dry_run, force } => {
+                commands::gh_sync::execute(
+                    &db,
+                    commands::gh_sync::GhSyncOptions { uuid, dry_run, force },
+                )
+                .await?;
+                Ok(())
+            }
         },
 
         Commands::Note { action } => match action {

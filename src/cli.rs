@@ -186,6 +186,21 @@ pub enum TodoAction {
         id: String,
     },
 
+    /// Sync todos to GitHub issues
+    GhSync {
+        /// Sync a single todo by UUID (used by hook)
+        #[arg(long)]
+        uuid: Option<String>,
+
+        /// Print what would happen without making API calls
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Re-sync todos already in state file
+        #[arg(long)]
+        force: bool,
+    },
+
     /// Update fields of an existing todo in place
     Update {
         /// Todo UUID or todo:<id> format

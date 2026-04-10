@@ -1,5 +1,6 @@
 pub mod add;
 pub mod archive;
+pub mod gh_sync;
 pub mod complete;
 pub mod deps;
 pub mod due;
