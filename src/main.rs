@@ -139,6 +139,7 @@ async fn run() -> Result<()> {
                         dry_run: !do_execute,
                         force,
                         action,
+                        json: cli.json,
                     },
                 )
                 .await?;
