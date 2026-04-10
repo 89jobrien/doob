@@ -5,4 +5,5 @@ pub mod db;
 pub mod error;
 pub mod models;
 pub mod output;
+pub mod gh_sync;
 pub mod sync;
