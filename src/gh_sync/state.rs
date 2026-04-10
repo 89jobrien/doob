@@ -41,8 +41,7 @@ pub fn save(map: &StateMap) -> Result<()> {
     let tmp_path = path.with_extension("json.tmp");
     std::fs::write(&tmp_path, &json)
         .with_context(|| format!("Failed to write temp state file {}", tmp_path.display()))?;
-    std::fs::rename(&tmp_path, &path)
-        .with_context(|| "Failed to rename state file".to_string())?;
+    std::fs::rename(&tmp_path, &path).with_context(|| "Failed to rename state file".to_string())?;
     Ok(())
 }
 

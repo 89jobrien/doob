@@ -142,6 +142,9 @@ mod tests {
             && fields.project.is_none()
             && fields.tags.is_none()
             && fields.content.is_none();
-        assert!(!all_none, "priority = Some(3) should not trigger empty guard");
+        assert!(
+            !all_none,
+            "priority = Some(3) should not trigger empty guard"
+        );
     }
 }

@@ -62,7 +62,10 @@ pub fn sync_todo(todo: &Todo, action: &str, dry_run: bool) -> Result<()> {
                 return Ok(());
             }
             if dry_run {
-                println!("[dry-run] Would close issue #{} in {}", entry.issue_number, entry.repo);
+                println!(
+                    "[dry-run] Would close issue #{} in {}",
+                    entry.issue_number, entry.repo
+                );
                 return Ok(());
             }
             github::check_gh_available()?;
@@ -90,7 +93,10 @@ pub fn sync_todo(todo: &Todo, action: &str, dry_run: bool) -> Result<()> {
                 entry.issue_number,
                 "This todo was removed from doob without being completed.",
             )?;
-            println!("✓ Tombstoned issue #{} in {}", entry.issue_number, entry.repo);
+            println!(
+                "✓ Tombstoned issue #{} in {}",
+                entry.issue_number, entry.repo
+            );
         }
         _ => {
             eprintln!("gh-sync: unknown action '{}' — skipping", action);

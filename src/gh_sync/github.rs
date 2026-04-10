@@ -8,7 +8,10 @@ pub fn check_gh_available() -> Result<()> {
         .output()
         .context("gh CLI not found — install it from https://cli.github.com")?;
     if !out.status.success() {
-        bail!("gh --version failed: {}", String::from_utf8_lossy(&out.stderr));
+        bail!(
+            "gh --version failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
     }
     Ok(())
 }
@@ -16,7 +19,9 @@ pub fn check_gh_available() -> Result<()> {
 /// Create a GitHub issue. Returns the issue number.
 pub fn create_issue(repo: &str, title: &str, body: &str) -> Result<u64> {
     let out = Command::new("gh")
-        .args(["issue", "create", "--repo", repo, "--title", title, "--body", body])
+        .args([
+            "issue", "create", "--repo", repo, "--title", title, "--body", body,
+        ])
         .output()
         .context("Failed to run gh issue create")?;
     if !out.status.success() {
@@ -27,8 +32,12 @@ pub fn create_issue(repo: &str, title: &str, body: &str) -> Result<u64> {
     }
     // Output is the issue URL, e.g. https://github.com/owner/repo/issues/42
     let stdout = String::from_utf8_lossy(&out.stdout);
-    parse_issue_number_from_url(stdout.trim())
-        .with_context(|| format!("Could not parse issue number from gh output: {}", stdout.trim()))
+    parse_issue_number_from_url(stdout.trim()).with_context(|| {
+        format!(
+            "Could not parse issue number from gh output: {}",
+            stdout.trim()
+        )
+    })
 }
 
 /// Close a GitHub issue by number.
@@ -64,7 +73,7 @@ pub fn add_comment(repo: &str, issue_number: u64, body: &str) -> Result<()> {
 }
 
 fn parse_issue_number_from_url(url: &str) -> Option<u64> {
-    url.split('/').last()?.parse().ok()
+    url.split('/').next_back()?.parse().ok()
 }
 
 #[cfg(test)]

@@ -3,7 +3,7 @@
 #[cfg(feature = "integration-tests")]
 use doob::sync::adapters::BeadsAdapter;
 #[cfg(feature = "integration-tests")]
-use doob::sync::domain::{IssueTracker, SyncableTodo, TodoStatus};
+use doob::sync::domain::{HealthCheck, IssueCreator, SyncableTodo, TodoStatus};
 
 #[test]
 #[cfg(feature = "integration-tests")]

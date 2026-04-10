@@ -75,7 +75,10 @@ tombstone_on_remove = false
 "#;
         let cfg: GhSyncConfig = toml::from_str(toml).unwrap();
         assert_eq!(cfg.github.owner, "testuser");
-        assert_eq!(cfg.github.allowlist, Some(vec!["repo-a".into(), "repo-b".into()]));
+        assert_eq!(
+            cfg.github.allowlist,
+            Some(vec!["repo-a".into(), "repo-b".into()])
+        );
         assert!(cfg.sync.close_on_complete);
         assert!(!cfg.sync.tombstone_on_remove);
     }
