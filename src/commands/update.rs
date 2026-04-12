@@ -1,6 +1,5 @@
-use crate::commands::{normalize_id, quote_record_id};
-use crate::db::DbConnection;
 use crate::models::Todo;
+use crate::ports::TodoRepository;
 use anyhow::{anyhow, Result};
 
 pub struct UpdateFields {
@@ -11,7 +10,7 @@ pub struct UpdateFields {
     pub content: Option<String>,
 }
 
-pub async fn execute(db: &DbConnection, id: String, fields: UpdateFields) -> Result<Todo> {
+pub async fn execute(repo: &dyn TodoRepository, id: String, fields: UpdateFields) -> Result<Todo> {
     // Require at least one field
     if fields.priority.is_none()
         && fields.status.is_none()
@@ -45,64 +44,21 @@ pub async fn execute(db: &DbConnection, id: String, fields: UpdateFields) -> Res
         }
     }
 
-    let record_id = normalize_id(id);
+    let tag_list = fields.tags.as_ref().map(|t| {
+        t.split(',')
+            .map(|s| s.trim().to_string())
+            .collect::<Vec<String>>()
+    });
 
-    // Verify the todo exists
-    let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
-    let mut result = db.query(&query).await?;
-    let todos: Vec<Todo> = result.take(0)?;
-
-    if todos.is_empty() {
-        return Err(anyhow!("Todo not found: {}", record_id));
-    }
-
-    // Build SET clause from provided fields
-    let mut set_parts: Vec<String> = vec!["updated_at = time::now()".to_string()];
-
-    if let Some(p) = fields.priority {
-        set_parts.push(format!("priority = {}", p));
-    }
-
-    if let Some(ref s) = fields.status {
-        set_parts.push(format!("status = '{}'", s));
-        if s == "completed" {
-            set_parts.push("completed_at = time::now()".to_string());
-        }
-    }
-
-    if let Some(ref p) = fields.project {
-        set_parts.push(format!("project = '{}'", p.replace('\'', "\\'")));
-    }
-
-    if let Some(ref t) = fields.tags {
-        // Build SurrealDB array literal from comma-separated tags
-        let tag_list: Vec<String> = t
-            .split(',')
-            .map(|s| format!("'{}'", s.trim().replace('\'', "\\'")))
-            .collect();
-        set_parts.push(format!("tags = [{}]", tag_list.join(", ")));
-    }
-
-    if let Some(ref c) = fields.content {
-        set_parts.push(format!("content = '{}'", c.replace('\'', "\\'")));
-    }
-
-    let update_query = format!(
-        "UPDATE {} SET {}",
-        quote_record_id(&record_id),
-        set_parts.join(", ")
-    );
-    db.query(&update_query).await?;
-
-    // Fetch and return the updated todo
-    let fetch_query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
-    let mut fetch_result = db.query(&fetch_query).await?;
-    let updated: Vec<Todo> = fetch_result.take(0)?;
-
-    updated
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("Failed to fetch updated todo: {}", record_id))
+    repo.update_todo(
+        &id,
+        fields.priority,
+        fields.status.as_deref(),
+        fields.project.as_deref(),
+        tag_list,
+        fields.content.as_deref(),
+    )
+    .await
 }
 
 #[cfg(test)]

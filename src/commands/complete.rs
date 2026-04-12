@@ -1,38 +1,11 @@
-use crate::commands::{normalize_id, quote_record_id};
-use crate::db::DbConnection;
-use crate::models::{Todo, TodoStatus};
-use anyhow::{anyhow, Result};
-use chrono::Utc;
+use crate::ports::TodoRepository;
+use anyhow::Result;
 
-pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
+pub async fn execute(repo: &dyn TodoRepository, ids: Vec<String>) -> Result<usize> {
     let mut completed_count = 0;
 
     for id in ids {
-        let record_id = normalize_id(id);
-
-        // Get existing todo using query
-        let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
-        let mut result = db.query(&query).await?;
-        let todos: Vec<Todo> = result.take(0)?;
-
-        if todos.is_empty() {
-            return Err(anyhow!("Todo not found: {}", record_id));
-        }
-
-        let mut todo = todos.into_iter().next().unwrap();
-
-        // Update status and completed_at
-        todo.status = TodoStatus::Completed;
-        todo.completed_at = Some(Utc::now());
-        todo.updated_at = Utc::now();
-
-        // Update using query with explicit values
-        let update_query = format!(
-            "UPDATE {} SET status = 'completed', completed_at = time::now(), updated_at = time::now()",
-            quote_record_id(&record_id)
-        );
-        db.query(&update_query).await?;
-
+        repo.complete_todo(&id).await?;
         completed_count += 1;
     }
 

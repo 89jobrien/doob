@@ -1,3 +1,4 @@
+pub mod adapters;
 pub mod cli;
 pub mod commands;
 pub mod context;
@@ -6,4 +7,5 @@ pub mod error;
 pub mod gh_sync;
 pub mod models;
 pub mod output;
+pub mod ports;
 pub mod sync;
