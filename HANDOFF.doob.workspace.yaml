@@ -113,6 +113,193 @@ items:
   - src/error.rs
   extra: []
   completed: 2026-04-03
+- id: doob-7
+  name: todo-update-priority-flag
+  priority: P2
+  status: open
+  title: 'feat: doob todo update --priority <n> — in-place priority change'
+  description: "GH #12: Add --priority flag to `doob todo update` command for changing priority without full item re-edit."
+  files: []
+  extra:
+  - type: github-issue
+    number: 12
+    url: "https://github.com/89jobrien/doob/issues/12"
+- id: doob-8
+  name: handoff-sync-dedup-bug
+  priority: P1
+  status: open
+  title: 'bug: handoff sync: extra entry dedup uses only date+note, ignores entry_type'
+  description: "GH #10: When syncing duplicate entries in HANDOFF items, dedup logic matches on date+note only. Ignores entry_type field, causing false positives."
+  files: []
+  extra:
+  - type: github-issue
+    number: 10
+    url: "https://github.com/89jobrien/doob/issues/10"
+- id: doob-9
+  name: exit-code-error-classification
+  priority: P1
+  status: open
+  title: 'bug: ExitCode::from_error misclassifies IO and parse errors as DatabaseError'
+  description: "GH #9: IO errors (permission denied, not found) and JSON parse errors are mapped to DatabaseError exit code instead of their own codes."
+  files: []
+  extra:
+  - type: github-issue
+    number: 9
+    url: "https://github.com/89jobrien/doob/issues/9"
+- id: doob-10
+  name: undo-cancelled-todo-blocked
+  priority: P1
+  status: open
+  title: 'bug: undo only works on Completed todos — Cancelled todos cannot be reopened'
+  description: "GH #8: `doob todo undo` requires status=completed. Cancelled todos silently fail to reopen."
+  files: []
+  extra:
+  - type: github-issue
+    number: 8
+    url: "https://github.com/89jobrien/doob/issues/8"
+- id: doob-11
+  name: batch-todo-deps-link-bug
+  priority: P1
+  status: open
+  title: 'bug: Batch todo add with --blocks/--blocked-by links all todos to same deps'
+  description: "GH #7: When adding multiple todos with --blocks or --blocked-by, all created todos get linked to the same dependency instead of each individually."
+  files: []
+  extra:
+  - type: github-issue
+    number: 7
+    url: "https://github.com/89jobrien/doob/issues/7"
+- id: doob-12
+  name: home-dir-expect-panic
+  priority: P1
+  status: open
+  title: 'bug: home_dir().expect() panics on misconfigured systems'
+  description: "GH #6: home_dir() call has no fallback. On systems without $HOME or where home_dir detection fails, doob panics instead of exiting cleanly."
+  files: []
+  extra:
+  - type: github-issue
+    number: 6
+    url: "https://github.com/89jobrien/doob/issues/6"
+- id: doob-13
+  name: surrealdb-parameterized-noop
+  priority: P1
+  status: open
+  title: 'bug: deps::link uses parameterized query which silently no-ops (SurrealDB bug #6271)'
+  description: "GH #5: SurrealDB 2.x parameterized queries silently no-op instead of executing. deps::link must use raw SQL interpolation as a workaround."
+  files: []
+  extra:
+  - type: github-issue
+    number: 5
+    url: "https://github.com/89jobrien/doob/issues/5"
+- id: doob-14
+  name: archive-delete-error-swallow
+  priority: P1
+  status: open
+  title: 'bug: Archive delete silently swallows errors, leaving orphaned todos'
+  description: "GH #4: Archive delete operations don't propagate errors. On failure, todos are marked deleted but the delete operation may not complete."
+  files: []
+  extra:
+  - type: github-issue
+    number: 4
+    url: "https://github.com/89jobrien/doob/issues/4"
+- id: doob-15
+  name: sql-injection-list-command
+  priority: P1
+  status: open
+  title: 'bug: SQL injection in list command: status and project are interpolated unsanitized'
+  description: "GH #3: The list command interpolates status and project filter values directly into the WHERE clause without parameterization."
+  files: []
+  extra:
+  - type: github-issue
+    number: 3
+    url: "https://github.com/89jobrien/doob/issues/3"
+- id: doob-16
+  name: todo-update-priority-flag
+  priority: P2
+  status: open
+  title: 'feat: doob todo update --priority <n> — in-place priority change'
+  description: "GH #12: Add --priority flag to `doob todo update` command for changing priority without full item re-edit."
+  files: []
+  extra:
+  - type: github-issue
+    number: 12
+    url: "https://github.com/89jobrien/doob/issues/12"
+- id: doob-17
+  name: handoff-sync-dedup-bug
+  priority: P1
+  status: open
+  title: 'bug: handoff sync: extra entry dedup uses only date+note, ignores entry_type'
+  description: "GH #10: When syncing duplicate entries in HANDOFF items, dedup logic matches on date+note only. Ignores entry_type field, causing false positives."
+  files: []
+  extra:
+  - type: github-issue
+    number: 10
+    url: "https://github.com/89jobrien/doob/issues/10"
+- id: doob-18
+  name: exit-code-error-classification
+  priority: P1
+  status: open
+  title: 'bug: ExitCode::from_error misclassifies IO and parse errors as DatabaseError'
+  description: "GH #9: IO errors (permission denied, not found) and JSON parse errors are mapped to DatabaseError exit code instead of their own codes."
+  files: []
+  extra:
+  - type: github-issue
+    number: 9
+    url: "https://github.com/89jobrien/doob/issues/9"
+- id: doob-19
+  name: undo-cancelled-todo-blocked
+  priority: P1
+  status: open
+  title: 'bug: undo only works on Completed todos — Cancelled todos cannot be reopened'
+  description: "GH #8: `doob todo undo` requires status=completed. Cancelled todos silently fail to reopen."
+  files: []
+  extra:
+  - type: github-issue
+    number: 8
+    url: "https://github.com/89jobrien/doob/issues/8"
+- id: doob-20
+  name: batch-todo-deps-link-bug
+  priority: P1
+  status: open
+  title: 'bug: Batch todo add with --blocks/--blocked-by links all todos to same deps'
+  description: "GH #7: When adding multiple todos with --blocks or --blocked-by, all created todos get linked to the same dependency instead of each individually."
+  files: []
+  extra:
+  - type: github-issue
+    number: 7
+    url: "https://github.com/89jobrien/doob/issues/7"
+- id: doob-21
+  name: home-dir-expect-panic
+  priority: P1
+  status: open
+  title: 'bug: home_dir().expect() panics on misconfigured systems'
+  description: "GH #6: home_dir() call has no fallback. On systems without $HOME or where home_dir detection fails, doob panics instead of exiting cleanly."
+  files: []
+  extra:
+  - type: github-issue
+    number: 6
+    url: "https://github.com/89jobrien/doob/issues/6"
+- id: doob-22
+  name: surrealdb-parameterized-noop
+  priority: P1
+  status: open
+  title: 'bug: deps::link uses parameterized query which silently no-ops (SurrealDB bug #6271)'
+  description: "GH #5: SurrealDB 2.x parameterized queries silently no-op instead of executing. deps::link must use raw SQL interpolation as a workaround."
+  files: []
+  extra:
+  - type: github-issue
+    number: 5
+    url: "https://github.com/89jobrien/doob/issues/5"
+- id: doob-23
+  name: archive-delete-error-swallow
+  priority: P1
+  status: open
+  title: 'bug: Archive delete silently swallows errors, leaving orphaned todos'
+  description: "GH #4: Archive delete operations don't propagate errors. On failure, todos are marked deleted but the delete operation may not complete."
+  files: []
+  extra:
+  - type: github-issue
+    number: 4
+    url: "https://github.com/89jobrien/doob/issues/4"
 log:
 - date: 2026-04-10
   summary: Implemented doob todo gh-sync — full GitHub issue sync with config, state,
