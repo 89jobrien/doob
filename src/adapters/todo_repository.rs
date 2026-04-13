@@ -389,6 +389,7 @@ impl TodoRepository for TodoRepositoryImpl {
         let mut query = String::from("SELECT * FROM note");
 
         if let Some(p) = project {
+            validate_project(p)?;
             query.push_str(&format!(" WHERE project = '{}'", p));
         }
 
