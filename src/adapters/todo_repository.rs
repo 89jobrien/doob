@@ -251,10 +251,10 @@ impl TodoRepository for TodoRepositoryImpl {
 
         let todo = todos.into_iter().next().unwrap();
 
-        // Only allow undo for completed todos
-        if todo.status != TodoStatus::Completed {
+        // Allow undo for completed or cancelled todos
+        if todo.status != TodoStatus::Completed && todo.status != TodoStatus::Cancelled {
             return Err(anyhow!(
-                "Todo {} is not completed (current status: {:?})",
+                "Todo {} is not completed or cancelled (current status: {:?})",
                 record_id,
                 todo.status
             ));
