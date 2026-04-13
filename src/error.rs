@@ -13,7 +13,13 @@ impl ExitCode {
 
         if msg.contains("not found") {
             ExitCode::TodoNotFound
-        } else if msg.contains("invalid") {
+        } else if msg.contains("invalid")
+            || msg.contains("failed to parse")
+            || msg.contains("unexpected token")
+            || msg.contains("no such file")
+            || msg.contains("os error")
+            || msg.contains("permission denied")
+        {
             ExitCode::InvalidInput
         } else if msg.contains("context") {
             ExitCode::ContextError
@@ -47,6 +53,24 @@ mod tests {
         assert!(matches!(
             ExitCode::from_error(&err),
             ExitCode::DatabaseError
+        ));
+    }
+
+    #[test]
+    fn exit_code__io_error_is_not_database_error() {
+        let err = anyhow!("No such file or directory (os error 2)");
+        assert!(matches!(
+            ExitCode::from_error(&err),
+            ExitCode::InvalidInput
+        ));
+    }
+
+    #[test]
+    fn exit_code__parse_error_is_not_database_error() {
+        let err = anyhow!("failed to parse yaml: unexpected token at line 3");
+        assert!(matches!(
+            ExitCode::from_error(&err),
+            ExitCode::InvalidInput
         ));
     }
 }
