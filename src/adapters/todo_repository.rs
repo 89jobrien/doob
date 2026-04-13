@@ -5,12 +5,13 @@
 // Concrete implementation of the TodoRepository port using SurrealDB.
 // This adapter encapsulates all raw SurrealDB query logic.
 
-use async_trait::async_trait;
 use crate::commands::{normalize_id, quote_record_id};
 use crate::db::DbConnection;
 use crate::models::{Note, Todo, TodoStatus};
 use crate::ports::TodoRepository;
+use crate::query_guard::{validate_project, validate_status};
 use anyhow::{anyhow, Result};
+use async_trait::async_trait;
 use uuid::Uuid;
 
 /// SurrealDB-backed implementation of TodoRepository
@@ -101,10 +102,12 @@ impl TodoRepository for TodoRepositoryImpl {
         let mut conditions = Vec::new();
 
         if let Some(s) = status {
+            validate_status(s)?;
             conditions.push(format!("status = '{}'", s));
         }
 
         if let Some(p) = project {
+            validate_project(p)?;
             conditions.push(format!("project = '{}'", p));
         }
 
@@ -382,11 +385,7 @@ impl TodoRepository for TodoRepositoryImpl {
         Ok(notes.into_iter().next())
     }
 
-    async fn list_notes(
-        &self,
-        project: Option<&str>,
-        limit: Option<usize>,
-    ) -> Result<Vec<Note>> {
+    async fn list_notes(&self, project: Option<&str>, limit: Option<usize>) -> Result<Vec<Note>> {
         let mut query = String::from("SELECT * FROM note");
 
         if let Some(p) = project {
