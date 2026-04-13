@@ -151,17 +151,23 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
         } else {
             let doob = &existing[0];
 
-            // Merge extra: append yaml extras not already in doob (dedup by date+note)
+            // Merge extra: append yaml extras not already in doob (dedup by entry_type+date+note)
             let existing_keys: HashSet<String> = doob
                 .extra
                 .iter()
-                .map(|e| format!("{}|{}", e.date, e.note))
+                .map(|e| {
+                    let et = serde_json::to_string(&e.entry_type)
+                        .unwrap_or_default()
+                        .trim_matches('"')
+                        .to_string();
+                    format!("{}|{}|{}", et, e.date, e.note)
+                })
                 .collect();
 
             let new_entries: Vec<ExtraEntry> = yaml_item
                 .extra
                 .iter()
-                .filter(|e| !existing_keys.contains(&format!("{}|{}", e.date, e.note)))
+                .filter(|e| !existing_keys.contains(&format!("{}|{}|{}", e.entry_type, e.date, e.note)))
                 .map(yaml_extra_to_entry)
                 .collect::<Result<Vec<_>>>()?;
 
