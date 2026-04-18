@@ -1,6 +1,6 @@
 pub mod schema;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::path::PathBuf;
 use surrealdb::engine::local::{Db, SurrealKv};
 use surrealdb::Surreal;
@@ -10,12 +10,16 @@ pub type DbConnection = Surreal<Db>;
 
 pub async fn create_connection(path: Option<&str>) -> Result<DbConnection> {
     // Use file-based RocksDB storage
-    let db_path = path.map(PathBuf::from).unwrap_or_else(|| {
-        let mut home = dirs_next::home_dir().expect("Could not find home directory");
-        home.push(".ctx/doob/db");
-        std::fs::create_dir_all(&home).ok(); // create ~/.ctx/doob/db/ for SurrealKV
-        home
-    });
+    let db_path = match path {
+        Some(p) => PathBuf::from(p),
+        None => {
+            let mut home = dirs_next::home_dir()
+                .context("could not determine home directory — set $HOME or pass --db-path")?;
+            home.push(".ctx/doob/db");
+            std::fs::create_dir_all(&home).ok();
+            home
+        }
+    };
 
     let db = Surreal::new::<SurrealKv>(db_path).await?;
 

@@ -1,5 +1,5 @@
-use crate::db::DbConnection;
-use crate::models::{Todo, TodoStatus};
+use crate::models::TodoStatus;
+use crate::ports::TodoRepository;
 use anyhow::Result;
 use chrono::Utc;
 
@@ -19,22 +19,12 @@ pub struct StatsResult {
 }
 
 pub async fn execute(
-    db: &DbConnection,
+    repo: &dyn TodoRepository,
     project: Option<String>,
     window_days: u32,
 ) -> Result<StatsResult> {
-    let mut query = String::from("SELECT * FROM todo");
-    if project.is_some() {
-        query.push_str(" WHERE project = $project");
-    }
-
-    let mut builder = db.query(&query);
-    if let Some(ref p) = project {
-        builder = builder.bind(("project", p.clone()));
-    }
-
-    let mut result = builder.await?;
-    let todos: Vec<Todo> = result.take(0)?;
+    // Get all todos - we'll filter by project in application code
+    let todos = repo.list_todos(None, project.as_deref(), None).await?;
 
     let now = Utc::now();
     let window_start = now - chrono::Duration::days(window_days as i64);

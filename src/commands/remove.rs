@@ -1,27 +1,11 @@
-use crate::commands::{normalize_id, quote_record_id};
-use crate::db::DbConnection;
-use crate::models::Todo;
-use anyhow::{anyhow, Result};
+use crate::ports::TodoRepository;
+use anyhow::Result;
 
-pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
+pub async fn execute(repo: &dyn TodoRepository, ids: Vec<String>) -> Result<usize> {
     let mut removed_count = 0;
 
     for id in ids {
-        let record_id = normalize_id(id);
-
-        // Verify the todo exists before deleting
-        let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
-        let mut result = db.query(&query).await?;
-        let todos: Vec<Todo> = result.take(0)?;
-
-        if todos.is_empty() {
-            return Err(anyhow!("Todo not found: {}", record_id));
-        }
-
-        // Delete the todo
-        let delete_query = format!("DELETE {}", quote_record_id(&record_id));
-        db.query(&delete_query).await?;
-
+        repo.delete_todo(&id).await?;
         removed_count += 1;
     }
 

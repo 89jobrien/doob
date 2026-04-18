@@ -1,5 +1,6 @@
 use crate::db::DbConnection;
 use crate::models::handoff_item::HandoffItem;
+use crate::query_guard::{validate_project, validate_status};
 use anyhow::Result;
 
 pub async fn execute(
@@ -11,10 +12,12 @@ pub async fn execute(
     let mut conditions = Vec::new();
 
     if let Some(p) = project {
+        validate_project(&p)?;
         conditions.push(format!("project = '{}'", p));
     }
 
     if let Some(s) = status {
+        validate_status(&s)?;
         conditions.push(format!("status = '{}'", s));
     }
 
@@ -30,3 +33,5 @@ pub async fn execute(
     let items: Vec<HandoffItem> = result.take(0)?;
     Ok(items)
 }
+
+// Validation tests live in crate::query_guard

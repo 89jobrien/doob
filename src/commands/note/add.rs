@@ -1,11 +1,10 @@
 use crate::context;
-use crate::db::DbConnection;
 use crate::models::Note;
+use crate::ports::TodoRepository;
 use anyhow::Result;
-use uuid::Uuid;
 
 pub async fn execute(
-    db: &DbConnection,
+    repo: &dyn TodoRepository,
     content: Vec<String>,
     project: Option<String>,
     file_path: Option<String>,
@@ -18,43 +17,11 @@ pub async fn execute(
     let project = project.or_else(context::detect_project);
     let file_path = file_path.or_else(context::detect_file_path);
 
-    let mut created_notes = Vec::new();
+    let mut notes_to_create = Vec::new();
 
     for text in content {
-        let uuid = Uuid::new_v4().to_string();
-
-        let mut query =
-            String::from("CREATE note SET uuid = $uuid, content = $content, tags = $tags");
-
-        if project.is_some() {
-            query.push_str(", project = $project");
-        }
-
-        if file_path.is_some() {
-            query.push_str(", file_path = $file_path");
-        }
-
-        let mut qb = db
-            .query(&query)
-            .bind(("uuid", uuid))
-            .bind(("content", text))
-            .bind(("tags", tag_list.clone()));
-
-        if let Some(ref proj) = project {
-            qb = qb.bind(("project", proj.clone()));
-        }
-
-        if let Some(ref fp) = file_path {
-            qb = qb.bind(("file_path", fp.clone()));
-        }
-
-        let mut result = qb.await?;
-        let created: Option<Note> = result.take(0)?;
-
-        if let Some(note) = created {
-            created_notes.push(note);
-        }
+        notes_to_create.push((text, project.clone(), file_path.clone(), tag_list.clone()));
     }
 
-    Ok(created_notes)
+    repo.create_notes(notes_to_create).await
 }

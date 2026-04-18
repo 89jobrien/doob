@@ -17,6 +17,7 @@ name = "doob"
 path = "src/main.rs"
 
 [dependencies]
+async-trait = "0.1"
 clap = { version = "4", features = ["derive"] }
 surrealdb = { version = "2", features = ["kv-surrealkv"] }
 tokio = { version = "1", features = ["full"] }

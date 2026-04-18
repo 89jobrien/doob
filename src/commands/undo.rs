@@ -1,41 +1,11 @@
-use crate::commands::{normalize_id, quote_record_id};
-use crate::db::DbConnection;
-use crate::models::{Todo, TodoStatus};
-use anyhow::{anyhow, Result};
+use crate::ports::TodoRepository;
+use anyhow::Result;
 
-pub async fn execute(db: &DbConnection, ids: Vec<String>) -> Result<usize> {
+pub async fn execute(repo: &dyn TodoRepository, ids: Vec<String>) -> Result<usize> {
     let mut undone_count = 0;
 
     for id in ids {
-        let record_id = normalize_id(id);
-
-        // Get existing todo using query
-        let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
-        let mut result = db.query(&query).await?;
-        let todos: Vec<Todo> = result.take(0)?;
-
-        if todos.is_empty() {
-            return Err(anyhow!("Todo not found: {}", record_id));
-        }
-
-        let todo = todos.into_iter().next().unwrap();
-
-        // Only allow undo for completed todos
-        if todo.status != TodoStatus::Completed {
-            return Err(anyhow!(
-                "Todo {} is not completed (current status: {:?})",
-                record_id,
-                todo.status
-            ));
-        }
-
-        // Update status back to pending
-        let update_query = format!(
-            "UPDATE {} SET status = 'pending', updated_at = time::now()",
-            quote_record_id(&record_id)
-        );
-        db.query(&update_query).await?;
-
+        repo.undo_todo(&id).await?;
         undone_count += 1;
     }
 
