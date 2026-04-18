@@ -3,6 +3,27 @@ use crate::db::DbConnection;
 use crate::models::Todo;
 use anyhow::Result;
 
+/// Link deps to the first todo only from a batch-add result.
+///
+/// When multiple todos are created in one `add` invocation and `--blocks` /
+/// `--blocked-by` are also specified, the intent is ambiguous. This function
+/// enforces a clear rule: only the first todo gets the dep links. If the
+/// caller passes an empty `todos` slice nothing is done.
+pub async fn apply_batch_deps(
+    db: &DbConnection,
+    todos: &[Todo],
+    blocks: &[String],
+    blocked_by: &[String],
+) -> Result<()> {
+    if blocks.is_empty() && blocked_by.is_empty() {
+        return Ok(());
+    }
+    if let Some(first) = todos.first() {
+        link(db, &first.uuid, blocks, blocked_by).await?;
+    }
+    Ok(())
+}
+
 pub struct DepsView {
     pub root: Todo,
     /// Todos that block this one (from blocked_by list)
@@ -28,38 +49,17 @@ pub async fn execute(db: &DbConnection, id: String) -> Result<DepsView> {
 }
 
 /// Set blocks/blocked_by on an existing todo by UUID.
-///
-/// SurrealDB 2.x parameterized queries silently no-op (issue #6271), so the
-/// UUID filter and list values are interpolated directly. UUIDs are validated
-/// to be hex+hyphen only before interpolation. Dep UUIDs are also validated.
 pub async fn link(
     db: &DbConnection,
     uuid: &str,
     blocks: &[String],
     blocked_by: &[String],
 ) -> Result<()> {
-    // Validate UUID is safe to interpolate (hex chars and hyphens only)
-    if !uuid.chars().all(|c| c.is_ascii_hexdigit() || c == '-') {
-        anyhow::bail!("invalid UUID for dep link: {uuid:?}");
-    }
-
-    fn surreal_string_list(uuids: &[String]) -> anyhow::Result<String> {
-        for u in uuids {
-            if !u.chars().all(|c| c.is_ascii_hexdigit() || c == '-') {
-                anyhow::bail!("invalid dep UUID: {u:?}");
-            }
-        }
-        let items: Vec<String> = uuids.iter().map(|u| format!("'{u}'")).collect();
-        Ok(format!("[{}]", items.join(", ")))
-    }
-
-    let blocks_str = surreal_string_list(blocks)?;
-    let blocked_by_str = surreal_string_list(blocked_by)?;
-
-    let query = format!(
-        "UPDATE todo SET blocks = {blocks_str}, blocked_by = {blocked_by_str} WHERE uuid = '{uuid}'"
-    );
-    db.query(&query).await?;
+    db.query("UPDATE todo SET blocks = $blocks, blocked_by = $blocked_by WHERE uuid = $uuid")
+        .bind(("uuid", uuid.to_string()))
+        .bind(("blocks", blocks.to_vec()))
+        .bind(("blocked_by", blocked_by.to_vec()))
+        .await?;
     Ok(())
 }
 
