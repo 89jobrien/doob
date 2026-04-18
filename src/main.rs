@@ -42,15 +42,19 @@ async fn run() -> Result<()> {
                 let todos =
                     commands::add::execute(repo, content, priority, project, file, tags).await?;
 
-                // Link deps if provided
+                // Link deps to the first todo only. When multiple todos are
+                // created in one invocation, attaching deps to all of them
+                // is almost never the intent — use apply_batch_deps which
+                // only links the first.
                 let blocks_list = blocks.unwrap_or_default();
                 let blocked_by_list = blocked_by.unwrap_or_default();
-                if !blocks_list.is_empty() || !blocked_by_list.is_empty() {
-                    for todo in &todos {
-                        commands::deps::link(&db_conn, &todo.uuid, &blocks_list, &blocked_by_list)
-                            .await?;
-                    }
-                }
+                commands::deps::apply_batch_deps(
+                    &db_conn,
+                    &todos,
+                    &blocks_list,
+                    &blocked_by_list,
+                )
+                .await?;
 
                 for todo in &todos {
                     println!("✓ Created todo: {}", todo.content);

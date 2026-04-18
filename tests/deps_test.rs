@@ -1,6 +1,62 @@
 mod common;
 use common::setup_test_db;
 
+/// Regression test for GH #7: batch add with --blocks/--blocked-by must only
+/// link deps to the first created todo, not to every todo in the batch.
+#[tokio::test]
+async fn test_batch_add_deps_only_linked_to_first_todo() {
+    let db = setup_test_db().await;
+
+    // Create the blocker todo
+    let blocker = doob::commands::add::execute(
+        &db,
+        vec!["Gate task".to_string()],
+        None,
+        None,
+        None,
+        None,
+    )
+    .await
+    .unwrap();
+
+    // Simulate a batch add of two todos with --blocked-by pointing at blocker
+    let batch = doob::commands::add::execute(
+        &db,
+        vec!["First task".to_string(), "Second task".to_string()],
+        None,
+        None,
+        None,
+        None,
+    )
+    .await
+    .unwrap();
+
+    // apply_batch_deps should only link the first todo in the batch
+    doob::commands::deps::apply_batch_deps(
+        &db,
+        &batch,
+        &[],
+        &[blocker[0].uuid.clone()],
+    )
+    .await
+    .unwrap();
+
+    // First todo must be blocked by the gate task
+    let view_first = doob::commands::deps::execute(&db, batch[0].uuid.clone())
+        .await
+        .unwrap();
+    assert_eq!(view_first.blockers.len(), 1, "first todo must have one blocker");
+
+    // Second todo must NOT be linked to any deps
+    let view_second = doob::commands::deps::execute(&db, batch[1].uuid.clone())
+        .await
+        .unwrap();
+    assert!(
+        view_second.blockers.is_empty(),
+        "second todo must NOT have blockers — only the first todo should be linked"
+    );
+}
+
 #[tokio::test]
 async fn test_deps_no_dependencies() {
     let db = setup_test_db().await;
