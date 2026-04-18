@@ -5,13 +5,20 @@
 /// before any user-supplied value reaches the query string.
 use anyhow::{bail, Result};
 
-const ALLOWED_STATUSES: &[&str] = &["open", "done", "parked", "blocked"];
+/// Valid todo statuses (snake_case as stored in DB)
+const ALLOWED_TODO_STATUSES: &[&str] = &["pending", "in_progress", "completed", "cancelled"];
+
+/// Valid handoff/kanban statuses used by doobdash
+const ALLOWED_HANDOFF_STATUSES: &[&str] = &["open", "done", "parked", "blocked"];
 
 pub(crate) fn validate_status(s: &str) -> Result<()> {
-    if ALLOWED_STATUSES.contains(&s) {
+    if ALLOWED_TODO_STATUSES.contains(&s) || ALLOWED_HANDOFF_STATUSES.contains(&s) {
         Ok(())
     } else {
-        bail!("invalid status value: {s:?} — must be one of: open, done, parked, blocked")
+        bail!(
+            "invalid status value: {s:?} — must be one of: \
+             pending, in_progress, completed, cancelled, open, done, parked, blocked"
+        )
     }
 }
 
@@ -30,9 +37,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn status_accepts_known_values() {
-        for s in ALLOWED_STATUSES {
-            assert!(validate_status(s).is_ok());
+    fn status_accepts_todo_statuses() {
+        for s in ALLOWED_TODO_STATUSES {
+            assert!(validate_status(s).is_ok(), "expected {s:?} to be valid");
+        }
+    }
+
+    #[test]
+    fn status_accepts_handoff_statuses() {
+        for s in ALLOWED_HANDOFF_STATUSES {
+            assert!(validate_status(s).is_ok(), "expected {s:?} to be valid");
         }
     }
 
