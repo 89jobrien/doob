@@ -1,5 +1,13 @@
-updated: 2026-04-03
-branch: feature/doobdash
-build: clean
-tests: "118 passing"
-notes: "doobdash TUI implemented — workspace converted, binary installs, doob tui wired"
+branch: refactor/todo-repository-port
+build_status: pass
+test_status: pass
+last_checked: 2026-04-13
+notes:
+  - doob-15 (SQL injection): query_guard module sanitizes status/project filters
+  - doob-12 (home_dir panic): fallback to current_dir() if home_dir fails
+  - doob-14 (archive delete): propagate errors up the call chain, don't swallow
+  - doob-10 (undo Cancelled): allow status=Cancelled in undo command
+  - doob-11 (batch deps link): SurrealDB workaround uses raw SQL (issue #6271)
+  - doob-17 (handoff dedup): include entry_type in dedup key
+  - doob-18 (ExitCode): classify IO errors as ExitCode::IOError, parse errors as ExitCode::ParseError
+tests_passed: 42 lib tests (query_guard, gh_sync, sync, schema)
