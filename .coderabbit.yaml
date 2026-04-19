@@ -1,0 +1,38 @@
+language: "en-US"
+early_access: false
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+  path_filters:
+    - "!**/*.lock"
+    - "!**/vendor/**"
+    - "!**/.ctx/**"
+    - "!**/.superpowers/**"
+    - "!HANDOFF*.yaml"
+  path_instructions:
+    - path: "**/*.rs"
+      instructions: |
+        - Rust edition 2024 conventions.
+        - Prefer returning errors over panicking — no bare .unwrap()/.expect() at runtime.
+        - Use tracing::{warn,error} for observable failures.
+        - SurrealDB 2.x: parameterized queries silently no-op (issue #6271) — all queries must
+          use raw interpolated SQL strings. Flag any use of parameterized queries.
+        - All user-controlled values interpolated into SurrealQL must go through
+          validate_status/validate_project guards. No raw string interpolation of user input
+          into query strings.
+        - Datetime fields must use `d"..."` literal syntax — ISO strings are rejected in CONTENT.
+        - `UPDATE ... MERGE ... WHERE` returns empty rows even on success — SELECT first to verify
+          existence before treating empty results as an error.
+    - path: "**/Cargo.toml"
+      instructions: "Check for yanked or insecure dependency versions."
+chat:
+  auto_reply: true
