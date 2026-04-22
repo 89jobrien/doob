@@ -3,6 +3,7 @@
 *.md
 !README.md
 !CLAUDE.md
+!docs/superpowers/plans/*.md
 Cargo.lock
 *.db
 *.swp
