@@ -1,6 +1,6 @@
 project: doob
 id: doob
-updated: 2026-04-13
+updated: 2026-04-22
 items:
 - id: doob-6
   name: gh-sync
@@ -219,6 +219,15 @@ items:
     url: "https://github.com/89jobrien/doob/issues/3"
   completed: 2026-04-13
 log:
+- date: 2026-04-21
+  summary: "Documented 5 completed plans: doobdash-tui (2026-04-03), detail-redesign (2026-04-04), multi-repo (2026-04-04), space-leader-db-tab (2026-04-04), gh-sync (2026-04-10). Added to docs/superpowers/plans/, tracked in .gitignore."
+  commits:
+  - 6bd3243
+- date: 2026-04-18
+  summary: "Fixed batch add deps linking (GH #7) — only link dependencies to first todo in batch. Added CodeRabbit config."
+  commits:
+  - 3225e24
+  - d1f0bb6
 - date: 2026-04-13
   summary: Fixed 7 P1 bugs — SQL injection in list (doob-15, query_guard module), home_dir panic (doob-12), archive delete error swallow (doob-14), undo Cancelled (doob-10), batch deps link no-op (doob-11, SurrealDB raw SQL), handoff dedup ignores entry_type (doob-17), ExitCode misclassifies IO/parse (doob-18).
   commits:
