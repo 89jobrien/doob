@@ -1,5 +1,6 @@
 mod error;
 
+use doob::cache;
 use error::ExitCode;
 use std::process;
 
@@ -48,18 +49,14 @@ async fn run() -> Result<()> {
                 // only links the first.
                 let blocks_list = blocks.unwrap_or_default();
                 let blocked_by_list = blocked_by.unwrap_or_default();
-                commands::deps::apply_batch_deps(
-                    &db_conn,
-                    &todos,
-                    &blocks_list,
-                    &blocked_by_list,
-                )
-                .await?;
+                commands::deps::apply_batch_deps(&db_conn, &todos, &blocks_list, &blocked_by_list)
+                    .await?;
 
                 for todo in &todos {
                     println!("✓ Created todo: {}", todo.content);
                 }
 
+                cache::refresh(&db_conn).await;
                 Ok(())
             }
             TodoAction::List {
@@ -80,11 +77,13 @@ async fn run() -> Result<()> {
             TodoAction::Complete { ids } => {
                 let count = commands::complete::execute(repo, ids).await?;
                 println!("✓ Completed {} todo(s)", count);
+                cache::refresh(&db_conn).await;
                 Ok(())
             }
             TodoAction::Remove { ids } => {
                 let count = commands::remove::execute(repo, ids).await?;
                 println!("✓ Removed {} todo(s)", count);
+                cache::refresh(&db_conn).await;
                 Ok(())
             }
             TodoAction::Due { id, date } => {
@@ -98,11 +97,13 @@ async fn run() -> Result<()> {
                 } else {
                     println!("✓ Cleared due date for todo: {}", id);
                 }
+                cache::refresh(&db_conn).await;
                 Ok(())
             }
             TodoAction::Undo { ids } => {
                 let count = commands::undo::execute(repo, ids).await?;
                 println!("✓ Undid completion for {} todo(s)", count);
+                cache::refresh(&db_conn).await;
                 Ok(())
             }
             TodoAction::Update {
@@ -122,6 +123,7 @@ async fn run() -> Result<()> {
                 };
                 let todo = commands::update::execute(repo, id, fields).await?;
                 println!("✓ Updated todo: {}", todo.content);
+                cache::refresh(&db_conn).await;
                 Ok(())
             }
             TodoAction::Deps { id } => {
@@ -161,7 +163,8 @@ async fn run() -> Result<()> {
                 file,
                 tags,
             } => {
-                let notes = commands::note::add::execute(repo, content, project, file, tags).await?;
+                let notes =
+                    commands::note::add::execute(repo, content, project, file, tags).await?;
 
                 for note in &notes {
                     println!("✓ Created note: {}", note.content);
@@ -278,14 +281,23 @@ async fn run() -> Result<()> {
                 entry_type,
                 note,
             } => {
-                commands::handoff::add_extra::execute(&db_conn, handoff_id.clone(), entry_type, note)
-                    .await?;
+                commands::handoff::add_extra::execute(
+                    &db_conn,
+                    handoff_id.clone(),
+                    entry_type,
+                    note,
+                )
+                .await?;
                 println!("✓ Added extra to {}", handoff_id);
                 Ok(())
             }
             HandoffAction::UpdateStatus { handoff_id, status } => {
-                commands::handoff::update_status::execute(&db_conn, handoff_id.clone(), status.clone())
-                    .await?;
+                commands::handoff::update_status::execute(
+                    &db_conn,
+                    handoff_id.clone(),
+                    status.clone(),
+                )
+                .await?;
                 println!("✓ Updated {} status to {}", handoff_id, status);
                 Ok(())
             }
