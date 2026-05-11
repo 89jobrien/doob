@@ -18,6 +18,30 @@ impl BeadsAdapter {
         priority.min(4)
     }
 
+    /// Build the argument list for a `bd create` command without executing it.
+    fn build_create_args(&self, todo: &SyncableTodo) -> Vec<String> {
+        let mut args = vec![
+            "create".to_string(),
+            todo.title.clone(),
+            format!("--type={}", BEADS_ISSUE_TYPE),
+            format!("--priority={}", self.map_priority(todo.priority)),
+        ];
+
+        if let Some(ref desc) = todo.description {
+            args.push(format!("--description={}", desc));
+        }
+
+        if let Some(ref _project) = todo.project {
+            args.push(format!("--external-ref=doob-{}", todo.id));
+        }
+
+        if !todo.tags.is_empty() {
+            args.push(format!("--labels={}", todo.tags.join(",")));
+        }
+
+        args
+    }
+
     fn extract_issue_id(&self, output: &str) -> Result<String, SyncError> {
         output
             .split_whitespace()
@@ -52,22 +76,7 @@ impl HealthCheck for BeadsAdapter {
 impl IssueCreator for BeadsAdapter {
     fn create_issue(&self, todo: &SyncableTodo) -> Result<SyncRecord, SyncError> {
         let mut cmd = Command::new("bd");
-        cmd.arg("create")
-            .arg(&todo.title)
-            .arg(format!("--type={}", BEADS_ISSUE_TYPE))
-            .arg(format!("--priority={}", self.map_priority(todo.priority)));
-
-        if let Some(ref desc) = todo.description {
-            cmd.arg(format!("--description={}", desc));
-        }
-
-        if let Some(ref _project) = todo.project {
-            cmd.arg(format!("--external-ref=doob-{}", todo.id));
-        }
-
-        if !todo.tags.is_empty() {
-            cmd.arg(format!("--notes=tags: {}", todo.tags.join(", ")));
-        }
+        cmd.args(self.build_create_args(todo));
 
         let output = cmd
             .output()
@@ -124,6 +133,33 @@ mod tests {
             result.unwrap_err(),
             SyncError::ExternalApiError(_)
         ));
+    }
+
+    #[test]
+    fn create_issue__passes_labels_flag_for_tags() {
+        let adapter = BeadsAdapter::new();
+        let todo = SyncableTodo {
+            id: "abc123".to_string(),
+            title: "Test task".to_string(),
+            description: None,
+            priority: 2,
+            status: crate::sync::domain::types::TodoStatus::Pending,
+            tags: vec!["bug".to_string(), "urgent".to_string()],
+            project: None,
+            file_path: None,
+            due_date: None,
+        };
+        let args = adapter.build_create_args(&todo);
+        assert!(
+            args.contains(&"--labels=bug,urgent".to_string()),
+            "Expected --labels=bug,urgent in args: {:?}",
+            args
+        );
+        // Must NOT contain old --notes format
+        assert!(
+            !args.iter().any(|a| a.starts_with("--notes=")),
+            "Should not use --notes for tags"
+        );
     }
 
     #[test]
