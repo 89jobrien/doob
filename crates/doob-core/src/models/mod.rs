@@ -8,9 +8,19 @@ pub use todo::{Todo, TodoStatus};
 
 use serde::Deserialize;
 
-/// Deserializes the `id` field as a plain `Option<String>`.
-/// Backend adapters are responsible for converting their internal ID types
-/// (e.g. SurrealDB `Thing`) to strings before constructing model structs.
+/// Deserializes the `id` field from the active backend.
+/// With SurrealDB, converts `Thing { tb, id }` into `"table:id"` strings.
+/// Without SurrealDB, passes through as a plain `Option<String>`.
+#[cfg(feature = "surrealdb-backend")]
+fn deserialize_thing_to_string<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let thing: Option<surrealdb::sql::Thing> = Option::deserialize(deserializer)?;
+    Ok(thing.map(|t| t.to_string()))
+}
+
+#[cfg(not(feature = "surrealdb-backend"))]
 fn deserialize_thing_to_string<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
 where
     D: serde::Deserializer<'de>,

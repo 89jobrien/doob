@@ -14,3 +14,8 @@ thiserror = "2.0"
 git2 = "0.19"
 uuid = { version = "1", features = ["v4", "serde"] }
 dirs-next = "2"
+surrealdb = { version = "2", features = ["kv-surrealkv"], optional = true }
+
+[features]
+default = ["surrealdb-backend"]
+surrealdb-backend = ["dep:surrealdb"]
