@@ -38,7 +38,7 @@ pub fn format_results(results: &SearchResults) -> String {
             let short_id = note
                 .id
                 .as_ref()
-                .map(|t| t.id.to_string())
+                .map(|t| t.split(':').next_back().unwrap_or(t).to_string())
                 .unwrap_or_else(|| note.uuid[..8].to_string());
             out.push_str(&format!("  {}  {}\n", short_id, note.content));
             if let Some(proj) = &note.project {

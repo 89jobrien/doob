@@ -16,7 +16,7 @@ async fn test_archive_dry_run_returns_candidates_without_moving() {
     .await
     .unwrap();
 
-    let todo_id = todos[0].id.clone().unwrap().to_string();
+    let todo_id = todos[0].id.clone().unwrap();
     doob::commands::complete::execute(&db, vec![todo_id])
         .await
         .unwrap();
@@ -60,7 +60,7 @@ async fn test_archive_apply_moves_todo() {
     .await
     .unwrap();
 
-    let todo_id = todos[0].id.clone().unwrap().to_string();
+    let todo_id = todos[0].id.clone().unwrap();
     doob::commands::complete::execute(&db, vec![todo_id])
         .await
         .unwrap();
@@ -142,7 +142,7 @@ async fn test_archive_list_project_filter() {
     .unwrap();
 
     for todo in [&a[0], &b[0]] {
-        let record_id = todo.id.clone().unwrap().to_string();
+        let record_id = todo.id.clone().unwrap();
         doob::commands::complete::execute(&db, vec![record_id])
             .await
             .unwrap();

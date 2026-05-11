@@ -129,7 +129,7 @@ async fn test_remove_note() {
     .await
     .unwrap();
 
-    let id = created[0].id.as_ref().map(|t| t.id.to_string()).unwrap();
+    let id = created[0].id.clone().unwrap();
 
     let count = doob::commands::note::remove::execute(&db, vec![id])
         .await

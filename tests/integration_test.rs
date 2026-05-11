@@ -20,7 +20,7 @@ async fn test_complete_workflow() {
     assert_eq!(todos[0].status, TodoStatus::Pending);
 
     // Complete it
-    let id = todos[0].id.clone().unwrap().to_string();
+    let id = todos[0].id.clone().unwrap();
     let count = doob::commands::complete::execute(&db, vec![id])
         .await
         .unwrap();

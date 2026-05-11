@@ -28,7 +28,7 @@ async fn test_remove_single_todo() {
     .await
     .unwrap();
 
-    let todo_id = created[0].id.as_ref().map(|t| t.id.to_string()).unwrap();
+    let todo_id = created[0].id.clone().unwrap();
 
     let result = doob::commands::remove::execute(&db, vec![todo_id]).await;
     assert!(result.is_ok());
@@ -54,10 +54,7 @@ async fn test_remove_batch_todos() {
     .await
     .unwrap();
 
-    let ids: Vec<String> = created
-        .iter()
-        .map(|t| t.id.as_ref().map(|th| th.id.to_string()).unwrap())
-        .collect();
+    let ids: Vec<String> = created.iter().map(|t| t.id.clone().unwrap()).collect();
 
     let result = doob::commands::remove::execute(&db, ids).await;
     assert!(result.is_ok());

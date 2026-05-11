@@ -110,7 +110,7 @@ async fn test_kan_status_filter() {
     .await
     .unwrap();
 
-    let id = created[0].id.as_ref().map(|t| t.id.to_string()).unwrap();
+    let id = created[0].id.clone().unwrap();
 
     doob::commands::complete::execute(&db, vec![id])
         .await

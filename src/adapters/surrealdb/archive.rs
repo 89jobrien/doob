@@ -92,8 +92,7 @@ impl ArchiveRepository for ArchiveRepositoryImpl {
             .check()?;
 
         if let Some(ref record_id) = todo.id {
-            let record_id_str = record_id.to_string();
-            let delete_query = format!("DELETE {}", quote_record_id(&record_id_str));
+            let delete_query = format!("DELETE {}", quote_record_id(record_id));
             self.db.query(&delete_query).await?.check()?;
         }
 

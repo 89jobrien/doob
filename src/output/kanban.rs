@@ -82,7 +82,7 @@ pub fn render_board(todos: &[Todo], status_filter: Option<&[TodoStatus]>) -> Str
                         .id
                         .as_ref()
                         .map(|t| {
-                            let s = t.id.to_string();
+                            let s = t.split(':').next_back().unwrap_or(t);
                             s[..s.len().min(6)].to_string()
                         })
                         .unwrap_or_else(|| todo.uuid[..6].to_string());

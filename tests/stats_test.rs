@@ -35,7 +35,7 @@ async fn test_stats_counts_by_status() {
             .await
             .unwrap();
 
-    let record_id = created[0].id.clone().unwrap().to_string();
+    let record_id = created[0].id.clone().unwrap();
     doob::commands::complete::execute(&db, vec![record_id])
         .await
         .unwrap();
@@ -62,7 +62,7 @@ async fn test_stats_completion_rate() {
     .await
     .unwrap();
 
-    let record_id = todos[0].id.clone().unwrap().to_string();
+    let record_id = todos[0].id.clone().unwrap();
     doob::commands::complete::execute(&db, vec![record_id])
         .await
         .unwrap();

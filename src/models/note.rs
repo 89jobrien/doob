@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::Thing;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Note {
-    pub id: Option<Thing>,
+    #[serde(default, deserialize_with = "super::deserialize_thing_to_string")]
+    pub id: Option<String>,
     pub uuid: String,
     pub content: String,
     pub created_at: DateTime<Utc>,

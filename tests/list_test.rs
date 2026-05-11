@@ -37,7 +37,7 @@ async fn test_list_filter_by_status() {
 
     // Complete one
     let todos: Vec<doob::models::Todo> = db.select("todo").await.unwrap();
-    let todo_id = todos[0].id.clone().unwrap().to_string();
+    let todo_id = todos[0].id.clone().unwrap();
     doob::commands::complete::execute(&db, vec![todo_id])
         .await
         .unwrap();

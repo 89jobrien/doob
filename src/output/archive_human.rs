@@ -32,7 +32,7 @@ pub fn format_list(todos: &[ArchivedTodo]) -> String {
         let short_id = todo
             .id
             .as_ref()
-            .map(|t| t.id.to_string())
+            .map(|t| t.split(':').next_back().unwrap_or(t).to_string())
             .unwrap_or_else(|| todo.uuid[..8].to_string());
 
         out.push_str(&format!(
