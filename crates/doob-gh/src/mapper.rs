@@ -1,4 +1,4 @@
-use crate::gh_sync::config::GhSyncConfig;
+use crate::config::GhSyncConfig;
 
 /// Returns `Some("owner/repo")` if the project maps to an allowlisted GitHub repo.
 /// Returns `None` if the project is not in the allowlist (sync should be skipped).
@@ -29,7 +29,7 @@ fn is_allowed(repo_name: &str, cfg: &GhSyncConfig) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gh_sync::config::{GhSyncConfig, GithubConfig, SyncConfig};
+    use crate::config::{GhSyncConfig, GithubConfig, SyncConfig};
 
     fn cfg(owner: &str, allowlist: Option<Vec<&str>>) -> GhSyncConfig {
         GhSyncConfig {

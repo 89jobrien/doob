@@ -1,3 +1,11 @@
 [workspace]
-members = ["crates/doob", "crates/doobdash"]
+members = [
+    "crates/doob",
+    "crates/doob-core",
+    "crates/doob-surrealdb",
+    "crates/doob-sync",
+    "crates/doob-beads",
+    "crates/doob-gh",
+    "crates/doobdash",
+]
 resolver = "2"

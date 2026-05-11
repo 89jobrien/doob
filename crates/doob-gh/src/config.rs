@@ -111,7 +111,7 @@ owner = "testuser"
     #[test]
     fn malformed_toml_returns_error() {
         let bad_toml = "this is not valid toml ][[[";
-        let result: Result<crate::gh_sync::config::GhSyncConfig, _> = toml::from_str(bad_toml);
+        let result: Result<crate::config::GhSyncConfig, _> = toml::from_str(bad_toml);
         assert!(result.is_err(), "malformed TOML should fail to parse");
     }
 }

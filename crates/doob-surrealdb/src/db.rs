@@ -1,15 +1,11 @@
-pub mod schema;
-
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 use surrealdb::engine::local::{Db, SurrealKv};
 use surrealdb::Surreal;
 
-// Type alias for the database connection
 pub type DbConnection = Surreal<Db>;
 
 pub async fn create_connection(path: Option<&str>) -> Result<DbConnection> {
-    // Use file-based RocksDB storage
     let db_path = match path {
         Some(p) => PathBuf::from(p),
         None => {
@@ -24,7 +20,7 @@ pub async fn create_connection(path: Option<&str>) -> Result<DbConnection> {
     let db = Surreal::new::<SurrealKv>(db_path).await?;
 
     db.use_ns("doob").use_db("doob").await?;
-    schema::initialize(&db).await?;
+    crate::schema::initialize(&db).await?;
 
     Ok(db)
 }

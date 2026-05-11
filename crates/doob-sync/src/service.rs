@@ -42,8 +42,8 @@
 // - No knowledge of concrete adapters (BeadsAdapter, etc.)
 // - Pure domain logic - no HTTP, CLI, or database code
 
-use super::traits::MinimalIssueTracker;
-use super::types::{SyncError, SyncRecord, SyncableTodo, TodoStatus};
+use crate::traits::MinimalIssueTracker;
+use crate::types::{SyncError, SyncRecord, SyncableTodo, TodoStatus};
 
 // ============================================================================
 // SYNC SERVICE (Refactored)
@@ -147,7 +147,7 @@ impl<T: MinimalIssueTracker> SyncService<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sync::domain::traits::{HealthCheck, IssueCreator, Provider, ProviderCapabilities};
+    use crate::traits::{HealthCheck, IssueCreator, Provider, ProviderCapabilities};
 
     // Mock tracker for testing
     struct MockTracker {
