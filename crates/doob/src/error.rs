@@ -5,25 +5,29 @@ pub enum ExitCode {
     InvalidInput = 2,
     DatabaseError = 3,
     ContextError = 4,
+    IoError = 5,
+    ParseError = 6,
 }
 
 impl ExitCode {
     pub fn from_error(err: &anyhow::Error) -> Self {
         let msg = err.to_string().to_lowercase();
 
-        if msg.contains("not found") {
-            ExitCode::TodoNotFound
-        } else if msg.contains("invalid")
-            || msg.contains("failed to parse")
-            || msg.contains("unexpected token")
+        if msg.contains("permission denied")
             || msg.contains("no such file")
             || msg.contains("os error")
-            || msg.contains("permission denied")
         {
+            ExitCode::IoError
+        } else if msg.contains("failed to parse") || msg.contains("unexpected token") {
+            ExitCode::ParseError
+        } else if msg.contains("not found") {
+            ExitCode::TodoNotFound
+        } else if msg.contains("invalid") {
             ExitCode::InvalidInput
         } else if msg.contains("context") {
             ExitCode::ContextError
         } else {
+            // Covers database/connection/surreal errors and unknown errors
             ExitCode::DatabaseError
         }
     }
@@ -59,12 +63,30 @@ mod tests {
     #[test]
     fn exit_code__io_error_is_not_database_error() {
         let err = anyhow!("No such file or directory (os error 2)");
-        assert!(matches!(ExitCode::from_error(&err), ExitCode::InvalidInput));
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::IoError));
     }
 
     #[test]
     fn exit_code__parse_error_is_not_database_error() {
         let err = anyhow!("failed to parse yaml: unexpected token at line 3");
-        assert!(matches!(ExitCode::from_error(&err), ExitCode::InvalidInput));
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::ParseError));
+    }
+
+    #[test]
+    fn exit_code__permission_denied_is_io_error() {
+        let err = anyhow!("permission denied on /foo");
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::IoError));
+    }
+
+    #[test]
+    fn exit_code__parse_error_is_parse_error() {
+        let err = anyhow!("failed to parse yaml");
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::ParseError));
+    }
+
+    #[test]
+    fn exit_code__os_error_is_io_error() {
+        let err = anyhow!("No such file (os error 2)");
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::IoError));
     }
 }
