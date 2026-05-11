@@ -5,14 +5,14 @@
 // Concrete implementation of the TodoRepository port using SurrealDB.
 // This adapter encapsulates all raw SurrealDB query logic.
 
-use crate::commands::{normalize_id, quote_record_id};
 use crate::db::DbConnection;
-use crate::models::{Note, Todo, TodoStatus};
-use crate::ports::TodoRepository;
-use crate::query_guard::{validate_project, validate_status};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
+use doob_core::ids::{normalize_id, quote_record_id};
+use doob_core::models::{Note, Todo, TodoStatus};
+use doob_core::ports::TodoRepository;
+use doob_core::query_guard::{validate_project, validate_status};
 use uuid::Uuid;
 
 /// SurrealDB-backed implementation of TodoRepository

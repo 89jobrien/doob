@@ -66,8 +66,7 @@
 // type that implements the three minimal traits. This allows existing code
 // to continue working during migration.
 
-use super::SyncError;
-use crate::sync::domain::{SyncRecord, SyncableTodo};
+use crate::types::{SyncError, SyncRecord, SyncableTodo};
 
 // ============================================================================
 // TRAIT 1: Provider Metadata

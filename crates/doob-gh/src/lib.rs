@@ -3,8 +3,8 @@ pub mod github;
 pub mod mapper;
 pub mod state;
 
-use crate::models::Todo;
 use anyhow::Result;
+use doob_core::models::Todo;
 use serde::Serialize;
 
 /// A planned or completed sync action — returned by sync_todo for rendering.
@@ -50,7 +50,6 @@ pub fn sync_todo(todo: &Todo, action: &str, dry_run: bool) -> Result<Option<Sync
 
     let mut state = state::load()?;
 
-    // Check gh is available before any action (skip in dry-run)
     if !dry_run {
         github::check_gh_available()?;
     }
@@ -147,8 +146,8 @@ pub fn sync_todo(todo: &Todo, action: &str, dry_run: bool) -> Result<Option<Sync
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{Todo, TodoStatus};
     use chrono::Utc;
+    use doob_core::models::{Todo, TodoStatus};
 
     fn fake_todo(uuid: &str, content: &str) -> Todo {
         Todo {

@@ -1,10 +1,10 @@
 use crate::db::DbConnection;
-use crate::models::handoff_item::{ExtraEntry, HandoffItem};
-use crate::ports::HandoffRepository;
-use crate::query_guard::{validate_project, validate_status};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use chrono::Utc;
+use doob_core::models::handoff_item::{ExtraEntry, HandoffItem};
+use doob_core::ports::HandoffRepository;
+use doob_core::query_guard::{validate_project, validate_status};
 
 pub struct HandoffRepositoryImpl {
     db: DbConnection,

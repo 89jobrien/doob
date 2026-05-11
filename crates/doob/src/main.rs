@@ -6,9 +6,9 @@ use std::process;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use doob::adapters::{ArchiveRepositoryImpl, HandoffRepositoryImpl, TodoRepositoryImpl};
 use doob::cli::{ArchiveAction, Cli, Commands, HandoffAction, NoteAction, TodoAction};
-use doob::{commands, db, output};
+use doob::{commands, output};
+use doob_surrealdb::{ArchiveRepositoryImpl, HandoffRepositoryImpl, TodoRepositoryImpl};
 
 #[tokio::main]
 async fn main() {
@@ -25,13 +25,13 @@ async fn main() {
 async fn run() -> Result<()> {
     let cli = Cli::parse();
 
-    let db_conn = db::create_connection(cli.db.as_deref()).await?;
+    let db_conn = doob_surrealdb::create_connection(cli.db.as_deref()).await?;
     let repo = TodoRepositoryImpl::new(db_conn.clone());
-    let repo: &dyn doob::ports::TodoRepository = &repo;
+    let repo: &dyn doob_core::ports::TodoRepository = &repo;
     let handoff_repo = HandoffRepositoryImpl::new(db_conn.clone());
-    let handoff_repo: &dyn doob::ports::HandoffRepository = &handoff_repo;
+    let handoff_repo: &dyn doob_core::ports::HandoffRepository = &handoff_repo;
     let archive_repo = ArchiveRepositoryImpl::new(db_conn.clone());
-    let archive_repo: &dyn doob::ports::ArchiveRepository = &archive_repo;
+    let archive_repo: &dyn doob_core::ports::ArchiveRepository = &archive_repo;
 
     match cli.command {
         Commands::Todo { action } => match action {
@@ -47,10 +47,6 @@ async fn run() -> Result<()> {
                 let todos =
                     commands::add::execute(repo, content, priority, project, file, tags).await?;
 
-                // Link deps to the first todo only. When multiple todos are
-                // created in one invocation, attaching deps to all of them
-                // is almost never the intent — use apply_batch_deps which
-                // only links the first.
                 let blocks_list = blocks.unwrap_or_default();
                 let blocked_by_list = blocked_by.unwrap_or_default();
                 commands::deps::apply_batch_deps(repo, &todos, &blocks_list, &blocked_by_list)
@@ -339,7 +335,6 @@ async fn run() -> Result<()> {
         }
 
         Commands::Schema => {
-            // Schema output is always JSON regardless of the --json flag.
             let manifest = doob::commands::schema::build_manifest();
             println!("{}", serde_json::to_string_pretty(&manifest)?);
             Ok(())

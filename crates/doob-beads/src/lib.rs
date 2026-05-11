@@ -1,6 +1,4 @@
-use crate::sync::domain::{
-    HealthCheck, IssueCreator, Provider, SyncError, SyncRecord, SyncableTodo,
-};
+use doob_sync::{HealthCheck, IssueCreator, Provider, SyncError, SyncRecord, SyncableTodo};
 use std::process::Command;
 
 const PROVIDER_NAME: &str = "beads";
@@ -143,7 +141,7 @@ mod tests {
             title: "Test task".to_string(),
             description: None,
             priority: 2,
-            status: crate::sync::domain::types::TodoStatus::Pending,
+            status: doob_sync::TodoStatus::Pending,
             tags: vec!["bug".to_string(), "urgent".to_string()],
             project: None,
             file_path: None,

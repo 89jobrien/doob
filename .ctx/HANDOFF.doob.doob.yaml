@@ -1,6 +1,6 @@
 project: doob
 id: doob
-updated: 2026-05-10
+updated: 2026-05-11
 items:
 - id: doob-17
   doob_uuid: null
@@ -22,13 +22,7 @@ items:
 log:
 - date: 20260511::031500
   summary: 'Wave integration: fixed 3 bugs via parallel agents — handoff sync dedup (doob-8, GH #10), ExitCode classification (doob-9, GH #9), bd --labels (doob-16). Closed GH #9, #10, #12. Cleaned 13 duplicate doob todos.'
-  commits:
-  - sha: 4725b16
-    branch: main
-  - sha: bf608d3
-    branch: main
-  - sha: 6ee1fe9
-    branch: main
+  commits: []
   session: 2
 - date: 20260510::225613
   summary: 'Full hexagonal arch refactor + feature flags: removed Thing leak from all models, gated surrealdb/bd behind feature flags, moved src/ into crates/doob/, pushed 6 commits.'

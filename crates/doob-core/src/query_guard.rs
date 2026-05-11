@@ -11,7 +11,7 @@ const ALLOWED_TODO_STATUSES: &[&str] = &["pending", "in_progress", "completed", 
 /// Valid handoff/kanban statuses used by doobdash
 const ALLOWED_HANDOFF_STATUSES: &[&str] = &["open", "done", "parked", "blocked"];
 
-pub(crate) fn validate_status(s: &str) -> Result<()> {
+pub fn validate_status(s: &str) -> Result<()> {
     if ALLOWED_TODO_STATUSES.contains(&s) || ALLOWED_HANDOFF_STATUSES.contains(&s) {
         Ok(())
     } else {
@@ -22,9 +22,9 @@ pub(crate) fn validate_status(s: &str) -> Result<()> {
     }
 }
 
-pub(crate) fn validate_project(p: &str) -> Result<()> {
+pub fn validate_project(p: &str) -> Result<()> {
     if p.chars()
-        .all(|c| c.is_alphanumeric() || matches!(c, '-' | '_' | '.' | ' '))
+        .all(|c| c.is_alphanumeric() || matches!(c, '-' | '_' | '.' | ' ' | '/'))
     {
         Ok(())
     } else {

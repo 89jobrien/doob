@@ -1,11 +1,11 @@
-use crate::commands::quote_record_id;
 use crate::db::DbConnection;
-use crate::models::todo::TodoStatus;
-use crate::models::{ArchivedTodo, Todo};
-use crate::ports::ArchiveRepository;
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::Utc;
+use doob_core::ids::quote_record_id;
+use doob_core::models::todo::TodoStatus;
+use doob_core::models::{ArchivedTodo, Todo};
+use doob_core::ports::ArchiveRepository;
 
 pub struct ArchiveRepositoryImpl {
     db: DbConnection,
