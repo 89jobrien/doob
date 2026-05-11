@@ -2,7 +2,7 @@
 
 ## Architecture
 
-- Binary: `doob` / Library: `doob` (lib+bin structure, `src/main.rs` + `src/lib.rs`)
+- Binary: `doob` / Library: `doob` (lib+bin structure, `crates/doob/src/main.rs` + `crates/doob/src/lib.rs`)
 - DB: SurrealKV at `~/.ctx/doob/db/` (directory, not a file)
 - `handoff_item` table is SCHEMALESS — typed tables rejected nullable datetime fields via JSON
 
@@ -15,7 +15,7 @@
 
 ## Development
 
-- `cargo install --path .` — reinstall binary (release by default; `--release` flag is invalid)
+- `cargo install --path crates/doob` — reinstall binary (release by default; `--release` flag is invalid)
 - `cargo test --all-features` — run tests
 - `cargo clippy` — lint checks
 - Wipe DB: `rm -rf ~/.ctx/doob/db` — safe; re-sync from HANDOFF.yaml to repopulate
