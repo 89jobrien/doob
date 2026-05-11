@@ -1,8 +1,10 @@
+#[cfg(feature = "surrealdb-backend")]
 pub mod adapters;
 pub mod cache;
 pub mod cli;
 pub mod commands;
 pub mod context;
+#[cfg(feature = "surrealdb-backend")]
 pub mod db;
 pub mod error;
 pub mod gh_sync;
