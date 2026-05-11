@@ -171,6 +171,46 @@ pub trait HandoffRepository: Send + Sync {
 }
 
 // ============================================================================
+// HANDOFF LOG & STATE REPOSITORY PORT
+// ============================================================================
+
+/// Persistence for handoff session logs, state, and handup checkpoints.
+/// Split from HandoffRepository to keep the sync-oriented trait lean.
+#[async_trait]
+pub trait HandoffSessionRepository: Send + Sync {
+    /// Append a session log entry
+    async fn log_append(
+        &self,
+        project: &str,
+        date: &str,
+        summary: &str,
+        commits: &[String],
+    ) -> Result<()>;
+
+    /// Query log entries for a project (most recent first)
+    async fn log_query(&self, project: &str) -> Result<Vec<crate::models::handoff::LogEntry>>;
+
+    /// Save session state for a project (branch, build, tests, etc.)
+    async fn save_state(
+        &self,
+        project: &str,
+        state: &crate::models::handoff::HandoffState,
+    ) -> Result<()>;
+
+    /// Load session state for a project
+    async fn load_state(
+        &self,
+        project: &str,
+    ) -> Result<Option<crate::models::handoff::HandoffState>>;
+
+    /// Save a handup checkpoint
+    async fn save_checkpoint(
+        &self,
+        checkpoint: &crate::models::handoff::HandupCheckpoint,
+    ) -> Result<()>;
+}
+
+// ============================================================================
 // ARCHIVE REPOSITORY PORT
 // ============================================================================
 

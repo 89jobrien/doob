@@ -1,4 +1,5 @@
 pub mod archive;
+pub mod handoff;
 pub mod handoff_item;
 pub mod note;
 pub mod todo;

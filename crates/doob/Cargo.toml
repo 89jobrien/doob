@@ -12,9 +12,15 @@ path = "src/lib.rs"
 name = "doob"
 path = "src/main.rs"
 
+[features]
+default = ["surrealdb"]
+sqlite = ["dep:doob-sqlite"]
+surrealdb = ["dep:doob-surrealdb"]
+
 [dependencies]
 doob-core = { path = "../doob-core" }
-doob-surrealdb = { path = "../doob-surrealdb" }
+doob-sqlite = { path = "../doob-sqlite", optional = true }
+doob-surrealdb = { path = "../doob-surrealdb", optional = true }
 doob-gh = { path = "../doob-gh" }
 doob-sync = { path = "../doob-sync" }
 doob-beads = { path = "../doob-beads" }

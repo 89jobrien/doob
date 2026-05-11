@@ -2,6 +2,7 @@
 members = [
     "crates/doob",
     "crates/doob-core",
+    "crates/doob-sqlite",
     "crates/doob-surrealdb",
     "crates/doob-sync",
     "crates/doob-beads",

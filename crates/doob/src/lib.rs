@@ -8,11 +8,24 @@ pub use doob_core::query_guard;
 
 // Re-export adapter crates at original paths
 pub use doob_gh as gh_sync;
+
+#[cfg(feature = "surrealdb")]
 pub use doob_surrealdb as db;
 
-// Re-export adapters from doob-surrealdb
+#[cfg(feature = "sqlite")]
+pub use doob_sqlite as db_sqlite;
+
+// Re-export adapters from active backend
+#[cfg(feature = "surrealdb")]
 pub mod adapters {
     pub use doob_surrealdb::{ArchiveRepositoryImpl, HandoffRepositoryImpl, TodoRepositoryImpl};
+}
+
+#[cfg(feature = "sqlite")]
+pub mod adapters_sqlite {
+    pub use doob_sqlite::{
+        HandoffRepositoryImpl, HandoffSessionRepositoryImpl, TodoRepositoryImpl,
+    };
 }
 
 // Re-export sync sub-crates at original paths

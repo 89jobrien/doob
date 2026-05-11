@@ -8,7 +8,6 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use doob::cli::{ArchiveAction, Cli, Commands, HandoffAction, NoteAction, TodoAction};
 use doob::{commands, output};
-use doob_surrealdb::{ArchiveRepositoryImpl, HandoffRepositoryImpl, TodoRepositoryImpl};
 
 #[tokio::main]
 async fn main() {
@@ -25,13 +24,40 @@ async fn main() {
 async fn run() -> Result<()> {
     let cli = Cli::parse();
 
-    let db_conn = doob_surrealdb::create_connection(cli.db.as_deref()).await?;
-    let repo = TodoRepositoryImpl::new(db_conn.clone());
-    let repo: &dyn doob_core::ports::TodoRepository = &repo;
-    let handoff_repo = HandoffRepositoryImpl::new(db_conn.clone());
-    let handoff_repo: &dyn doob_core::ports::HandoffRepository = &handoff_repo;
-    let archive_repo = ArchiveRepositoryImpl::new(db_conn.clone());
-    let archive_repo: &dyn doob_core::ports::ArchiveRepository = &archive_repo;
+    // Backend selection: SQLite when compiled with --features sqlite,
+    // SurrealDB when compiled with --features surrealdb (default).
+    #[cfg(feature = "sqlite")]
+    let (repo_box, handoff_repo_box, archive_repo_box) = {
+        let conn = doob_sqlite::create_connection(cli.db.as_deref())?;
+        let repo = doob_sqlite::TodoRepositoryImpl::new(conn.clone());
+        let handoff = doob_sqlite::HandoffRepositoryImpl::new(conn.clone());
+        // Archive not yet implemented in SQLite — use todo repo as placeholder
+        // TODO: implement ArchiveRepositoryImpl for SQLite
+        (
+            Box::new(repo) as Box<dyn doob_core::ports::TodoRepository>,
+            Box::new(handoff) as Box<dyn doob_core::ports::HandoffRepository>,
+            None::<Box<dyn doob_core::ports::ArchiveRepository>>,
+        )
+    };
+
+    #[cfg(all(feature = "surrealdb", not(feature = "sqlite")))]
+    let (repo_box, handoff_repo_box, archive_repo_box) = {
+        let db_conn = doob_surrealdb::create_connection(cli.db.as_deref()).await?;
+        let repo = doob_surrealdb::TodoRepositoryImpl::new(db_conn.clone());
+        let handoff = doob_surrealdb::HandoffRepositoryImpl::new(db_conn.clone());
+        let archive = doob_surrealdb::ArchiveRepositoryImpl::new(db_conn.clone());
+        (
+            Box::new(repo) as Box<dyn doob_core::ports::TodoRepository>,
+            Box::new(handoff) as Box<dyn doob_core::ports::HandoffRepository>,
+            Some(Box::new(archive) as Box<dyn doob_core::ports::ArchiveRepository>),
+        )
+    };
+
+    #[cfg(not(any(feature = "sqlite", feature = "surrealdb")))]
+    compile_error!("Enable either the 'sqlite' or 'surrealdb' feature");
+
+    let repo: &dyn doob_core::ports::TodoRepository = repo_box.as_ref();
+    let handoff_repo: &dyn doob_core::ports::HandoffRepository = handoff_repo_box.as_ref();
 
     match cli.command {
         Commands::Todo { action } => match action {
@@ -231,33 +257,39 @@ async fn run() -> Result<()> {
             Ok(())
         }
 
-        Commands::Archive { action } => match action {
-            ArchiveAction::Run {
-                older_than,
-                apply,
-                project,
-            } => {
-                let result =
-                    commands::archive::run::execute(archive_repo, older_than, apply, project)
-                        .await?;
-                if cli.json {
-                    println!("{}", output::archive_json::format_run_result(&result));
-                } else {
-                    println!("{}", output::archive_human::format_run_result(&result));
+        Commands::Archive { action } => {
+            let archive_repo = archive_repo_box.as_ref().ok_or_else(|| {
+                anyhow::anyhow!("Archive is not yet supported with the SQLite backend")
+            })?;
+            let archive_repo: &dyn doob_core::ports::ArchiveRepository = archive_repo.as_ref();
+            match action {
+                ArchiveAction::Run {
+                    older_than,
+                    apply,
+                    project,
+                } => {
+                    let result =
+                        commands::archive::run::execute(archive_repo, older_than, apply, project)
+                            .await?;
+                    if cli.json {
+                        println!("{}", output::archive_json::format_run_result(&result));
+                    } else {
+                        println!("{}", output::archive_human::format_run_result(&result));
+                    }
+                    Ok(())
                 }
-                Ok(())
-            }
-            ArchiveAction::List { project, limit } => {
-                let archived =
-                    commands::archive::list::execute(archive_repo, project, limit).await?;
-                if cli.json {
-                    println!("{}", output::archive_json::format_list(&archived));
-                } else {
-                    println!("{}", output::archive_human::format_list(&archived));
+                ArchiveAction::List { project, limit } => {
+                    let archived =
+                        commands::archive::list::execute(archive_repo, project, limit).await?;
+                    if cli.json {
+                        println!("{}", output::archive_json::format_list(&archived));
+                    } else {
+                        println!("{}", output::archive_human::format_list(&archived));
+                    }
+                    Ok(())
                 }
-                Ok(())
             }
-        },
+        }
 
         Commands::Handoff { action } => match action {
             HandoffAction::Sync { file } => {
