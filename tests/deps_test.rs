@@ -8,16 +8,10 @@ async fn test_batch_add_deps_only_linked_to_first_todo() {
     let db = setup_test_db().await;
 
     // Create the blocker todo
-    let blocker = doob::commands::add::execute(
-        &db,
-        vec!["Gate task".to_string()],
-        None,
-        None,
-        None,
-        None,
-    )
-    .await
-    .unwrap();
+    let blocker =
+        doob::commands::add::execute(&db, vec!["Gate task".to_string()], None, None, None, None)
+            .await
+            .unwrap();
 
     // Simulate a batch add of two todos with --blocked-by pointing at blocker
     let batch = doob::commands::add::execute(
@@ -32,20 +26,19 @@ async fn test_batch_add_deps_only_linked_to_first_todo() {
     .unwrap();
 
     // apply_batch_deps should only link the first todo in the batch
-    doob::commands::deps::apply_batch_deps(
-        &db,
-        &batch,
-        &[],
-        &[blocker[0].uuid.clone()],
-    )
-    .await
-    .unwrap();
+    doob::commands::deps::apply_batch_deps(&db, &batch, &[], &[blocker[0].uuid.clone()])
+        .await
+        .unwrap();
 
     // First todo must be blocked by the gate task
     let view_first = doob::commands::deps::execute(&db, batch[0].uuid.clone())
         .await
         .unwrap();
-    assert_eq!(view_first.blockers.len(), 1, "first todo must have one blocker");
+    assert_eq!(
+        view_first.blockers.len(),
+        1,
+        "first todo must have one blocker"
+    );
 
     // Second todo must NOT be linked to any deps
     let view_second = doob::commands::deps::execute(&db, batch[1].uuid.clone())
@@ -107,7 +100,7 @@ async fn test_deps_link_blocked_by() {
     .await
     .unwrap();
 
-    doob::commands::deps::link(&db, &blocked[0].uuid, &[], &[blocker[0].uuid.clone()])
+    doob::ports::TodoRepository::link_deps(&db, &blocked[0].uuid, &[], &[blocker[0].uuid.clone()])
         .await
         .unwrap();
 
@@ -140,9 +133,14 @@ async fn test_deps_link_blocks() {
     .await
     .unwrap();
 
-    doob::commands::deps::link(&db, &blocker[0].uuid, &[dependent[0].uuid.clone()], &[])
-        .await
-        .unwrap();
+    doob::ports::TodoRepository::link_deps(
+        &db,
+        &blocker[0].uuid,
+        &[dependent[0].uuid.clone()],
+        &[],
+    )
+    .await
+    .unwrap();
 
     let view = doob::commands::deps::execute(&db, blocker[0].uuid.clone())
         .await

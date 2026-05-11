@@ -12,6 +12,7 @@ use crate::ports::TodoRepository;
 use crate::query_guard::{validate_project, validate_status};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use chrono::{DateTime, NaiveDate, Utc};
 use uuid::Uuid;
 
 /// SurrealDB-backed implementation of TodoRepository
@@ -327,6 +328,93 @@ impl TodoRepository for TodoRepositoryImpl {
         Ok(stats)
     }
 
+    async fn set_due_date(&self, record_id: &str, due_date: Option<&str>) -> Result<()> {
+        let record_id = normalize_id(record_id.to_string());
+
+        // Verify the todo exists
+        let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
+        let mut result = self.db.query(&query).await?;
+        let todos: Vec<Todo> = result.take(0)?;
+        if todos.is_empty() {
+            return Err(anyhow!("Todo not found: {}", record_id));
+        }
+
+        let update_query = match due_date {
+            Some(date_str) => {
+                let parsed = parse_due_date(date_str)?;
+                let formatted = parsed.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string();
+                format!(
+                    "UPDATE {} SET due_date = <datetime>'{}', updated_at = time::now()",
+                    quote_record_id(&record_id),
+                    formatted
+                )
+            }
+            None => format!(
+                "UPDATE {} SET due_date = NONE, updated_at = time::now()",
+                quote_record_id(&record_id)
+            ),
+        };
+
+        self.db.query(&update_query).await?;
+        Ok(())
+    }
+
+    async fn link_deps(&self, uuid: &str, blocks: &[String], blocked_by: &[String]) -> Result<()> {
+        self.db
+            .query("UPDATE todo SET blocks = $blocks, blocked_by = $blocked_by WHERE uuid = $uuid")
+            .bind(("uuid", uuid.to_string()))
+            .bind(("blocks", blocks.to_vec()))
+            .bind(("blocked_by", blocked_by.to_vec()))
+            .await?;
+        Ok(())
+    }
+
+    async fn get_todo_by_uuid(&self, uuid: &str) -> Result<Option<Todo>> {
+        let mut result = self
+            .db
+            .query("SELECT * FROM todo WHERE uuid = $id LIMIT 1")
+            .bind(("id", uuid.to_string()))
+            .await?;
+        let todos: Vec<Todo> = result.take(0)?;
+        Ok(todos.into_iter().next())
+    }
+
+    async fn get_todos_by_uuids(&self, uuids: &[String]) -> Result<Vec<Todo>> {
+        if uuids.is_empty() {
+            return Ok(vec![]);
+        }
+        let mut todos = Vec::new();
+        for uuid in uuids {
+            let mut result = self
+                .db
+                .query("SELECT * FROM todo WHERE uuid = $uuid LIMIT 1")
+                .bind(("uuid", uuid.clone()))
+                .await?;
+            let found: Vec<Todo> = result.take(0)?;
+            todos.extend(found);
+        }
+        Ok(todos)
+    }
+
+    async fn list_all_todos(&self, project: Option<&str>) -> Result<Vec<Todo>> {
+        let mut query = String::from("SELECT * FROM todo");
+        if let Some(p) = project {
+            validate_project(p)?;
+            query.push_str(&format!(" WHERE project = '{}'", p));
+        }
+        query.push_str(" ORDER BY created_at ASC");
+        let mut result = self.db.query(&query).await?;
+        Ok(result.take(0)?)
+    }
+
+    async fn list_active_todos(&self) -> Result<Vec<Todo>> {
+        let mut result = self
+            .db
+            .query("SELECT * FROM todo WHERE status IN ['pending', 'in_progress']")
+            .await?;
+        Ok(result.take(0)?)
+    }
+
     // ========================================================================
     // NOTE OPERATIONS
     // ========================================================================
@@ -453,4 +541,15 @@ impl TodoRepository for TodoRepositoryImpl {
         let values: Vec<serde_json::Value> = result.take(0)?;
         Ok(serde_json::json!(values))
     }
+}
+
+fn parse_due_date(date_str: &str) -> Result<DateTime<Utc>> {
+    if let Ok(date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+        // SAFETY: (0, 0, 0) is always a valid HMS time, so and_hms_opt never returns None here.
+        return Ok(date.and_hms_opt(0, 0, 0).unwrap().and_utc());
+    }
+    Err(anyhow!(
+        "Invalid date format: '{}'. Expected YYYY-MM-DD",
+        date_str
+    ))
 }

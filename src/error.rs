@@ -59,18 +59,12 @@ mod tests {
     #[test]
     fn exit_code__io_error_is_not_database_error() {
         let err = anyhow!("No such file or directory (os error 2)");
-        assert!(matches!(
-            ExitCode::from_error(&err),
-            ExitCode::InvalidInput
-        ));
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::InvalidInput));
     }
 
     #[test]
     fn exit_code__parse_error_is_not_database_error() {
         let err = anyhow!("failed to parse yaml: unexpected token at line 3");
-        assert!(matches!(
-            ExitCode::from_error(&err),
-            ExitCode::InvalidInput
-        ));
+        assert!(matches!(ExitCode::from_error(&err), ExitCode::InvalidInput));
     }
 }

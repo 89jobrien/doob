@@ -1,8 +1,9 @@
 project: doob
 id: doob
-updated: 2026-04-22
+updated: 2026-05-10
 items:
 - id: doob-6
+  doob_uuid: null
   name: gh-sync
   priority: P1
   status: done
@@ -24,9 +25,10 @@ items:
   - src/commands/gh_sync.rs
   - src/cli.rs
   - src/main.rs
-  extra: []
   completed: 2026-04-10
+  extra: []
 - id: doob-5
+  doob_uuid: null
   name: ci-standardize
   priority: P2
   status: done
@@ -43,25 +45,28 @@ items:
   - Justfile
   - Cargo.toml
   - crates/doobdash/Cargo.toml
-  extra: []
   completed: 2026-04-07
+  extra: []
 - id: doob-4
   doob_uuid: 0b7c3d7e-994a-45d4-b06a-07c2d5560dac
   name: cli-schema-pr
   priority: P1
   status: done
-  title: Merge PR #2
+  title: Merge PR
   description: |
     PR #2 (feat/cli-schema) adds doob schema command, exporting all CLI commands as
     structured CommandDef array. Unblocks mcpipe PR #1 (CLI backend discovery).
   files:
   - src/commands/schema.rs
   - src/main.rs
+  completed: 2026-04-04
   extra:
   - date: 2026-04-04
     type: note
-    note: PR merged. Unblocked mcpipe PR #1 (merged in correct order).
-  completed: 2026-04-04
+    field: null
+    value: null
+    reviewed: null
+    note: PR merged. Unblocked mcpipe PR
 - id: doob-3
   doob_uuid: 54f315d6-1176-42ba-a8f6-698d896419e5
   name: doobdash-tui-redesign
@@ -79,8 +84,8 @@ items:
   - crates/doobdash/src/app.rs
   - crates/doobdash/src/ui.rs
   - crates/doobdash/src/main.rs
-  extra: []
   completed: 2026-04-04
+  extra: []
 - id: doob-2
   doob_uuid: a6198154-de7a-4dd7-b702-4ffc8bde36b9
   name: doob-dash-tui-crate
@@ -98,8 +103,8 @@ items:
   files:
   - crates/doob-dash/src/main.rs
   - src/main.rs
-  extra: []
   completed: 2026-04-03
+  extra: []
 - id: doob-1
   doob_uuid: 0b4dbae2-eb05-4994-ba12-a5823fb583ae
   name: dead-code-warning-exit-code
@@ -111,159 +116,216 @@ items:
     Either use it in an error path or suppress with #[allow(dead_code)].
   files:
   - src/error.rs
-  extra: []
   completed: 2026-04-03
+  extra: []
 - id: doob-7
+  doob_uuid: null
   name: todo-update-priority-flag
   priority: P2
   status: open
   title: 'feat: doob todo update --priority <n> — in-place priority change'
-  description: "GH #12: Add --priority flag to `doob todo update` command for changing priority without full item re-edit."
+  description: 'GH #12: Add --priority flag to `doob todo update` command for changing priority without full item re-edit.'
   files: []
+  completed: null
   extra:
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 12
-    url: "https://github.com/89jobrien/doob/issues/12"
+    url: https://github.com/89jobrien/doob/issues/12
 - id: doob-8
+  doob_uuid: null
   name: handoff-sync-dedup-bug
   priority: P1
   status: open
   title: 'bug: handoff sync: extra entry dedup uses only date+note, ignores entry_type'
-  description: "GH #10: When syncing duplicate entries in HANDOFF items, dedup logic matches on date+note only. Ignores entry_type field, causing false positives."
+  description: 'GH #10: When syncing duplicate entries in HANDOFF items, dedup logic matches on date+note only. Ignores entry_type field, causing false positives.'
   files: []
+  completed: null
   extra:
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 10
-    url: "https://github.com/89jobrien/doob/issues/10"
+    url: https://github.com/89jobrien/doob/issues/10
 - id: doob-9
+  doob_uuid: null
   name: exit-code-error-classification
   priority: P1
   status: open
   title: 'bug: ExitCode::from_error misclassifies IO and parse errors as DatabaseError'
-  description: "GH #9: IO errors (permission denied, not found) and JSON parse errors are mapped to DatabaseError exit code instead of their own codes."
+  description: 'GH #9: IO errors (permission denied, not found) and JSON parse errors are mapped to DatabaseError exit code instead of their own codes.'
   files: []
+  completed: null
   extra:
-  - type: github-issue
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
     number: 9
-    url: "https://github.com/89jobrien/doob/issues/9"
+    url: https://github.com/89jobrien/doob/issues/9
 - id: doob-10
+  doob_uuid: null
   name: undo-cancelled-todo-blocked
   priority: P1
   status: done
   title: 'bug: undo only works on Completed todos — Cancelled todos cannot be reopened'
-  description: "GH #8: `doob todo undo` requires status=completed. Cancelled todos silently fail to reopen."
+  description: 'GH #8: `doob todo undo` requires status=completed. Cancelled todos silently fail to reopen.'
   files: []
-  extra:
-  - type: github-issue
-    number: 8
-    url: "https://github.com/89jobrien/doob/issues/8"
   completed: 2026-04-13
+  extra:
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
+    number: 8
+    url: https://github.com/89jobrien/doob/issues/8
 - id: doob-11
+  doob_uuid: null
   name: batch-todo-deps-link-bug
   priority: P1
   status: done
   title: 'bug: Batch todo add with --blocks/--blocked-by links all todos to same deps'
-  description: "GH #7: When adding multiple todos with --blocks or --blocked-by, all created todos get linked to the same dependency instead of each individually."
+  description: 'GH #7: When adding multiple todos with --blocks or --blocked-by, all created todos get linked to the same dependency instead of each individually.'
   files: []
-  extra:
-  - type: github-issue
-    number: 7
-    url: "https://github.com/89jobrien/doob/issues/7"
   completed: 2026-04-13
+  extra:
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
+    number: 7
+    url: https://github.com/89jobrien/doob/issues/7
 - id: doob-12
+  doob_uuid: null
   name: home-dir-expect-panic
   priority: P1
   status: done
   title: 'bug: home_dir().expect() panics on misconfigured systems'
-  description: "GH #6: home_dir() call has no fallback. On systems without $HOME or where home_dir detection fails, doob panics instead of exiting cleanly."
+  description: 'GH #6: home_dir() call has no fallback. On systems without $HOME or where home_dir detection fails, doob panics instead of exiting cleanly.'
   files: []
-  extra:
-  - type: github-issue
-    number: 6
-    url: "https://github.com/89jobrien/doob/issues/6"
   completed: 2026-04-13
+  extra:
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
+    number: 6
+    url: https://github.com/89jobrien/doob/issues/6
 - id: doob-13
+  doob_uuid: null
   name: surrealdb-parameterized-noop
   priority: P1
   status: done
   title: 'bug: deps::link uses parameterized query which silently no-ops (SurrealDB bug #6271)'
-  description: "GH #5: SurrealDB 2.x parameterized queries silently no-op instead of executing. deps::link must use raw SQL interpolation as a workaround."
+  description: 'GH #5: SurrealDB 2.x parameterized queries silently no-op instead of executing. deps::link must use raw SQL interpolation as a workaround.'
   files: []
-  extra:
-  - type: github-issue
-    number: 5
-    url: "https://github.com/89jobrien/doob/issues/5"
   completed: 2026-04-13
+  extra:
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
+    number: 5
+    url: https://github.com/89jobrien/doob/issues/5
 - id: doob-14
+  doob_uuid: null
   name: archive-delete-error-swallow
   priority: P1
   status: done
   title: 'bug: Archive delete silently swallows errors, leaving orphaned todos'
-  description: "GH #4: Archive delete operations don't propagate errors. On failure, todos are marked deleted but the delete operation may not complete."
+  description: 'GH #4: Archive delete operations don''t propagate errors. On failure, todos are marked deleted but the delete operation may not complete.'
   files: []
-  extra:
-  - type: github-issue
-    number: 4
-    url: "https://github.com/89jobrien/doob/issues/4"
   completed: 2026-04-13
+  extra:
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
+    number: 4
+    url: https://github.com/89jobrien/doob/issues/4
 - id: doob-15
+  doob_uuid: null
   name: sql-injection-list-command
   priority: P1
   status: done
   title: 'bug: SQL injection in list command: status and project are interpolated unsanitized'
-  description: "GH #3: The list command interpolates status and project filter values directly into the WHERE clause without parameterization."
+  description: 'GH #3: The list command interpolates status and project filter values directly into the WHERE clause without parameterization.'
   files: []
-  extra:
-  - type: github-issue
-    number: 3
-    url: "https://github.com/89jobrien/doob/issues/3"
   completed: 2026-04-13
+  extra:
+  - date: null
+    type: github-issue
+    field: null
+    value: null
+    reviewed: null
+    note: null
+    number: 3
+    url: https://github.com/89jobrien/doob/issues/3
 log:
+- date: 2026-05-10
+  summary: session closed
+  commits:
+  - !Object
+    sha: f3bcd3f
+    branch: main
+- date: 2026-05-10
+  summary: session closed
+  commits: []
+- date: 2026-05-10
+  summary: session closed
+  commits: []
+- date: 2026-05-10
+  summary: session closed
+  commits: []
+- date: 2026-05-10
+  summary: session closed
+  commits: []
+- date: 2026-05-10
+  summary: session closed
+  commits: []
 - date: 2026-04-21
-  summary: "Documented 5 completed plans: doobdash-tui (2026-04-03), detail-redesign (2026-04-04), multi-repo (2026-04-04), space-leader-db-tab (2026-04-04), gh-sync (2026-04-10). Added to docs/superpowers/plans/, tracked in .gitignore."
-  commits:
-  - "6bd3243"
+  summary: 'Documented 5 completed plans: doobdash-tui (2026-04-03), detail-redesign (2026-04-04), multi-repo (2026-04-04), space-leader-db-tab (2026-04-04), gh-sync (2026-04-10). Added to docs/superpowers/plans/, tracked in .gitignore.'
+  commits: []
 - date: 2026-04-18
-  summary: "Fixed batch add deps linking (GH #7) — only link dependencies to first todo in batch. Added CodeRabbit config."
-  commits:
-  - "3225e24"
-  - "d1f0bb6"
+  summary: 'Fixed batch add deps linking (GH #7) — only link dependencies to first todo in batch. Added CodeRabbit config.'
+  commits: []
 - date: 2026-04-13
   summary: Fixed 7 P1 bugs — SQL injection in list (doob-15, query_guard module), home_dir panic (doob-12), archive delete error swallow (doob-14), undo Cancelled (doob-10), batch deps link no-op (doob-11, SurrealDB raw SQL), handoff dedup ignores entry_type (doob-17), ExitCode misclassifies IO/parse (doob-18).
-  commits:
-  - "1a9a4d3"
-  - "1684f8f"
-  - "a857093"
-  - "e9d0d66"
-  - "9ea60fb"
-  - "0499afc"
-  - "52d93aa"
+  commits: []
 - date: 2026-04-10
-  summary: Implemented doob todo gh-sync — full GitHub issue sync with config, state,
-    gh CLI wrapper, subcommand, PostToolUse hook, colorized table output, --json flag.
-    Dry-run by default, --execute to apply. Hook passes --action hint for complete/remove.
-  commits:
-  - "27a4ea2"
-  - "1a96f8b"
-  - "acd2129"
-  - "abb684c"
-  - "66fc52a"
-  - "c11a791"
-  - "5468256"
+  summary: Implemented doob todo gh-sync — full GitHub issue sync with config, state, gh CLI wrapper, subcommand, PostToolUse hook, colorized table output, --json flag. Dry-run by default, --execute to apply. Hook passes --action hint for complete/remove.
+  commits: []
 - date: 2026-04-07
-  summary: Standardized CI — ci.yml, nightly.yml, deny.toml, Justfile, git hooks. Fixed
-    missing license fields, BUSL-1.1/CDLA/Unlicense allow list, bincode advisory ignore.
-    All CI jobs green.
-  commits:
-  - "daf8685"
-  - "19afd65"
-  - "180f489"
-  - "2801b2b"
+  summary: Standardized CI — ci.yml, nightly.yml, deny.toml, Justfile, git hooks. Fixed missing license fields, BUSL-1.1/CDLA/Unlicense allow list, bincode advisory ignore. All CI jobs green.
+  commits: []
 - date: 2026-04-04
   summary: 'PR #2 merged. Both PRs now merged (doob#2 → mcpipe#1). Worktrees cleaned. Ready for doob.openapi.yaml generation.'
+  commits: []
 - date: 2026-04-04
   summary: 'PR #2 (feat/cli-schema) open: adds schema command. fmt/clippy fixed, CI pending. Unblocks mcpipe PR #1 (merge order critical: doob #2 first).'
+  commits: []
 - date: 2026-04-04
   summary: doob-3 closed — redesign was complete from prior session; verified build+tests pass, all 10 features confirmed present
+  commits: []
 - date: 2026-04-04
   summary: Brainstormed doobdash TUI redesign — tabs+kanban+detail pane selected, all 10 features scoped, CLAUDE.md updated
+  commits: []

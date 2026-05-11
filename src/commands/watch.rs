@@ -1,14 +1,14 @@
 use crate::commands::kan;
-use crate::db::DbConnection;
 use crate::models::TodoStatus;
 use crate::output::kanban;
+use crate::ports::TodoRepository;
 use anyhow::Result;
 use std::io::Write;
 use tokio::signal;
 use tokio::time::{interval, Duration};
 
 pub async fn execute(
-    db: &DbConnection,
+    repo: &dyn TodoRepository,
     project: Option<String>,
     status_filter: Option<Vec<TodoStatus>>,
     interval_secs: u64,
@@ -18,7 +18,9 @@ pub async fn execute(
     loop {
         tokio::select! {
             _ = ticker.tick() => {
-                let (todos, filter) = kan::execute(db, project.clone(), status_filter.clone()).await?;
+                let (todos, filter) = kan::execute(
+                    repo, project.clone(), status_filter.clone()
+                ).await?;
                 let board = kanban::render_board(&todos, filter.as_deref());
                 print!("\x1b[2J\x1b[H");
                 print!("{}", board);

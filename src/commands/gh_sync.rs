@@ -1,6 +1,6 @@
-use crate::db::DbConnection;
 use crate::gh_sync::{self, SyncPlan};
 use crate::models::TodoStatus;
+use crate::ports::TodoRepository;
 use anyhow::Result;
 use colored::Colorize;
 use std::collections::BTreeMap;
@@ -13,7 +13,7 @@ pub struct GhSyncOptions {
     pub json: bool,
 }
 
-pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
+pub async fn execute(repo: &dyn TodoRepository, opts: GhSyncOptions) -> Result<()> {
     let mut plans: Vec<SyncPlan> = Vec::new();
 
     if let Some(uuid) = opts.uuid {
@@ -22,10 +22,7 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
             eprintln!("gh-sync: invalid UUID format: {}", uuid);
             return Ok(());
         }
-        let query = format!("SELECT * FROM todo WHERE uuid = '{}' LIMIT 1", uuid);
-        let mut result = db.query(&query).await?;
-        let todos: Vec<crate::models::Todo> = result.take(0)?;
-        let todo = match todos.into_iter().next() {
+        let todo = match repo.get_todo_by_uuid(&uuid).await? {
             Some(t) => t,
             None => {
                 eprintln!("gh-sync: todo not found for uuid {}", uuid);
@@ -41,7 +38,7 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
             plans.push(plan);
         }
     } else {
-        // Bulk sync — query status based on action hint
+        // Bulk sync -- query status based on action hint
         let cfg = match crate::gh_sync::config::load()? {
             Some(c) => c,
             None => {
@@ -58,9 +55,7 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
             _ => "pending",
         };
 
-        let query = format!("SELECT * FROM todo WHERE status = '{}'", status_filter);
-        let mut result = db.query(&query).await?;
-        let todos: Vec<crate::models::Todo> = result.take(0)?;
+        let todos = repo.list_todos(Some(status_filter), None, None).await?;
 
         let state = crate::gh_sync::state::load()?;
 
@@ -74,7 +69,6 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
             }
             match action_hint {
                 "add" => {
-                    // --force only applies to "add" — re-closing or re-tombstoning is not supported
                     if !opts.force && crate::gh_sync::state::has_issue(&state, &todo.uuid) {
                         continue;
                     }
@@ -97,7 +91,10 @@ pub async fn execute(db: &DbConnection, opts: GhSyncOptions) -> Result<()> {
 
 fn render(plans: &[SyncPlan], dry_run: bool, json: bool) {
     if json {
-        println!("{}", serde_json::to_string_pretty(plans).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(plans).unwrap_or_default()
+        );
         return;
     }
 
@@ -113,7 +110,7 @@ fn render(plans: &[SyncPlan], dry_run: bool, json: bool) {
     }
 
     let header = if dry_run {
-        format!("Dry run — {} issue(s) would be affected", plans.len())
+        format!("Dry run -- {} issue(s) would be affected", plans.len())
     } else {
         format!("{} issue(s) synced", plans.len())
     };

@@ -26,9 +26,10 @@
 // 2. **Single Responsibility** - TodoRepository handles all todo/note persistence
 // 3. **Testability** - Enables mock implementations for testing
 
-use async_trait::async_trait;
-use crate::models::{Note, Todo};
+use crate::models::handoff_item::{ExtraEntry, HandoffItem};
+use crate::models::{ArchivedTodo, Note, Todo};
 use anyhow::Result;
+use async_trait::async_trait;
 
 /// TodoRepository port: Abstraction for all todo and note persistence operations.
 ///
@@ -90,6 +91,25 @@ pub trait TodoRepository: Send + Sync {
     /// Get stats for todos (count by status, etc.)
     async fn get_todo_stats(&self) -> Result<serde_json::Value>;
 
+    /// Set or clear a due date on a todo.
+    /// Pass `None` to clear, `Some("YYYY-MM-DD")` to set.
+    async fn set_due_date(&self, record_id: &str, due_date: Option<&str>) -> Result<()>;
+
+    /// Link dependency UUIDs (blocks/blocked_by) on a todo
+    async fn link_deps(&self, uuid: &str, blocks: &[String], blocked_by: &[String]) -> Result<()>;
+
+    /// Fetch a todo by UUID (not record ID)
+    async fn get_todo_by_uuid(&self, uuid: &str) -> Result<Option<Todo>>;
+
+    /// Fetch multiple todos by their UUIDs
+    async fn get_todos_by_uuids(&self, uuids: &[String]) -> Result<Vec<Todo>>;
+
+    /// List all todos ordered by created_at ASC (for kanban board)
+    async fn list_all_todos(&self, project: Option<&str>) -> Result<Vec<Todo>>;
+
+    /// List active (pending + in_progress) todos (for cache building)
+    async fn list_active_todos(&self) -> Result<Vec<Todo>>;
+
     // ========================================================================
     // NOTE OPERATIONS
     // ========================================================================
@@ -104,11 +124,7 @@ pub trait TodoRepository: Send + Sync {
     async fn get_note(&self, record_id: &str) -> Result<Option<Note>>;
 
     /// List notes with optional filtering
-    async fn list_notes(
-        &self,
-        project: Option<&str>,
-        limit: Option<usize>,
-    ) -> Result<Vec<Note>>;
+    async fn list_notes(&self, project: Option<&str>, limit: Option<usize>) -> Result<Vec<Note>>;
 
     /// Delete a note by ID
     async fn delete_note(&self, record_id: &str) -> Result<()>;
@@ -122,4 +138,59 @@ pub trait TodoRepository: Send + Sync {
 
     /// Execute raw SurrealDB query for special cases
     async fn execute_raw_query(&self, query: &str) -> Result<serde_json::Value>;
+}
+
+// ============================================================================
+// HANDOFF REPOSITORY PORT
+// ============================================================================
+
+/// Abstraction for all handoff item persistence operations.
+#[async_trait]
+pub trait HandoffRepository: Send + Sync {
+    /// Find a handoff item by its handoff_id
+    async fn get_by_handoff_id(&self, handoff_id: &str) -> Result<Option<HandoffItem>>;
+
+    /// List handoff items with optional filters
+    async fn list_handoff_items(
+        &self,
+        project: Option<&str>,
+        status: Option<&str>,
+    ) -> Result<Vec<HandoffItem>>;
+
+    /// Create a handoff item via raw SQL (datetime injection needed for SurrealDB)
+    async fn create_handoff_raw(&self, sql: &str) -> Result<()>;
+
+    /// Update a handoff item via raw SQL
+    async fn update_handoff_raw(&self, sql: &str) -> Result<()>;
+
+    /// Update status of a handoff item
+    async fn update_handoff_status(&self, handoff_id: &str, status: &str) -> Result<()>;
+
+    /// Append an extra entry to a handoff item
+    async fn add_extra(&self, handoff_id: &str, entry: ExtraEntry) -> Result<()>;
+}
+
+// ============================================================================
+// ARCHIVE REPOSITORY PORT
+// ============================================================================
+
+/// Abstraction for archive persistence operations.
+#[async_trait]
+pub trait ArchiveRepository: Send + Sync {
+    /// Find archival candidates: completed/cancelled todos older than cutoff
+    async fn find_archive_candidates(
+        &self,
+        cutoff_iso: &str,
+        project: Option<&str>,
+    ) -> Result<Vec<Todo>>;
+
+    /// Archive a single todo (create archive record + delete original)
+    async fn archive_todo(&self, todo: &Todo) -> Result<()>;
+
+    /// List archived todos with optional filters
+    async fn list_archived(
+        &self,
+        project: Option<&str>,
+        limit: Option<usize>,
+    ) -> Result<Vec<ArchivedTodo>>;
 }

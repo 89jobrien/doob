@@ -1,23 +1,13 @@
-use crate::db::DbConnection;
 use crate::models::{Todo, TodoStatus};
+use crate::ports::TodoRepository;
 use anyhow::Result;
 
 pub async fn execute(
-    db: &DbConnection,
+    repo: &dyn TodoRepository,
     project: Option<String>,
     status_filter: Option<Vec<TodoStatus>>,
 ) -> Result<(Vec<Todo>, Option<Vec<TodoStatus>>)> {
-    let mut query = String::from("SELECT * FROM todo");
-
-    if let Some(ref p) = project {
-        query.push_str(&format!(" WHERE project = '{}'", p));
-    }
-
-    query.push_str(" ORDER BY created_at ASC");
-
-    let mut result = db.query(&query).await?;
-    let todos: Vec<Todo> = result.take(0)?;
-
+    let todos = repo.list_all_todos(project.as_deref()).await?;
     Ok((todos, status_filter))
 }
 

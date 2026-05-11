@@ -6,7 +6,7 @@ use std::process;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use doob::adapters::TodoRepositoryImpl;
+use doob::adapters::{ArchiveRepositoryImpl, HandoffRepositoryImpl, TodoRepositoryImpl};
 use doob::cli::{ArchiveAction, Cli, Commands, HandoffAction, NoteAction, TodoAction};
 use doob::{commands, db, output};
 
@@ -28,6 +28,10 @@ async fn run() -> Result<()> {
     let db_conn = db::create_connection(cli.db.as_deref()).await?;
     let repo = TodoRepositoryImpl::new(db_conn.clone());
     let repo: &dyn doob::ports::TodoRepository = &repo;
+    let handoff_repo = HandoffRepositoryImpl::new(db_conn.clone());
+    let handoff_repo: &dyn doob::ports::HandoffRepository = &handoff_repo;
+    let archive_repo = ArchiveRepositoryImpl::new(db_conn.clone());
+    let archive_repo: &dyn doob::ports::ArchiveRepository = &archive_repo;
 
     match cli.command {
         Commands::Todo { action } => match action {
@@ -49,14 +53,14 @@ async fn run() -> Result<()> {
                 // only links the first.
                 let blocks_list = blocks.unwrap_or_default();
                 let blocked_by_list = blocked_by.unwrap_or_default();
-                commands::deps::apply_batch_deps(&db_conn, &todos, &blocks_list, &blocked_by_list)
+                commands::deps::apply_batch_deps(repo, &todos, &blocks_list, &blocked_by_list)
                     .await?;
 
                 for todo in &todos {
                     println!("✓ Created todo: {}", todo.content);
                 }
 
-                cache::refresh(&db_conn).await;
+                cache::refresh(repo).await;
                 Ok(())
             }
             TodoAction::List {
@@ -77,17 +81,17 @@ async fn run() -> Result<()> {
             TodoAction::Complete { ids } => {
                 let count = commands::complete::execute(repo, ids).await?;
                 println!("✓ Completed {} todo(s)", count);
-                cache::refresh(&db_conn).await;
+                cache::refresh(repo).await;
                 Ok(())
             }
             TodoAction::Remove { ids } => {
                 let count = commands::remove::execute(repo, ids).await?;
                 println!("✓ Removed {} todo(s)", count);
-                cache::refresh(&db_conn).await;
+                cache::refresh(repo).await;
                 Ok(())
             }
             TodoAction::Due { id, date } => {
-                commands::due::execute(&db_conn, id.clone(), date.clone()).await?;
+                commands::due::execute(repo, id.clone(), date.clone()).await?;
                 if let Some(d) = date {
                     if d.to_lowercase() == "clear" {
                         println!("✓ Cleared due date for todo: {}", id);
@@ -97,13 +101,13 @@ async fn run() -> Result<()> {
                 } else {
                     println!("✓ Cleared due date for todo: {}", id);
                 }
-                cache::refresh(&db_conn).await;
+                cache::refresh(repo).await;
                 Ok(())
             }
             TodoAction::Undo { ids } => {
                 let count = commands::undo::execute(repo, ids).await?;
                 println!("✓ Undid completion for {} todo(s)", count);
-                cache::refresh(&db_conn).await;
+                cache::refresh(repo).await;
                 Ok(())
             }
             TodoAction::Update {
@@ -123,11 +127,11 @@ async fn run() -> Result<()> {
                 };
                 let todo = commands::update::execute(repo, id, fields).await?;
                 println!("✓ Updated todo: {}", todo.content);
-                cache::refresh(&db_conn).await;
+                cache::refresh(repo).await;
                 Ok(())
             }
             TodoAction::Deps { id } => {
-                let view = commands::deps::execute(&db_conn, id).await?;
+                let view = commands::deps::execute(repo, id).await?;
                 if cli.json {
                     println!("{}", output::deps_json(&view));
                 } else {
@@ -142,7 +146,7 @@ async fn run() -> Result<()> {
                 action,
             } => {
                 commands::gh_sync::execute(
-                    &db_conn,
+                    repo,
                     commands::gh_sync::GhSyncOptions {
                         uuid,
                         dry_run: !do_execute,
@@ -198,7 +202,7 @@ async fn run() -> Result<()> {
                     .collect()
             });
 
-            let (todos, filter) = commands::kan::execute(&db_conn, project, status_filter).await?;
+            let (todos, filter) = commands::kan::execute(repo, project, status_filter).await?;
 
             let board = output::kanban::render_board(&todos, filter.as_deref());
             print!("{}", board);
@@ -238,7 +242,8 @@ async fn run() -> Result<()> {
                 project,
             } => {
                 let result =
-                    commands::archive::run::execute(&db_conn, older_than, apply, project).await?;
+                    commands::archive::run::execute(archive_repo, older_than, apply, project)
+                        .await?;
                 if cli.json {
                     println!("{}", output::archive_json::format_run_result(&result));
                 } else {
@@ -247,7 +252,8 @@ async fn run() -> Result<()> {
                 Ok(())
             }
             ArchiveAction::List { project, limit } => {
-                let archived = commands::archive::list::execute(&db_conn, project, limit).await?;
+                let archived =
+                    commands::archive::list::execute(archive_repo, project, limit).await?;
                 if cli.json {
                     println!("{}", output::archive_json::format_list(&archived));
                 } else {
@@ -259,7 +265,7 @@ async fn run() -> Result<()> {
 
         Commands::Handoff { action } => match action {
             HandoffAction::Sync { file } => {
-                let summary = commands::handoff::sync::execute(&db_conn, &file).await?;
+                let summary = commands::handoff::sync::execute(handoff_repo, &file).await?;
                 if cli.json {
                     println!("{}", output::handoff_json::format_sync_summary(&summary));
                 } else {
@@ -268,7 +274,7 @@ async fn run() -> Result<()> {
                 Ok(())
             }
             HandoffAction::List { project, status } => {
-                let items = commands::handoff::list::execute(&db_conn, project, status).await?;
+                let items = commands::handoff::list::execute(handoff_repo, project, status).await?;
                 if cli.json {
                     println!("{}", output::handoff_json::format_list(&items));
                 } else {
@@ -282,7 +288,7 @@ async fn run() -> Result<()> {
                 note,
             } => {
                 commands::handoff::add_extra::execute(
-                    &db_conn,
+                    handoff_repo,
                     handoff_id.clone(),
                     entry_type,
                     note,
@@ -293,7 +299,7 @@ async fn run() -> Result<()> {
             }
             HandoffAction::UpdateStatus { handoff_id, status } => {
                 commands::handoff::update_status::execute(
-                    &db_conn,
+                    handoff_repo,
                     handoff_id.clone(),
                     status.clone(),
                 )
@@ -314,7 +320,7 @@ async fn run() -> Result<()> {
                     .filter_map(|s| commands::kan::parse_status(s))
                     .collect()
             });
-            commands::watch::execute(&db_conn, project, status_filter, interval).await?;
+            commands::watch::execute(repo, project, status_filter, interval).await?;
             Ok(())
         }
 

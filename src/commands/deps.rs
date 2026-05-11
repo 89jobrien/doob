@@ -1,6 +1,5 @@
-use crate::commands::quote_record_id;
-use crate::db::DbConnection;
 use crate::models::Todo;
+use crate::ports::TodoRepository;
 use anyhow::Result;
 
 /// Link deps to the first todo only from a batch-add result.
@@ -10,7 +9,7 @@ use anyhow::Result;
 /// enforces a clear rule: only the first todo gets the dep links. If the
 /// caller passes an empty `todos` slice nothing is done.
 pub async fn apply_batch_deps(
-    db: &DbConnection,
+    repo: &dyn TodoRepository,
     todos: &[Todo],
     blocks: &[String],
     blocked_by: &[String],
@@ -19,7 +18,7 @@ pub async fn apply_batch_deps(
         return Ok(());
     }
     if let Some(first) = todos.first() {
-        link(db, &first.uuid, blocks, blocked_by).await?;
+        repo.link_deps(&first.uuid, blocks, blocked_by).await?;
     }
     Ok(())
 }
@@ -32,72 +31,22 @@ pub struct DepsView {
     pub dependents: Vec<Todo>,
 }
 
-pub async fn execute(db: &DbConnection, id: String) -> Result<DepsView> {
-    // Look up root by uuid or record ID
-    let root = fetch_by_id(db, &id)
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("Todo not found: {}", id))?;
+pub async fn execute(repo: &dyn TodoRepository, id: String) -> Result<DepsView> {
+    // Try UUID first, then record ID
+    let root = match repo.get_todo_by_uuid(&id).await? {
+        Some(t) => t,
+        None => repo
+            .get_todo(&id)
+            .await?
+            .ok_or_else(|| anyhow::anyhow!("Todo not found: {}", id))?,
+    };
 
-    let blockers = fetch_by_uuids(db, &root.blocked_by).await?;
-    let dependents = fetch_by_uuids(db, &root.blocks).await?;
+    let blockers = repo.get_todos_by_uuids(&root.blocked_by).await?;
+    let dependents = repo.get_todos_by_uuids(&root.blocks).await?;
 
     Ok(DepsView {
         root,
         blockers,
         dependents,
     })
-}
-
-/// Set blocks/blocked_by on an existing todo by UUID.
-pub async fn link(
-    db: &DbConnection,
-    uuid: &str,
-    blocks: &[String],
-    blocked_by: &[String],
-) -> Result<()> {
-    db.query("UPDATE todo SET blocks = $blocks, blocked_by = $blocked_by WHERE uuid = $uuid")
-        .bind(("uuid", uuid.to_string()))
-        .bind(("blocks", blocks.to_vec()))
-        .bind(("blocked_by", blocked_by.to_vec()))
-        .await?;
-    Ok(())
-}
-
-async fn fetch_by_id(db: &DbConnection, id: &str) -> Result<Option<Todo>> {
-    // Try uuid lookup first, then record ID
-    let mut result = db
-        .query("SELECT * FROM todo WHERE uuid = $id LIMIT 1")
-        .bind(("id", id.to_string()))
-        .await?;
-    let todos: Vec<Todo> = result.take(0)?;
-    if let Some(todo) = todos.into_iter().next() {
-        return Ok(Some(todo));
-    }
-
-    // Try as record ID (todo:xxx)
-    let record_id = if id.contains(':') {
-        id.to_string()
-    } else {
-        format!("todo:{}", id)
-    };
-    let query = format!("SELECT * FROM {} LIMIT 1", quote_record_id(&record_id));
-    let mut result = db.query(&query).await?;
-    let todos: Vec<Todo> = result.take(0)?;
-    Ok(todos.into_iter().next())
-}
-
-async fn fetch_by_uuids(db: &DbConnection, uuids: &[String]) -> Result<Vec<Todo>> {
-    if uuids.is_empty() {
-        return Ok(vec![]);
-    }
-    let mut todos = Vec::new();
-    for uuid in uuids {
-        let mut result = db
-            .query("SELECT * FROM todo WHERE uuid = $uuid LIMIT 1")
-            .bind(("uuid", uuid.clone()))
-            .await?;
-        let found: Vec<Todo> = result.take(0)?;
-        todos.extend(found);
-    }
-    Ok(todos)
 }

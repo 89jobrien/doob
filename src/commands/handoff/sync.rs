@@ -1,5 +1,5 @@
-use crate::db::DbConnection;
-use crate::models::handoff_item::{ExtraEntry, ExtraType, HandoffItem};
+use crate::models::handoff_item::{ExtraEntry, ExtraType};
+use crate::ports::HandoffRepository;
 use anyhow::{Context, Result};
 use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
@@ -35,7 +35,7 @@ pub struct YamlExtra {
     pub note: String,
 }
 
-/// Top-level HANDOFF.yaml structure — supports either a bare list or a map with a key
+/// Top-level HANDOFF.yaml structure -- supports either a bare list or a map with a key
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum HandoffYaml {
@@ -50,7 +50,7 @@ pub struct SyncSummary {
     pub pulled: Vec<String>,
 }
 
-/// Payload used for CREATE — omits datetime fields to avoid SurrealDB JSON coercion issues.
+/// Payload used for CREATE -- omits datetime fields to avoid SurrealDB JSON coercion issues.
 /// Datetimes are set via raw SQL literals in the query string instead.
 #[derive(Debug, Serialize, Deserialize)]
 struct CreatePayload {
@@ -66,14 +66,14 @@ struct CreatePayload {
     pub extra: Vec<ExtraEntry>,
 }
 
-/// Payload used for UPDATE — omits datetime fields for the same reason.
+/// Payload used for UPDATE -- omits datetime fields for the same reason.
 #[derive(Debug, Serialize, Deserialize)]
 struct UpdatePayload {
     pub status: String,
     pub extra: Vec<ExtraEntry>,
 }
 
-pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
+pub async fn execute(repo: &dyn HandoffRepository, file: &Path) -> Result<SyncSummary> {
     let raw = std::fs::read_to_string(file).with_context(|| format!("Cannot read {:?}", file))?;
 
     // Parse: support both bare list and map with "items" key
@@ -100,131 +100,127 @@ pub async fn execute(db: &DbConnection, file: &Path) -> Result<SyncSummary> {
     let mut updated_yaml_items = yaml_items.clone();
 
     for (idx, yaml_item) in yaml_items.iter().enumerate() {
-        // Look up by handoff_id using raw interpolated SQL (avoids parameterized query bug).
-        let hid = yaml_item.id.replace('\'', "\\'");
-        let select_sql = format!("SELECT * FROM handoff_item WHERE handoff_id = '{hid}' LIMIT 1");
-        let mut result = db.query(&select_sql).await?;
-        let existing: Vec<HandoffItem> = result.take(0).unwrap_or_default();
+        let existing = repo.get_by_handoff_id(&yaml_item.id).await?;
 
-        if existing.is_empty() {
-            let new_uuid = Uuid::new_v4().to_string();
-            let now_str = Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ").to_string();
-            let completed_at_lit = yaml_item
-                .completed
-                .as_ref()
-                .and_then(|d| NaiveDate::parse_from_str(d, "%Y-%m-%d").ok())
-                .map(|nd| format!("d\"{}T00:00:00.000000Z\"", nd.format("%Y-%m-%d")))
-                .unwrap_or_else(|| "NONE".to_string());
+        match existing {
+            None => {
+                let new_uuid = Uuid::new_v4().to_string();
+                let now_str = Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ").to_string();
+                let completed_at_lit = yaml_item
+                    .completed
+                    .as_ref()
+                    .and_then(|d| NaiveDate::parse_from_str(d, "%Y-%m-%d").ok())
+                    .map(|nd| format!("d\"{}T00:00:00.000000Z\"", nd.format("%Y-%m-%d")))
+                    .unwrap_or_else(|| "NONE".to_string());
 
-            let extra: Vec<ExtraEntry> = yaml_item
-                .extra
-                .iter()
-                .map(yaml_extra_to_entry)
-                .collect::<Result<Vec<_>>>()?;
+                let extra: Vec<ExtraEntry> = yaml_item
+                    .extra
+                    .iter()
+                    .map(yaml_extra_to_entry)
+                    .collect::<Result<Vec<_>>>()?;
 
-            let payload = CreatePayload {
-                uuid: new_uuid.clone(),
-                handoff_id: yaml_item.id.clone(),
-                project: project.clone(),
-                title: yaml_item.title.clone(),
-                description: yaml_item.description.clone(),
-                priority: yaml_item.priority.clone(),
-                status: yaml_item.status.clone(),
-                files: yaml_item.files.clone(),
-                extra,
-            };
+                let payload = CreatePayload {
+                    uuid: new_uuid.clone(),
+                    handoff_id: yaml_item.id.clone(),
+                    project: project.clone(),
+                    title: yaml_item.title.clone(),
+                    description: yaml_item.description.clone(),
+                    priority: yaml_item.priority.clone(),
+                    status: yaml_item.status.clone(),
+                    files: yaml_item.files.clone(),
+                    extra,
+                };
 
-            // Inject datetime literals directly into SQL — SurrealDB 2.x rejects ISO strings
-            // in CONTENT when the field type is datetime, even with SCHEMALESS tables.
-            let payload_json = serde_json::to_string(&payload)
-                .with_context(|| "Failed to serialize handoff_item payload")?;
-            let payload_json = payload_json.trim_end_matches('}');
-            let sql = format!(
-                r#"CREATE handoff_item CONTENT {payload_json}, "created_at": d"{now_str}", "updated_at": d"{now_str}", "completed_at": {completed_at_lit} }}"#
-            );
-            db.query(&sql).await.map_err(|e| {
-                anyhow::anyhow!("CREATE handoff_item failed for {}: {e}", yaml_item.id)
-            })?;
+                let payload_json = serde_json::to_string(&payload)
+                    .with_context(|| "Failed to serialize handoff_item payload")?;
+                let payload_json = payload_json.trim_end_matches('}');
+                let sql = format!(
+                    r#"CREATE handoff_item CONTENT {payload_json}, "created_at": d"{now_str}", "updated_at": d"{now_str}", "completed_at": {completed_at_lit} }}"#
+                );
+                repo.create_handoff_raw(&sql).await.map_err(|e| {
+                    anyhow::anyhow!("CREATE handoff_item failed for {}: {e}", yaml_item.id)
+                })?;
 
-            updated_yaml_items[idx].doob_uuid = Some(new_uuid.clone());
-            summary.created.push(yaml_item.id.clone());
-        } else {
-            let doob = &existing[0];
-
-            // Merge extra: append yaml extras not already in doob (dedup by entry_type+date+note)
-            let existing_keys: HashSet<String> = doob
-                .extra
-                .iter()
-                .map(|e| {
-                    let et = serde_json::to_string(&e.entry_type)
-                        .unwrap_or_default()
-                        .trim_matches('"')
-                        .to_string();
-                    format!("{}|{}|{}", et, e.date, e.note)
-                })
-                .collect();
-
-            let new_entries: Vec<ExtraEntry> = yaml_item
-                .extra
-                .iter()
-                .filter(|e| !existing_keys.contains(&format!("{}|{}|{}", e.entry_type, e.date, e.note)))
-                .map(yaml_extra_to_entry)
-                .collect::<Result<Vec<_>>>()?;
-
-            let mut merged_extra = doob.extra.clone();
-            merged_extra.extend(new_entries);
-
-            // doob wins on status conflict
-            let final_status = doob.status.clone();
-
-            // UPDATE via raw SQL with inline JSON + datetime literals.
-            let now_str = Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ").to_string();
-            let update_payload = UpdatePayload {
-                status: final_status,
-                extra: merged_extra.clone(),
-            };
-            let update_json = serde_json::to_string(&update_payload)
-                .with_context(|| "Failed to serialize update payload")?;
-            let update_json = update_json.trim_end_matches('}');
-            let hid_escaped = yaml_item.id.replace('\'', "\\'");
-            let update_sql = format!(
-                r#"UPDATE handoff_item MERGE {update_json}, "updated_at": d"{now_str}" }} WHERE handoff_id = '{hid_escaped}'"#
-            );
-            db.query(&update_sql)
-                .await
-                .with_context(|| format!("UPDATE handoff_item failed for {}", yaml_item.id))?;
-
-            // Pull doob status back to yaml if different
-            if doob.status != yaml_item.status {
-                updated_yaml_items[idx].status = doob.status.clone();
-                summary.pulled.push(yaml_item.id.clone());
+                updated_yaml_items[idx].doob_uuid = Some(new_uuid.clone());
+                summary.created.push(yaml_item.id.clone());
             }
+            Some(doob) => {
+                // Merge extra: append yaml extras not already in doob (dedup by entry_type+date+note)
+                let existing_keys: HashSet<String> = doob
+                    .extra
+                    .iter()
+                    .map(|e| {
+                        let et = serde_json::to_string(&e.entry_type)
+                            .unwrap_or_default()
+                            .trim_matches('"')
+                            .to_string();
+                        format!("{}|{}|{}", et, e.date, e.note)
+                    })
+                    .collect();
 
-            // Sync doob_uuid back
-            updated_yaml_items[idx].doob_uuid = Some(doob.uuid.clone());
+                let new_entries: Vec<ExtraEntry> = yaml_item
+                    .extra
+                    .iter()
+                    .filter(|e| {
+                        !existing_keys.contains(&format!("{}|{}|{}", e.entry_type, e.date, e.note))
+                    })
+                    .map(yaml_extra_to_entry)
+                    .collect::<Result<Vec<_>>>()?;
 
-            // Merge extra back to yaml
-            let yaml_keys: HashSet<String> = yaml_item
-                .extra
-                .iter()
-                .map(|e| format!("{}|{}", e.date, e.note))
-                .collect();
-            let doob_only: Vec<YamlExtra> = doob
-                .extra
-                .iter()
-                .filter(|e| !yaml_keys.contains(&format!("{}|{}", e.date, e.note)))
-                .map(entry_to_yaml_extra)
-                .collect();
-            if !doob_only.is_empty() {
-                updated_yaml_items[idx].extra.extend(doob_only);
+                let mut merged_extra = doob.extra.clone();
+                merged_extra.extend(new_entries);
+
+                // doob wins on status conflict
+                let final_status = doob.status.clone();
+
+                // UPDATE via raw SQL with inline JSON + datetime literals.
+                let now_str = Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ").to_string();
+                let update_payload = UpdatePayload {
+                    status: final_status,
+                    extra: merged_extra.clone(),
+                };
+                let update_json = serde_json::to_string(&update_payload)
+                    .with_context(|| "Failed to serialize update payload")?;
+                let update_json = update_json.trim_end_matches('}');
+                let hid_escaped = yaml_item.id.replace('\'', "\\'");
+                let update_sql = format!(
+                    r#"UPDATE handoff_item MERGE {update_json}, "updated_at": d"{now_str}" }} WHERE handoff_id = '{hid_escaped}'"#
+                );
+                repo.update_handoff_raw(&update_sql)
+                    .await
+                    .with_context(|| format!("UPDATE handoff_item failed for {}", yaml_item.id))?;
+
+                // Pull doob status back to yaml if different
+                if doob.status != yaml_item.status {
+                    updated_yaml_items[idx].status = doob.status.clone();
+                    summary.pulled.push(yaml_item.id.clone());
+                }
+
+                // Sync doob_uuid back
+                updated_yaml_items[idx].doob_uuid = Some(doob.uuid.clone());
+
+                // Merge extra back to yaml
+                let yaml_keys: HashSet<String> = yaml_item
+                    .extra
+                    .iter()
+                    .map(|e| format!("{}|{}", e.date, e.note))
+                    .collect();
+                let doob_only: Vec<YamlExtra> = doob
+                    .extra
+                    .iter()
+                    .filter(|e| !yaml_keys.contains(&format!("{}|{}", e.date, e.note)))
+                    .map(entry_to_yaml_extra)
+                    .collect();
+                if !doob_only.is_empty() {
+                    updated_yaml_items[idx].extra.extend(doob_only);
+                }
+
+                summary.updated.push(yaml_item.id.clone());
             }
-
-            summary.updated.push(yaml_item.id.clone());
         }
     }
 
-    // Write updated HANDOFF.yaml back — preserve full document structure.
-    // Parse the original as a generic Value so we only replace the items list.
+    // Write updated HANDOFF.yaml back -- preserve full document structure.
     let original_val: serde_yaml::Value = serde_yaml::from_str(&raw)?;
     let items_val = serde_yaml::to_value(&updated_yaml_items)?;
     let out = if original_val.is_sequence() {

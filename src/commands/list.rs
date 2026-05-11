@@ -8,10 +8,6 @@ pub async fn execute(
     project: Option<String>,
     limit: Option<usize>,
 ) -> Result<Vec<Todo>> {
-    repo.list_todos(
-        status.as_deref(),
-        project.as_deref(),
-        limit,
-    )
-    .await
+    repo.list_todos(status.as_deref(), project.as_deref(), limit)
+        .await
 }

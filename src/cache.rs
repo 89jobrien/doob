@@ -1,4 +1,4 @@
-// cache.rs — writes ~/.cache/doob/status.json after every mutation.
+// cache.rs -- writes ~/.cache/doob/status.json after every mutation.
 //
 // Downstream consumers (Starship, Nu hooks) read this file to display
 // overdue counts without shelling out to doob. Cache writes are always
@@ -12,8 +12,8 @@ use anyhow::Result;
 use chrono::Utc;
 use serde::Serialize;
 
-use crate::db::DbConnection;
 use crate::models::{Todo, TodoStatus};
+use crate::ports::TodoRepository;
 
 #[derive(Serialize)]
 pub struct StatusCache {
@@ -38,11 +38,8 @@ pub fn write_status_cache(cache: &StatusCache) -> Result<()> {
     Ok(())
 }
 
-pub async fn build_status_cache(db: &DbConnection) -> Result<StatusCache> {
-    let mut result = db
-        .query("SELECT * FROM todo WHERE status IN ['pending', 'in_progress']")
-        .await?;
-    let todos: Vec<Todo> = result.take(0)?;
+pub async fn build_status_cache(repo: &dyn TodoRepository) -> Result<StatusCache> {
+    let todos: Vec<Todo> = repo.list_active_todos().await?;
 
     let now = Utc::now();
     let mut pending_total = 0usize;
@@ -55,8 +52,8 @@ pub async fn build_status_cache(db: &DbConnection) -> Result<StatusCache> {
             if let Some(due) = todo.due_date {
                 if due < now {
                     overdue_total += 1;
-                    if let Some(ref repo) = todo.project {
-                        *overdue_by_repo.entry(repo.clone()).or_insert(0) += 1;
+                    if let Some(ref repo_name) = todo.project {
+                        *overdue_by_repo.entry(repo_name.clone()).or_insert(0) += 1;
                     }
                 }
             }
@@ -71,9 +68,9 @@ pub async fn build_status_cache(db: &DbConnection) -> Result<StatusCache> {
     })
 }
 
-/// Rebuild and write the cache. Best-effort — logs to stderr on failure.
-pub async fn refresh(db: &DbConnection) {
-    match build_status_cache(db).await {
+/// Rebuild and write the cache. Best-effort -- logs to stderr on failure.
+pub async fn refresh(repo: &dyn TodoRepository) {
+    match build_status_cache(repo).await {
         Ok(cache) => {
             if let Err(e) = write_status_cache(&cache) {
                 eprintln!("[doob cache] write failed: {e}");
