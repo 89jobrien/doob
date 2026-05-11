@@ -146,24 +146,13 @@ pub async fn execute(repo: &dyn HandoffRepository, file: &Path) -> Result<SyncSu
             }
             Some(doob) => {
                 // Merge extra: append yaml extras not already in doob (dedup by entry_type+date+note)
-                let existing_keys: HashSet<String> = doob
-                    .extra
-                    .iter()
-                    .map(|e| {
-                        let et = serde_json::to_string(&e.entry_type)
-                            .unwrap_or_default()
-                            .trim_matches('"')
-                            .to_string();
-                        format!("{}|{}|{}", et, e.date, e.note)
-                    })
-                    .collect();
+                let existing_keys: HashSet<String> =
+                    doob.extra.iter().map(extra_entry_dedup_key).collect();
 
                 let new_entries: Vec<ExtraEntry> = yaml_item
                     .extra
                     .iter()
-                    .filter(|e| {
-                        !existing_keys.contains(&format!("{}|{}|{}", e.entry_type, e.date, e.note))
-                    })
+                    .filter(|e| !existing_keys.contains(&yaml_extra_dedup_key(e)))
                     .map(yaml_extra_to_entry)
                     .collect::<Result<Vec<_>>>()?;
 
@@ -200,15 +189,12 @@ pub async fn execute(repo: &dyn HandoffRepository, file: &Path) -> Result<SyncSu
                 updated_yaml_items[idx].doob_uuid = Some(doob.uuid.clone());
 
                 // Merge extra back to yaml
-                let yaml_keys: HashSet<String> = yaml_item
-                    .extra
-                    .iter()
-                    .map(|e| format!("{}|{}", e.date, e.note))
-                    .collect();
+                let yaml_keys: HashSet<String> =
+                    yaml_item.extra.iter().map(yaml_extra_dedup_key).collect();
                 let doob_only: Vec<YamlExtra> = doob
                     .extra
                     .iter()
-                    .filter(|e| !yaml_keys.contains(&format!("{}|{}", e.date, e.note)))
+                    .filter(|e| !yaml_keys.contains(&extra_entry_dedup_key(e)))
                     .map(entry_to_yaml_extra)
                     .collect();
                 if !doob_only.is_empty() {
@@ -253,6 +239,18 @@ fn yaml_extra_to_entry(e: &YamlExtra) -> Result<ExtraEntry> {
     })
 }
 
+fn yaml_extra_dedup_key(e: &YamlExtra) -> String {
+    format!("{}|{}|{}", e.entry_type, e.date, e.note)
+}
+
+fn extra_entry_dedup_key(e: &ExtraEntry) -> String {
+    let et = serde_json::to_string(&e.entry_type)
+        .unwrap_or_default()
+        .trim_matches('"')
+        .to_string();
+    format!("{}|{}|{}", et, e.date, e.note)
+}
+
 fn entry_to_yaml_extra(e: &ExtraEntry) -> YamlExtra {
     let entry_type = match e.entry_type {
         ExtraType::Note => "note",
@@ -266,5 +264,63 @@ fn entry_to_yaml_extra(e: &ExtraEntry) -> YamlExtra {
         date: e.date.clone(),
         entry_type,
         note: e.note.clone(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Regression test for doob-8: yaml-side extra dedup must include entry_type in key.
+    /// Two extras with same date+note but different types must both survive dedup.
+    #[test]
+    fn yaml_to_doob_dedup_preserves_different_entry_types_same_date_note() {
+        let yaml_extras = vec![
+            YamlExtra {
+                date: "2026-05-10".to_string(),
+                entry_type: "note".to_string(),
+                note: "same text".to_string(),
+            },
+            YamlExtra {
+                date: "2026-05-10".to_string(),
+                entry_type: "blocker".to_string(),
+                note: "same text".to_string(),
+            },
+        ];
+
+        // Use yaml_extra_dedup_key (was previously just date|note, missing entry_type)
+        let yaml_keys: HashSet<String> = yaml_extras.iter().map(yaml_extra_dedup_key).collect();
+
+        // With entry_type in key, these two entries must produce distinct keys
+        assert_eq!(
+            yaml_keys.len(),
+            2,
+            "entries with different types must produce different keys"
+        );
+
+        // Simulate doob entries matching both yaml entries
+        let doob_entries = vec![
+            ExtraEntry {
+                date: "2026-05-10".to_string(),
+                entry_type: ExtraType::Note,
+                note: "same text".to_string(),
+            },
+            ExtraEntry {
+                date: "2026-05-10".to_string(),
+                entry_type: ExtraType::Blocker,
+                note: "same text".to_string(),
+            },
+        ];
+
+        // Both doob entries exist in yaml, so filtering should yield zero doob-only entries
+        let doob_only: Vec<&ExtraEntry> = doob_entries
+            .iter()
+            .filter(|e| !yaml_keys.contains(&extra_entry_dedup_key(e)))
+            .collect();
+
+        assert!(
+            doob_only.is_empty(),
+            "both doob entries should match yaml keys"
+        );
     }
 }
