@@ -1,4 +1,5 @@
 // tests/beads_adapter_test.rs
+#![cfg(feature = "bd")]
 #![allow(non_snake_case)]
 
 use doob::sync::adapters::BeadsAdapter;

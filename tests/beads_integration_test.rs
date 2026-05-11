@@ -1,4 +1,5 @@
 // tests/beads_integration_test.rs
+#![cfg(feature = "bd")]
 
 #[cfg(feature = "integration-tests")]
 use doob::sync::adapters::BeadsAdapter;
