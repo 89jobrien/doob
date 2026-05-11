@@ -1,117 +1,48 @@
 project: doob
 id: doob
-updated: 20260510::225613
+updated: 20260511::031500
 items:
-  - id: doob-7
-    doob_uuid: null
-    name: todo-update-priority-flag
-    priority: P2
-    status: open
-    title: "feat: doob todo update --priority <n> — in-place priority change"
-    description: "GH #12: Add --priority flag to `doob todo update` command for changing priority without full item re-edit."
-    files: []
-    completed: null
-    extra:
-      - date: null
-        type: github-issue
-        reviewed: null
-        note: null
-        number: 12
-        url: https://github.com/89jobrien/doob/issues/12
-  - id: doob-8
-    doob_uuid: null
-    name: handoff-sync-dedup-bug
-    priority: P1
-    status: open
-    title: "bug: handoff sync: extra entry dedup uses only date+note, ignores entry_type"
-    description: "GH #10: When syncing duplicate entries in HANDOFF items, dedup logic matches on date+note only. Ignores entry_type field, causing false positives."
-    files:
-      - crates/doob/src/commands/handoff/sync.rs
-    completed: null
-    extra:
-      - date: null
-        type: github-issue
-        reviewed: null
-        note: null
-        number: 10
-        url: https://github.com/89jobrien/doob/issues/10
-  - id: doob-9
-    doob_uuid: null
-    name: exit-code-error-classification
-    priority: P1
-    status: open
-    title: "bug: ExitCode::from_error misclassifies IO and parse errors as DatabaseError"
-    description: "GH #9: IO errors (permission denied, not found) and JSON parse errors are mapped to DatabaseError exit code instead of their own codes."
-    files:
-      - crates/doob/src/error.rs
-    completed: null
-    extra:
-      - date: null
-        type: github-issue
-        reviewed: null
-        note: null
-        number: 9
-        url: https://github.com/89jobrien/doob/issues/9
-  - id: doob-16
-    doob_uuid: null
-    name: bd-labels-compat
-    priority: P2
-    status: open
-    title: "fix(sync): use --labels instead of --notes for bd tag sync"
-    description: |
-      BeadsAdapter::create_issue currently passes tags via --notes flag. The bd CLI
-      supports --labels for tag syncing; update the adapter and its tests.
-      Deferred from feature-flags plan Task 5.
-    files:
-      - crates/doob/src/sync/adapters/beads.rs
-    completed: null
-    extra: []
-  - id: doob-17
-    doob_uuid: null
-    name: sqlite-adapter
-    priority: P2
-    status: open
-    title: "feat: implement SQLite adapter behind sqlite-backend feature flag"
-    description: |
-      Stub created during feature-flags session. Implement rusqlite-backed
-      TodoRepository, HandoffRepository, ArchiveRepository. Store at
-      ~/.ctx/doob/doob.sqlite3. Run migrations on first connect via db/sqlite.rs.
-      Optional sqlite-vec extension for vector search.
-    files:
-      - crates/doob/src/adapters/surrealdb/
-      - crates/doob/src/db/
-      - crates/doob/Cargo.toml
-    completed: null
-    extra: []
+- id: doob-17
+  doob_uuid: null
+  name: sqlite-adapter
+  priority: P2
+  status: open
+  title: 'feat: implement SQLite adapter behind sqlite-backend feature flag'
+  description: |
+    Stub created during feature-flags session. Implement rusqlite-backed
+    TodoRepository, HandoffRepository, ArchiveRepository. Store at
+    ~/.ctx/doob/doob.sqlite3. Run migrations on first connect via db/sqlite.rs.
+    Optional sqlite-vec extension for vector search.
+  files:
+  - crates/doob/src/adapters/surrealdb/
+  - crates/doob/src/db/
+  - crates/doob/Cargo.toml
+  completed: null
+  extra: []
 log:
-  - date: 20260510::225613
-    session: 1
-    summary: >-
-      Full hexagonal arch refactor + feature flags: removed Thing leak from all
-      models, gated surrealdb/bd behind feature flags, moved src/ into
-      crates/doob/, pushed 6 commits.
-    commits:
-      - sha: 5d1c22a
-        branch: main
-      - sha: 96234a3
-        branch: main
-      - sha: cf35cf9
-        branch: main
-      - sha: 2ef02b7
-        branch: main
-      - sha: f6ae1f1
-        branch: main
-      - sha: d00807b
-        branch: main
-  - date: 2026-04-21
-    summary: "Documented 5 completed plans: doobdash-tui (2026-04-03), detail-redesign (2026-04-04), multi-repo (2026-04-04), space-leader-db-tab (2026-04-04), gh-sync (2026-04-10). Added to docs/superpowers/plans/, tracked in .gitignore."
-    commits: []
-  - date: 2026-04-18
-    summary: "Fixed batch add deps linking (GH #7) — only link dependencies to first todo in batch. Added CodeRabbit config."
-    commits: []
-  - date: 2026-04-13
-    summary: Fixed 7 P1 bugs — SQL injection in list (doob-15, query_guard module), home_dir panic (doob-12), archive delete error swallow (doob-14), undo Cancelled (doob-10), batch deps link no-op (doob-11, SurrealDB raw SQL), handoff dedup ignores entry_type (doob-17), ExitCode misclassifies IO/parse (doob-18).
-    commits: []
-  - date: 2026-04-10
-    summary: Implemented doob todo gh-sync — full GitHub issue sync with config, state, gh CLI wrapper, subcommand, PostToolUse hook, colorized table output, --json flag. Dry-run by default, --execute to apply. Hook passes --action hint for complete/remove.
-    commits: []
+- date: 20260511::031500
+  summary: 'Wave integration: fixed 3 bugs via parallel agents — handoff sync dedup (doob-8, GH #10), ExitCode classification (doob-9, GH #9), bd --labels (doob-16). Closed GH #9, #10, #12. Cleaned 13 duplicate doob todos.'
+  commits:
+  - sha: 4725b16
+    branch: main
+  - sha: bf608d3
+    branch: main
+  - sha: 6ee1fe9
+    branch: main
+  session: 2
+- date: 20260510::225613
+  summary: 'Full hexagonal arch refactor + feature flags: removed Thing leak from all models, gated surrealdb/bd behind feature flags, moved src/ into crates/doob/, pushed 6 commits.'
+  commits: []
+  session: 1
+- date: 2026-04-21
+  summary: 'Documented 5 completed plans: doobdash-tui (2026-04-03), detail-redesign (2026-04-04), multi-repo (2026-04-04), space-leader-db-tab (2026-04-04), gh-sync (2026-04-10). Added to docs/superpowers/plans/, tracked in .gitignore.'
+  commits: []
+- date: 2026-04-18
+  summary: 'Fixed batch add deps linking (GH #7) — only link dependencies to first todo in batch. Added CodeRabbit config.'
+  commits: []
+- date: 2026-04-13
+  summary: Fixed 7 P1 bugs — SQL injection in list (doob-15, query_guard module), home_dir panic (doob-12), archive delete error swallow (doob-14), undo Cancelled (doob-10), batch deps link no-op (doob-11, SurrealDB raw SQL), handoff dedup ignores entry_type (doob-17), ExitCode misclassifies IO/parse (doob-18).
+  commits: []
+- date: 2026-04-10
+  summary: Implemented doob todo gh-sync — full GitHub issue sync with config, state, gh CLI wrapper, subcommand, PostToolUse hook, colorized table output, --json flag. Dry-run by default, --execute to apply. Hook passes --action hint for complete/remove.
+  commits: []
