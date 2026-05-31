@@ -21,6 +21,7 @@ const C_ERROR: Color = Color::Rgb(243, 139, 168); // Red
 const C_ACCENT: Color = Color::Rgb(203, 166, 247); // Lavender
 const C_MUTED: Color = Color::Rgb(88, 91, 112); // Gray
 const C_BODY: Color = Color::Rgb(205, 214, 244); // White/Body
+const SEL_BG: Color = Color::Rgb(49, 50, 68); // Selection highlight
 
 fn status_color(status: &str) -> Color {
     match status {
@@ -397,9 +398,7 @@ fn render_kanban_col(app: &App, frame: &mut Frame, area: Rect, col: Column, titl
 
             let line = Line::from(vec![pri_span, Span::raw(" "), title_span]);
             let style = if is_sel {
-                Style::default()
-                    .bg(Color::Rgb(49, 50, 68))
-                    .add_modifier(Modifier::BOLD)
+                Style::default().bg(SEL_BG).add_modifier(Modifier::BOLD)
             } else {
                 Style::default()
             };

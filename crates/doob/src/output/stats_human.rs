@@ -1,5 +1,6 @@
 use crate::commands::stats::StatsResult;
 
+// qual:allow(iosp) reason: "output formatter — string building with conditionals"
 pub fn format_stats(stats: &StatsResult) -> String {
     let mut out = String::new();
 
@@ -41,11 +42,15 @@ pub fn format_stats(stats: &StatsResult) -> String {
     out
 }
 
+const SECS_PER_DAY: u64 = 86400;
+const SECS_PER_HOUR: u64 = 3600;
+const SECS_PER_MINUTE: u64 = 60;
+
 fn format_duration(secs: f64) -> String {
     let total = secs as u64;
-    let days = total / 86400;
-    let hours = (total % 86400) / 3600;
-    let mins = (total % 3600) / 60;
+    let days = total / SECS_PER_DAY;
+    let hours = (total % SECS_PER_DAY) / SECS_PER_HOUR;
+    let mins = (total % SECS_PER_HOUR) / SECS_PER_MINUTE;
 
     if days > 0 {
         format!("{}d {}h", days, hours)

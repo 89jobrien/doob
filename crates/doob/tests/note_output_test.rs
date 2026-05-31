@@ -16,7 +16,7 @@ fn make_note(content: &str) -> Note {
 }
 
 #[test]
-fn test_note_human_format_empty() {
+fn test_format_notes_empty_human() {
     let output = doob::output::format_notes_human(&[]);
     assert_eq!(output, "No notes found");
 }
@@ -29,7 +29,7 @@ fn test_note_human_format_with_note() {
 }
 
 #[test]
-fn test_note_json_format_empty() {
+fn test_format_notes_empty_json() {
     use serde_json::Value;
     let json = doob::output::format_notes_json(&[]);
     let parsed: Value = serde_json::from_str(&json).expect("Invalid JSON");

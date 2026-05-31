@@ -2,6 +2,8 @@ use crate::models::Todo;
 use crate::ports::TodoRepository;
 use anyhow::{anyhow, Result};
 
+const MAX_PRIORITY: u8 = 5;
+
 pub struct UpdateFields {
     pub priority: Option<u8>,
     pub status: Option<String>,
@@ -39,8 +41,10 @@ pub async fn execute(repo: &dyn TodoRepository, id: String, fields: UpdateFields
 
     // Validate priority if provided
     if let Some(p) = fields.priority {
-        if !(1..=5).contains(&p) {
-            return Err(anyhow!("Priority must be between 1 and 5, got {}", p));
+        if !(1..=MAX_PRIORITY).contains(&p) {
+            return Err(anyhow!(
+                "Priority must be between 1 and {MAX_PRIORITY}, got {p}"
+            ));
         }
     }
 

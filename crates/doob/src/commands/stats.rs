@@ -3,6 +3,9 @@ use crate::ports::TodoRepository;
 use anyhow::Result;
 use chrono::Utc;
 
+const PERCENT: f64 = 100.0;
+const ZERO_RATE: f64 = 0.0;
+
 pub struct StatsResult {
     pub total: usize,
     pub pending: usize,
@@ -71,9 +74,9 @@ pub async fn execute(
 
     let total = todos.len();
     let completion_rate = if total > 0 {
-        completed as f64 / total as f64 * 100.0
+        completed as f64 / total as f64 * PERCENT
     } else {
-        0.0
+        ZERO_RATE
     };
 
     let avg_completion_secs = if completion_durations.is_empty() {

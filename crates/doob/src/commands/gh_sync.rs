@@ -13,6 +13,7 @@ pub struct GhSyncOptions {
     pub json: bool,
 }
 
+// qual:allow(iosp) reason: "command handler — orchestrates sync logic with I/O"
 pub async fn execute(repo: &dyn TodoRepository, opts: GhSyncOptions) -> Result<()> {
     let mut plans: Vec<SyncPlan> = Vec::new();
 
@@ -89,6 +90,9 @@ pub async fn execute(repo: &dyn TodoRepository, opts: GhSyncOptions) -> Result<(
     Ok(())
 }
 
+const TITLE_MAX_WIDTH: usize = 72;
+
+// qual:allow(iosp) reason: "CLI render function — output formatting with conditionals"
 fn render(plans: &[SyncPlan], dry_run: bool, json: bool) {
     if json {
         println!(
@@ -124,10 +128,22 @@ fn render(plans: &[SyncPlan], dry_run: bool, json: bool) {
         );
         for plan in items {
             let (symbol, title_colored) = match plan.action.as_str() {
-                "create" => ("+".green().bold(), truncate(&plan.title, 72).green()),
-                "close" => ("-".yellow().bold(), truncate(&plan.title, 72).yellow()),
-                "tombstone" => ("~".dimmed(), truncate(&plan.title, 72).dimmed()),
-                _ => ("+".normal(), truncate(&plan.title, 72).normal()),
+                "create" => (
+                    "+".green().bold(),
+                    truncate(&plan.title, TITLE_MAX_WIDTH).green(),
+                ),
+                "close" => (
+                    "-".yellow().bold(),
+                    truncate(&plan.title, TITLE_MAX_WIDTH).yellow(),
+                ),
+                "tombstone" => (
+                    "~".dimmed(),
+                    truncate(&plan.title, TITLE_MAX_WIDTH).dimmed(),
+                ),
+                _ => (
+                    "+".normal(),
+                    truncate(&plan.title, TITLE_MAX_WIDTH).normal(),
+                ),
             };
             let issue_str = match plan.issue_number {
                 Some(n) => format!(" #{}", n).dimmed().to_string(),

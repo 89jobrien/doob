@@ -29,12 +29,7 @@ fn parse_status(s: &str) -> TodoStatus {
 }
 
 fn status_str(s: &TodoStatus) -> &'static str {
-    match s {
-        TodoStatus::Pending => "pending",
-        TodoStatus::InProgress => "in_progress",
-        TodoStatus::Completed => "completed",
-        TodoStatus::Cancelled => "cancelled",
-    }
+    s.as_str()
 }
 
 fn parse_json_vec(s: &str) -> Vec<String> {

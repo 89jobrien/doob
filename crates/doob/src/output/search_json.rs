@@ -9,5 +9,5 @@ pub fn format_results(results: &SearchResults, query: &str) -> String {
         "todos": results.todos,
         "notes": results.notes,
     });
-    serde_json::to_string_pretty(&output).unwrap()
+    serde_json::to_string_pretty(&output).unwrap_or_default()
 }

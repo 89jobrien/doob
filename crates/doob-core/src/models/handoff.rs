@@ -459,12 +459,17 @@ pub fn infer_priority(title: &str, description: Option<&str>) -> String {
     "P2".to_string()
 }
 
+const PRIORITY_P0: u8 = 5;
+const PRIORITY_P1: u8 = 4;
+const PRIORITY_P2: u8 = 3;
+const PRIORITY_DEFAULT: u8 = 1;
+
 pub fn map_priority(priority: Option<&str>) -> u8 {
     match priority {
-        Some("P0") => 5,
-        Some("P1") => 4,
-        Some("P2") => 3,
-        _ => 1,
+        Some("P0") => PRIORITY_P0,
+        Some("P1") => PRIORITY_P1,
+        Some("P2") => PRIORITY_P2,
+        _ => PRIORITY_DEFAULT,
     }
 }
 
@@ -532,4 +537,150 @@ fn contains_any(existing: &[String], item: &YamlHandoffItem) -> bool {
     item.title_variants()
         .into_iter()
         .any(|variant| existing.iter().any(|title| title == &variant))
+}
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn CommitRef_sha_returns_string_for_sha_variant() {
+        let r = CommitRef::Sha("abc123".into());
+        assert_eq!(r.sha(), "abc123");
+    }
+
+    #[test]
+    fn CommitRef_sha_returns_sha_from_object_variant() {
+        let r = CommitRef::Object {
+            sha: "def456".into(),
+            branch: Some("main".into()),
+        };
+        assert_eq!(r.sha(), "def456");
+    }
+
+    #[test]
+    fn yaml_value_to_sha_converts_string() {
+        let v = serde_yaml::Value::String("abc".into());
+        assert_eq!(yaml_value_to_sha(&v), Some("abc".into()));
+    }
+
+    #[test]
+    fn yaml_value_to_sha_returns_none_for_null() {
+        let v = serde_yaml::Value::Null;
+        assert_eq!(yaml_value_to_sha(&v), None);
+    }
+
+    #[test]
+    fn YamlHandoffItem_is_open_or_blocked_true_for_open() {
+        let item = YamlHandoffItem {
+            title: "test".into(),
+            status: Some("open".into()),
+            ..Default::default()
+        };
+        assert!(item.is_open_or_blocked());
+    }
+
+    #[test]
+    fn YamlHandoffItem_is_open_or_blocked_false_for_done() {
+        let item = YamlHandoffItem {
+            title: "test".into(),
+            status: Some("done".into()),
+            ..Default::default()
+        };
+        assert!(!item.is_open_or_blocked());
+    }
+
+    #[test]
+    fn titleize_slug_capitalizes_each_word() {
+        assert_eq!(titleize_slug("hello-world"), "Hello World");
+    }
+
+    #[test]
+    fn titleize_slug_handles_empty_string() {
+        assert_eq!(titleize_slug(""), "");
+    }
+
+    #[test]
+    fn infer_priority_returns_p0_for_critical() {
+        assert_eq!(infer_priority("urgent bug", None), "P0");
+    }
+
+    #[test]
+    fn infer_priority_returns_p2_for_normal() {
+        assert_eq!(infer_priority("add feature", None), "P2");
+    }
+
+    #[test]
+    fn contains_any_matches_title_variant() {
+        let item = YamlHandoffItem {
+            title: "my task".into(),
+            status: Some("open".into()),
+            ..Default::default()
+        };
+        let existing = vec!["my task".to_string()];
+        assert!(contains_any(&existing, &item));
+    }
+
+    #[test]
+    fn contains_any_no_match() {
+        let item = YamlHandoffItem {
+            title: "my task".into(),
+            status: Some("open".into()),
+            ..Default::default()
+        };
+        let existing = vec!["other task".to_string()];
+        assert!(!contains_any(&existing, &item));
+    }
+
+    #[test]
+    fn Handoff_active_items_filters_open_and_blocked() {
+        let handoff = Handoff {
+            items: vec![
+                YamlHandoffItem {
+                    title: "open item".into(),
+                    status: Some("open".into()),
+                    ..Default::default()
+                },
+                YamlHandoffItem {
+                    title: "done item".into(),
+                    status: Some("done".into()),
+                    ..Default::default()
+                },
+                YamlHandoffItem {
+                    title: "blocked item".into(),
+                    status: Some("blocked".into()),
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let active: Vec<_> = handoff.active_items().collect();
+        assert_eq!(active.len(), 2);
+        assert_eq!(active[0].title, "open item");
+        assert_eq!(active[1].title, "blocked item");
+    }
+
+    #[test]
+    fn YamlHandoffItem_todo_title_uses_name_when_present() {
+        let item = YamlHandoffItem {
+            title: "raw title".into(),
+            name: Some("my-task".into()),
+            status: Some("open".into()),
+            ..Default::default()
+        };
+        assert_eq!(item.todo_title(), "My Task");
+    }
+
+    #[test]
+    fn YamlHandoffItem_title_variants_includes_blocked() {
+        let item = YamlHandoffItem {
+            title: "my task".into(),
+            status: Some("open".into()),
+            ..Default::default()
+        };
+        let variants = item.title_variants();
+        assert!(variants.contains(&"my task".to_string()));
+        assert!(variants.contains(&"my task [BLOCKED]".to_string()));
+    }
 }

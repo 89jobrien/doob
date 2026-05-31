@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 const CELL_WIDTH: usize = 24;
 const BOARD_WIDTH: usize = 70;
 
+// qual:allow(iosp) reason: "output formatter — complex board layout with conditionals"
 pub fn render_board(todos: &[Todo], status_filter: Option<&[TodoStatus]>) -> String {
     // Group: project -> status -> todos
     let mut board: BTreeMap<String, BTreeMap<TodoStatus, Vec<&Todo>>> = BTreeMap::new();

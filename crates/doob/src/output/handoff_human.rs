@@ -1,6 +1,7 @@
 use crate::commands::handoff::sync::SyncSummary;
 use crate::models::handoff_item::HandoffItem;
 
+// qual:allow(iosp) reason: "output formatter — string building with conditionals"
 pub fn format_list(items: &[HandoffItem]) -> String {
     if items.is_empty() {
         return "No handoff items found.".to_string();

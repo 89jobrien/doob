@@ -79,7 +79,8 @@ fn run_app<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut A
     loop {
         terminal.draw(|f| ui::render(app, f))?;
 
-        if event::poll(Duration::from_millis(100))? {
+        const POLL_MS: u64 = 100;
+        if event::poll(Duration::from_millis(POLL_MS))? {
             if let Event::Key(key) = event::read()? {
                 if key.kind != KeyEventKind::Press {
                     continue;

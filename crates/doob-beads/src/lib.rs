@@ -72,6 +72,7 @@ impl HealthCheck for BeadsAdapter {
 }
 
 impl IssueCreator for BeadsAdapter {
+    // qual:allow(iosp) reason: "adapter — command construction + execution"
     fn create_issue(&self, todo: &SyncableTodo) -> Result<SyncRecord, SyncError> {
         let mut cmd = Command::new("bd");
         cmd.args(self.build_create_args(todo));

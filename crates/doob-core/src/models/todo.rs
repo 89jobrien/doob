@@ -32,3 +32,14 @@ pub enum TodoStatus {
     Completed,
     Cancelled,
 }
+
+impl TodoStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            TodoStatus::Pending => "pending",
+            TodoStatus::InProgress => "in_progress",
+            TodoStatus::Completed => "completed",
+            TodoStatus::Cancelled => "cancelled",
+        }
+    }
+}

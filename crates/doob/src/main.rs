@@ -21,6 +21,7 @@ async fn main() {
     }
 }
 
+// qual:allow(iosp) reason: "CLI dispatch root — inherently mixes routing with calls"
 async fn run() -> Result<()> {
     let cli = Cli::parse();
 

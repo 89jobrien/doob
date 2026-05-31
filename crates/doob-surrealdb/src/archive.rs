@@ -99,6 +99,7 @@ impl ArchiveRepository for ArchiveRepositoryImpl {
         Ok(())
     }
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn list_archived(
         &self,
         project: Option<&str>,

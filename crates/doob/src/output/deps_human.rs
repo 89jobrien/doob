@@ -47,10 +47,5 @@ pub fn format_deps(view: &DepsView) -> String {
 }
 
 fn status_str(status: &TodoStatus) -> &str {
-    match status {
-        TodoStatus::Pending => "pending",
-        TodoStatus::InProgress => "in_progress",
-        TodoStatus::Completed => "completed",
-        TodoStatus::Cancelled => "cancelled",
-    }
+    status.as_str()
 }

@@ -51,10 +51,5 @@ pub fn format_results(results: &SearchResults) -> String {
 }
 
 fn status_str(status: &TodoStatus) -> &str {
-    match status {
-        TodoStatus::Pending => "pending",
-        TodoStatus::InProgress => "in_progress",
-        TodoStatus::Completed => "completed",
-        TodoStatus::Cancelled => "cancelled",
-    }
+    status.as_str()
 }

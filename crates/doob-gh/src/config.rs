@@ -59,11 +59,12 @@ pub fn config_path() -> PathBuf {
 }
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod tests {
     use super::*;
 
     #[test]
-    fn parses_full_config() {
+    fn GhSyncConfig_parses_full_config() {
         let toml = r#"
 [github]
 owner = "testuser"
@@ -84,7 +85,7 @@ tombstone_on_remove = false
     }
 
     #[test]
-    fn sync_section_defaults_when_absent() {
+    fn GhSyncConfig_sync_section_defaults_when_absent() {
         let toml = r#"
 [github]
 owner = "testuser"
@@ -109,7 +110,7 @@ owner = "testuser"
     }
 
     #[test]
-    fn malformed_toml_returns_error() {
+    fn GhSyncConfig_malformed_toml_returns_error() {
         let bad_toml = "this is not valid toml ][[[";
         let result: Result<crate::config::GhSyncConfig, _> = toml::from_str(bad_toml);
         assert!(result.is_err(), "malformed TOML should fail to parse");

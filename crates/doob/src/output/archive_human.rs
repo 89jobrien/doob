@@ -22,6 +22,7 @@ pub fn format_run_result(result: &ArchiveRunResult) -> String {
     }
 }
 
+// qual:allow(iosp) reason: "output formatter — string building with conditionals"
 pub fn format_list(todos: &[ArchivedTodo]) -> String {
     if todos.is_empty() {
         return "No archived todos found.".to_string();

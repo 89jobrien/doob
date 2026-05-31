@@ -8,12 +8,15 @@
 use crate::db::DbConnection;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
 use doob_core::ids::{normalize_id, quote_record_id};
 use doob_core::models::{Note, Todo, TodoStatus};
 use doob_core::ports::TodoRepository;
 use doob_core::query_guard::{validate_project, validate_status};
 use uuid::Uuid;
+
+const PERCENT: f64 = 100.0;
+const ZERO_RATE: f64 = 0.0;
 
 /// SurrealDB-backed implementation of TodoRepository
 pub struct TodoRepositoryImpl {
@@ -33,6 +36,7 @@ impl TodoRepository for TodoRepositoryImpl {
     // TODO OPERATIONS
     // ========================================================================
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn create_todos(
         &self,
         todos: Vec<(
@@ -93,6 +97,7 @@ impl TodoRepository for TodoRepositoryImpl {
         Ok(todos.into_iter().next())
     }
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn list_todos(
         &self,
         status: Option<&str>,
@@ -246,11 +251,10 @@ impl TodoRepository for TodoRepositoryImpl {
         let mut result = self.db.query(&query).await?;
         let todos: Vec<Todo> = result.take(0)?;
 
-        if todos.is_empty() {
-            return Err(anyhow!("Todo not found: {}", record_id));
-        }
-
-        let todo = todos.into_iter().next().unwrap();
+        let todo = match todos.into_iter().next() {
+            Some(t) => t,
+            None => return Err(anyhow!("Todo not found: {}", record_id)),
+        };
 
         // Allow undo for completed or cancelled todos
         if todo.status != TodoStatus::Completed && todo.status != TodoStatus::Cancelled {
@@ -271,6 +275,7 @@ impl TodoRepository for TodoRepositoryImpl {
         Ok(())
     }
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn search_todos(&self, query: &str, project: Option<&str>) -> Result<Vec<Todo>> {
         let q = query.to_lowercase();
 
@@ -311,9 +316,9 @@ impl TodoRepository for TodoRepositoryImpl {
 
         let total = todos.len();
         let completion_rate = if total > 0 {
-            completed as f64 / total as f64 * 100.0
+            completed as f64 / total as f64 * PERCENT
         } else {
-            0.0
+            ZERO_RATE
         };
 
         let stats = serde_json::json!({
@@ -396,6 +401,7 @@ impl TodoRepository for TodoRepositoryImpl {
         Ok(todos)
     }
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn list_all_todos(&self, project: Option<&str>) -> Result<Vec<Todo>> {
         let mut query = String::from("SELECT * FROM todo");
         if let Some(p) = project {
@@ -419,6 +425,7 @@ impl TodoRepository for TodoRepositoryImpl {
     // NOTE OPERATIONS
     // ========================================================================
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn create_notes(
         &self,
         notes: Vec<(String, Option<String>, Option<String>, Vec<String>)>,
@@ -473,6 +480,7 @@ impl TodoRepository for TodoRepositoryImpl {
         Ok(notes.into_iter().next())
     }
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn list_notes(&self, project: Option<&str>, limit: Option<usize>) -> Result<Vec<Note>> {
         let mut query = String::from("SELECT * FROM note");
 
@@ -512,6 +520,7 @@ impl TodoRepository for TodoRepositoryImpl {
         Ok(())
     }
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn search_notes(&self, query: &str, project: Option<&str>) -> Result<Vec<Note>> {
         let q = query.to_lowercase();
 
@@ -545,8 +554,7 @@ impl TodoRepository for TodoRepositoryImpl {
 
 fn parse_due_date(date_str: &str) -> Result<DateTime<Utc>> {
     if let Ok(date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
-        // SAFETY: (0, 0, 0) is always a valid HMS time, so and_hms_opt never returns None here.
-        return Ok(date.and_hms_opt(0, 0, 0).unwrap().and_utc());
+        return Ok(date.and_time(NaiveTime::MIN).and_utc());
     }
     Err(anyhow!(
         "Invalid date format: '{}'. Expected YYYY-MM-DD",

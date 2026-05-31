@@ -1,6 +1,6 @@
 project: doob
 id: doob
-updated: 20260511::110118
+updated: 2026-05-11
 items:
 - id: doob-17
   doob_uuid: null
@@ -21,47 +21,26 @@ items:
   extra: []
 log:
 - date: 20260511::110118
+  summary: 'Hexagonal crate split: extracted doob-core, doob-sync, doob-surrealdb, doob-beads, doob-gh from monolithic crate. Fixed SurrealDB Thing deserialization; 171/171 integration tests now pass.'
+  commits: []
   session: 3
-  summary: 'Hexagonal crate split: extracted doob-core, doob-sync, doob-surrealdb,
-    doob-beads, doob-gh from monolithic crate. Fixed SurrealDB Thing deserialization;
-    171/171 integration tests now pass.'
-  commits:
-  - sha: c4b7e00
-    branch: main
-  - sha: ff58614
-    branch: main
-  - sha: ee61340
-    branch: main
-- date: 20260511.031500
-  session: 2
-  summary: 'Wave integration: fixed 3 bugs via parallel agents — handoff sync dedup
-    (doob-8, GH #10), ExitCode classification (doob-9, GH #9), bd --labels (doob-16).
-    Closed GH #9, #10, #12. Cleaned 13 duplicate doob todos.'
-  commits: []
-- date: 20260510.225613
-  session: 1
-  summary: 'Full hexagonal arch refactor + feature flags: removed Thing leak from
-    all models, gated surrealdb/bd behind feature flags, moved src/ into crates/doob/,
-    pushed 6 commits.'
-  commits: []
 - date: 2026-04-21
-  summary: 'Documented 5 completed plans: doobdash-tui (2026-04-03), detail-redesign
-    (2026-04-04), multi-repo (2026-04-04), space-leader-db-tab (2026-04-04), gh-sync
-    (2026-04-10). Added to docs/superpowers/plans/, tracked in .gitignore.'
+  summary: 'Documented 5 completed plans: doobdash-tui (2026-04-03), detail-redesign (2026-04-04), multi-repo (2026-04-04), space-leader-db-tab (2026-04-04), gh-sync (2026-04-10). Added to docs/superpowers/plans/, tracked in .gitignore.'
   commits: []
 - date: 2026-04-18
-  summary: 'Fixed batch add deps linking (GH #7) — only link dependencies to first
-    todo in batch. Added CodeRabbit config.'
+  summary: 'Fixed batch add deps linking (GH #7) — only link dependencies to first todo in batch. Added CodeRabbit config.'
   commits: []
 - date: 2026-04-13
-  summary: Fixed 7 P1 bugs — SQL injection in list (doob-15, query_guard module),
-    home_dir panic (doob-12), archive delete error swallow (doob-14), undo Cancelled
-    (doob-10), batch deps link no-op (doob-11, SurrealDB raw SQL), handoff dedup
-    ignores entry_type (doob-17), ExitCode misclassifies IO/parse (doob-18).
+  summary: Fixed 7 P1 bugs — SQL injection in list (doob-15, query_guard module), home_dir panic (doob-12), archive delete error swallow (doob-14), undo Cancelled (doob-10), batch deps link no-op (doob-11, SurrealDB raw SQL), handoff dedup ignores entry_type (doob-17), ExitCode misclassifies IO/parse (doob-18).
   commits: []
 - date: 2026-04-10
-  summary: Implemented doob todo gh-sync — full GitHub issue sync with config, state,
-    gh CLI wrapper, subcommand, PostToolUse hook, colorized table output, --json
-    flag. Dry-run by default, --execute to apply. Hook passes --action hint for
-    complete/remove.
+  summary: Implemented doob todo gh-sync — full GitHub issue sync with config, state, gh CLI wrapper, subcommand, PostToolUse hook, colorized table output, --json flag. Dry-run by default, --execute to apply. Hook passes --action hint for complete/remove.
   commits: []
+- date: null
+  summary: 'Wave integration: fixed 3 bugs via parallel agents — handoff sync dedup (doob-8, GH #10), ExitCode classification (doob-9, GH #9), bd --labels (doob-16). Closed GH #9, #10, #12. Cleaned 13 duplicate doob todos.'
+  commits: []
+  session: 2
+- date: null
+  summary: 'Full hexagonal arch refactor + feature flags: removed Thing leak from all models, gated surrealdb/bd behind feature flags, moved src/ into crates/doob/, pushed 6 commits.'
+  commits: []
+  session: 1

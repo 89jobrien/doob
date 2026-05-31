@@ -26,6 +26,7 @@ impl HandoffRepository for HandoffRepositoryImpl {
         Ok(items.into_iter().next())
     }
 
+    // qual:allow(iosp) reason: "DB adapter — query construction + execution"
     async fn list_handoff_items(
         &self,
         project: Option<&str>,
@@ -65,6 +66,7 @@ impl HandoffRepository for HandoffRepositoryImpl {
         Ok(())
     }
 
+    // qual:allow(iosp) reason: "DB adapter — validation + query execution"
     async fn update_handoff_status(&self, handoff_id: &str, status: &str) -> Result<()> {
         const VALID_STATUSES: &[&str] = &["open", "done", "parked", "blocked"];
         if !VALID_STATUSES.contains(&status) {

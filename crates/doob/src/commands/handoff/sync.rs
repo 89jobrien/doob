@@ -73,6 +73,7 @@ struct UpdatePayload {
     pub extra: Vec<ExtraEntry>,
 }
 
+// qual:allow(iosp) reason: "command handler — file read + DB sync"
 pub async fn execute(repo: &dyn HandoffRepository, file: &Path) -> Result<SyncSummary> {
     let raw = std::fs::read_to_string(file).with_context(|| format!("Cannot read {:?}", file))?;
 
