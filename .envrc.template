@@ -1,0 +1,29 @@
+# Project-local direnv configuration for doob.
+#
+# Copy this file to `.envrc`, adjust local-only values if needed, then run:
+#
+#   direnv allow
+#
+# direnv files are evaluated as shell scripts, independent of the interactive
+# shell. Keep this POSIX-compatible even when using fish interactively.
+
+watch_file Cargo.toml
+watch_file Cargo.lock
+watch_file rust-toolchain.toml
+watch_file Justfile
+watch_file ci.sh
+
+export CARGO_TERM_COLOR=always
+export RUST_BACKTRACE=1
+export RUST_LOG="${RUST_LOG:-info}"
+
+PATH_add bin
+PATH_add scripts
+
+if ! has cargo-nextest; then
+  echo "warning: cargo-nextest is not installed; run: cargo install cargo-nextest"
+fi
+
+if ! has cargo-audit; then
+  echo "warning: cargo-audit is not installed; run: cargo install cargo-audit"
+fi
