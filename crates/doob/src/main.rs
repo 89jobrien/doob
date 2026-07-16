@@ -8,14 +8,15 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use doob::cli::{ArchiveAction, Cli, Commands, HandoffAction, NoteAction, TodoAction};
 use doob::{commands, output};
+use miette::Report;
 
 #[tokio::main]
 async fn main() {
     match run().await {
         Ok(()) => process::exit(ExitCode::Success as i32),
         Err(e) => {
-            eprintln!("Error: {}", e);
             let code = ExitCode::from_error(&e);
+            eprintln!("{:?}", Report::msg(format!("{e:#}")));
             process::exit(code as i32);
         }
     }

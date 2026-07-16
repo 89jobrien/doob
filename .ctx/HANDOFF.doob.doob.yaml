@@ -1,6 +1,6 @@
 project: doob
 id: doob
-updated: 2026-05-11
+updated: 2026-07-15
 items:
 - id: doob-17
   doob_uuid: null
@@ -20,18 +20,13 @@ items:
   completed: null
   extra: []
 log:
-- date: 2026-06-28
-  summary: 'SQLite adapter feature complete (doob-17): new doob-sqlite crate with rusqlite backend, feature-gated in Cargo.toml. rustqual 95.4%. Codex CLI agent support docs added via AGENTS.md. Quality improvements and refactoring.'
-  commits:
-  - e962138
-  - ff8c2ed
-  - dad88c6
-  - 8f7544d
-  - ee61340
 - date: 20260511::110118
   summary: 'Hexagonal crate split: extracted doob-core, doob-sync, doob-surrealdb, doob-beads, doob-gh from monolithic crate. Fixed SurrealDB Thing deserialization; 171/171 integration tests now pass.'
   commits: []
   session: 3
+- date: 2026-06-28
+  summary: 'SQLite adapter feature complete (doob-17): new doob-sqlite crate with rusqlite backend, feature-gated in Cargo.toml. rustqual 95.4%. Codex CLI agent support docs added via AGENTS.md. Quality improvements and refactoring.'
+  commits: []
 - date: 2026-04-21
   summary: 'Documented 5 completed plans: doobdash-tui (2026-04-03), detail-redesign (2026-04-04), multi-repo (2026-04-04), space-leader-db-tab (2026-04-04), gh-sync (2026-04-10). Added to docs/superpowers/plans/, tracked in .gitignore.'
   commits: []
