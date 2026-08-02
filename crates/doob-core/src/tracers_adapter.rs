@@ -3,9 +3,9 @@
 //! Lossy in both directions by design — see
 //! docs/plans/2026-07-31-wire-tracers-task-registry.md.
 
-use crate::models::todo::TodoStatus;
+use crate::models::todo::{Todo, TodoStatus};
 use tracers_core::TraceErr;
-use tracers_task::TaskStatus;
+use tracers_task::{Priority, Task, TaskStatus};
 
 pub fn todo_status_to_task_status(status: &TodoStatus) -> TaskStatus {
     match status {
@@ -25,6 +25,18 @@ pub fn task_status_to_todo_status(status: &TaskStatus) -> TodoStatus {
         TaskStatus::Running => TodoStatus::InProgress,
         TaskStatus::Done(_) => TodoStatus::Completed,
         TaskStatus::Failed { .. } => TodoStatus::Cancelled,
+    }
+}
+
+impl From<Todo> for Task {
+    fn from(todo: Todo) -> Self {
+        let priority = match todo.priority {
+            0..=1 => Priority::Low,
+            2 => Priority::Normal,
+            3 => Priority::High,
+            _ => Priority::Critical,
+        };
+        Task::new(todo.content).with_priority(priority)
     }
 }
 
@@ -74,5 +86,45 @@ mod tests {
             }),
             TodoStatus::Cancelled
         );
+    }
+
+    #[test]
+    fn todo_to_task_priority_bucketing() {
+        use tracers_task::Priority;
+
+        let mut todo = sample_todo();
+        todo.priority = 0;
+        assert_eq!(Task::from(todo.clone()).priority, Priority::Low);
+        todo.priority = 1;
+        assert_eq!(Task::from(todo.clone()).priority, Priority::Low);
+        todo.priority = 2;
+        assert_eq!(Task::from(todo.clone()).priority, Priority::Normal);
+        todo.priority = 3;
+        assert_eq!(Task::from(todo.clone()).priority, Priority::High);
+        todo.priority = 4;
+        assert_eq!(Task::from(todo).priority, Priority::Critical);
+    }
+
+    fn sample_todo() -> Todo {
+        use chrono::Utc;
+
+        Todo {
+            id: None,
+            uuid: "test-uuid".to_string(),
+            content: "fix bug".to_string(),
+            status: TodoStatus::Pending,
+            priority: 2,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            completed_at: None,
+            due_date: None,
+            project: None,
+            project_path: None,
+            file_path: None,
+            tags: Vec::new(),
+            metadata: None,
+            blocks: Vec::new(),
+            blocked_by: Vec::new(),
+        }
     }
 }
