@@ -5,3 +5,4 @@ pub mod ids;
 pub mod models;
 pub mod ports;
 pub mod query_guard;
+pub mod tracers_adapter;

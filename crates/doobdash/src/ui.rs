@@ -384,7 +384,7 @@ fn render_kanban_col(app: &App, frame: &mut Frame, area: Rect, col: Column, titl
             let is_sel = is_focused && row_i == sel;
 
             let pri_span = Span::styled(
-                format!("{:<3}", &item.priority),
+                format!("{:<3}", item.priority),
                 Style::default().fg(priority_color(&item.priority)),
             );
 
