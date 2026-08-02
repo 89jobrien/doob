@@ -42,7 +42,7 @@ impl TodoRepository for InMemoryTodoRepository {
             Vec<String>,
         )>,
     ) -> Result<Vec<Todo>> {
-        let mut store = self.todos.lock().unwrap();
+        let mut store = self.todos.lock().expect("todos mutex poisoned");
         let mut created = Vec::with_capacity(todos.len());
         for (content, uuid, priority, project, file_path, tags) in todos {
             let now = Utc::now();
@@ -92,7 +92,7 @@ impl TodoRepository for InMemoryTodoRepository {
         tags: Option<Vec<String>>,
         content: Option<&str>,
     ) -> Result<Todo> {
-        let mut store = self.todos.lock().unwrap();
+        let mut store = self.todos.lock().expect("todos mutex poisoned");
         let todo = store
             .get_mut(record_id)
             .ok_or_else(|| anyhow!("no todo with uuid {record_id}"))?;
@@ -146,7 +146,12 @@ impl TodoRepository for InMemoryTodoRepository {
     }
 
     async fn get_todo_by_uuid(&self, uuid: &str) -> Result<Option<Todo>> {
-        Ok(self.todos.lock().unwrap().get(uuid).cloned())
+        Ok(self
+            .todos
+            .lock()
+            .expect("todos mutex poisoned")
+            .get(uuid)
+            .cloned())
     }
 
     async fn get_todos_by_uuids(&self, _uuids: &[String]) -> Result<Vec<Todo>> {

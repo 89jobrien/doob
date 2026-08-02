@@ -81,7 +81,7 @@ mod tests {
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
-            .unwrap();
+            .expect("building a current-thread runtime cannot fail");
         let _guard = rt.enter();
 
         let repo = InMemoryTodoRepository::new();
@@ -91,11 +91,26 @@ mod tests {
         registry.insert(Task::new("fetch requirements"));
         registry.insert(Task::new("plan architecture"));
 
+        let json =
+            serde_json::to_string(&registry).expect("TaskRegistry always serializes to JSON");
         store
-            .save(&serde_json::to_string(&registry).unwrap())
-            .unwrap();
-        let loaded = TaskRegistry::load(&store).unwrap();
+            .save(&json)
+            .expect("save must succeed on a fresh in-memory store");
+        let loaded = TaskRegistry::load(&store).expect("load must succeed immediately after save");
 
         assert_eq!(loaded.total(), registry.total());
+    }
+
+    #[test]
+    fn doob_checkpoint_store_conforms_to_checkpoint_store_contract() {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("building a current-thread runtime cannot fail");
+        let _guard = rt.enter();
+
+        let repo = InMemoryTodoRepository::new();
+        let store = super::DoobCheckpointStore::new(repo, "conformance-check".to_string());
+        tracers_task::checkpoint::conformance::assert_checkpoint_store_contract(&store);
     }
 }
