@@ -17,6 +17,8 @@ uuid = { version = "1", features = ["v4", "serde"] }
 dirs-next = "2"
 tracers-task = { path = "../../../tracers/crates/task" }
 tracers-core = { path = "../../../tracers/crates/core" }
+tokio = { version = "1", features = ["rt"] }
+miette = { version = "7", features = ["fancy"] }
 surrealdb = { version = "2", features = ["kv-surrealkv"], optional = true }
 
 [features]
