@@ -19,6 +19,15 @@ pub fn todo_status_to_task_status(status: &TodoStatus) -> TaskStatus {
     }
 }
 
+pub fn task_status_to_todo_status(status: &TaskStatus) -> TodoStatus {
+    match status {
+        TaskStatus::Pending => TodoStatus::Pending,
+        TaskStatus::Running => TodoStatus::InProgress,
+        TaskStatus::Done(_) => TodoStatus::Completed,
+        TaskStatus::Failed { .. } => TodoStatus::Cancelled,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -40,5 +49,30 @@ mod tests {
                 ..
             }
         ));
+    }
+
+    #[test]
+    fn task_status_maps_to_todo_status() {
+        use tracers_core::TraceRef;
+
+        assert_eq!(
+            task_status_to_todo_status(&TaskStatus::Pending),
+            TodoStatus::Pending
+        );
+        assert_eq!(
+            task_status_to_todo_status(&TaskStatus::Running),
+            TodoStatus::InProgress
+        );
+        assert_eq!(
+            task_status_to_todo_status(&TaskStatus::Done(TraceRef(uuid::Uuid::nil()))),
+            TodoStatus::Completed
+        );
+        assert_eq!(
+            task_status_to_todo_status(&TaskStatus::Failed {
+                error: TraceErr::Rejected("test".to_string()),
+                trace: TraceRef(uuid::Uuid::nil()),
+            }),
+            TodoStatus::Cancelled
+        );
     }
 }
