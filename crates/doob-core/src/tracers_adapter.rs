@@ -40,6 +40,39 @@ impl From<Todo> for Task {
     }
 }
 
+impl From<Task> for Todo {
+    fn from(task: Task) -> Self {
+        let priority = match task.priority {
+            Priority::Low => 0,
+            Priority::Normal => 2,
+            Priority::High => 3,
+            Priority::Critical => 4,
+        };
+        Todo {
+            id: None,
+            uuid: task.id.to_string(),
+            content: task.title,
+            status: task_status_to_todo_status(&task.status),
+            priority,
+            created_at: task.created_at,
+            updated_at: task.updated_at,
+            completed_at: None,
+            due_date: None,
+            project: None,
+            project_path: None,
+            file_path: None,
+            tags: Vec::new(),
+            metadata: Some(serde_json::json!({
+                "confidence": task.confidence,
+                "assigned_to": task.assigned_to,
+                "depends_on": task.depends_on,
+            })),
+            blocks: Vec::new(),
+            blocked_by: Vec::new(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -103,6 +136,30 @@ mod tests {
         assert_eq!(Task::from(todo.clone()).priority, Priority::High);
         todo.priority = 4;
         assert_eq!(Task::from(todo).priority, Priority::Critical);
+    }
+
+    #[test]
+    fn task_to_todo_roundtrip() {
+        use serde_json::json;
+
+        let dep_id = uuid::Uuid::new_v4();
+        let task = Task::new("plan architecture")
+            .with_priority(Priority::High)
+            .with_confidence(0.8)
+            .depends_on(dep_id);
+
+        let todo = Todo::from(task.clone());
+
+        assert_eq!(todo.content, "plan architecture");
+        assert_eq!(todo.priority, 3);
+        assert_eq!(
+            todo.metadata,
+            Some(json!({
+                "confidence": 0.8,
+                "assigned_to": null,
+                "depends_on": [dep_id],
+            }))
+        );
     }
 
     fn sample_todo() -> Todo {
