@@ -1,12 +1,14 @@
 // tests/sync_domain_test.rs
 #![allow(non_snake_case)]
 
-mod common;
+#[allow(dead_code)]
+#[path = "common/sync_mocks.rs"]
+mod sync_mocks;
 
-use common::sync_mocks::MockMinimalTracker;
 use doob::sync::domain::{
     HealthCheck, IssueCreator, Provider, SyncError, SyncRecord, SyncableTodo, TodoStatus,
 };
+use sync_mocks::MockMinimalTracker;
 
 #[test]
 fn todo_status__serializes_to_string() {

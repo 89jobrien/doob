@@ -7,7 +7,7 @@ use std::env;
 use tempfile::TempDir;
 
 #[tokio::test]
-#[cfg_attr(not(feature = "no_parallel"), serial_test::serial)]
+#[serial_test::serial]
 async fn test_context_detection_integration() {
     let temp_dir = TempDir::new().unwrap();
     let repo_path = temp_dir.path();
@@ -62,7 +62,7 @@ async fn test_context_detection_integration() {
 }
 
 #[tokio::test]
-#[cfg_attr(not(feature = "no_parallel"), serial_test::serial)]
+#[serial_test::serial]
 async fn test_file_path_detection() {
     let temp_dir = TempDir::new().unwrap();
     let repo_path = temp_dir.path();

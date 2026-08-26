@@ -7,8 +7,6 @@ use doob::ports::{ArchiveRepository, TodoRepository};
 use std::ops::Deref;
 use tempfile::TempDir;
 
-pub mod sync_mocks;
-
 pub struct TestDb {
     conn: DbConnection,
     repo: TodoRepositoryImpl,
