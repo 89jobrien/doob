@@ -317,7 +317,7 @@ mod tests {
         };
         let service = SyncService::new(tracker);
 
-        assert_eq!(service.is_available().unwrap(), true);
+        assert!(service.is_available().unwrap());
     }
 
     #[test]
