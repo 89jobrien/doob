@@ -70,7 +70,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn update_fields__no_fields_returns_error() {
+    fn update_fields_no_fields_returns_error() {
         // We can't run the async fn without a real DB, but we can test the
         // validation logic by checking our guard condition directly.
         let fields = UpdateFields {
@@ -89,7 +89,7 @@ mod tests {
     }
 
     #[test]
-    fn update_fields__priority_set_is_not_empty() {
+    fn update_fields_priority_set_is_not_empty() {
         let fields = UpdateFields {
             priority: Some(3),
             status: None,

@@ -1,5 +1,3 @@
-mod common;
-
 use git2::Repository;
 use std::env;
 use tempfile::TempDir;
