@@ -1,13 +1,15 @@
 // tests/sync_service_test.rs
 #![allow(non_snake_case)]
 
-mod common;
+#[allow(dead_code)]
+#[path = "common/sync_mocks.rs"]
+mod sync_mocks;
 
-use common::sync_mocks::{make_test_todo, MockMinimalTracker};
 use doob::sync::domain::{
     HealthCheck, IssueCreator, Provider, SyncError, SyncRecord, SyncService, SyncableTodo,
     TodoStatus,
 };
+use sync_mocks::{make_test_todo, MockMinimalTracker};
 
 #[test]
 fn sync_service__creates_issue__when_todo_is_pending() {
