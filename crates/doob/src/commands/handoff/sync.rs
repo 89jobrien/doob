@@ -276,7 +276,7 @@ mod tests {
     /// Two extras with same date+note but different types must both survive dedup.
     #[test]
     fn yaml_to_doob_dedup_preserves_different_entry_types_same_date_note() {
-        let yaml_extras = vec![
+        let yaml_extras = [
             YamlExtra {
                 date: "2026-05-10".to_string(),
                 entry_type: "note".to_string(),
@@ -300,7 +300,7 @@ mod tests {
         );
 
         // Simulate doob entries matching both yaml entries
-        let doob_entries = vec![
+        let doob_entries = [
             ExtraEntry {
                 date: "2026-05-10".to_string(),
                 entry_type: ExtraType::Note,
