@@ -67,6 +67,7 @@ Sync your doob todos to external issue trackers using a plugin architecture.
 ### Architecture
 
 Built with hexagonal architecture:
+
 - **Domain Layer** - Business logic, validation, error handling
 - **Ports** - `IssueTracker` trait interface
 - **Adapters** - Provider-specific implementations (CLI delegation)
@@ -80,16 +81,19 @@ Built with hexagonal architecture:
 ### Roadmap
 
 **Phase 3: Metadata & Repository** (Next)
+
 - SurrealDB repository for sync metadata
 - Track external IDs, sync timestamps, errors
 - Multi-provider support per todo
 
 **Phase 4: CLI Commands**
+
 - `doob sync to --provider beads` - Sync todos to provider
 - `doob sync status` - Show sync status
 - `doob sync providers` - List available providers
 
 **Phase 5+: Additional Providers**
+
 - GitHub Issues adapter
 - Jira adapter
 - Linear adapter
@@ -134,6 +138,7 @@ Returns:
 ### Context Detection
 
 Automatically detects from git:
+
 - **Project** — from remote URL
 - **File** — relative path from repo root
 

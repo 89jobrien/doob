@@ -1,6 +1,9 @@
+//! Sets or clears a todo's due date.
+
 use crate::ports::TodoRepository;
 use anyhow::Result;
 
+/// Updates the due date, treating `clear` as an absent date.
 pub async fn execute(
     repo: &dyn TodoRepository,
     id: String,

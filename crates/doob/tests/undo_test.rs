@@ -1,3 +1,5 @@
+//! Integration tests for reopening completed todos.
+
 mod common;
 
 use common::setup_test_db;

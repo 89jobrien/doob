@@ -1,5 +1,8 @@
+//! Formats todo lists for terminal output.
+
 use crate::models::{Todo, TodoStatus};
 
+/// Formats todos as a human-readable table.
 pub fn format_todos(todos: &[Todo]) -> String {
     if todos.is_empty() {
         return "No todos found".to_string();

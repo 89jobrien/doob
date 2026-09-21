@@ -1,3 +1,5 @@
+//! Integration tests for searching todos and notes by content and project.
+
 mod common;
 use common::setup_test_db;
 

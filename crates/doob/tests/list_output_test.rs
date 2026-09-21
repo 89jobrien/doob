@@ -1,3 +1,5 @@
+//! Tests for human-readable todo list output.
+
 mod common;
 
 use common::setup_test_db;

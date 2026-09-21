@@ -1,3 +1,5 @@
+//! SurrealDB persistence adapter for doob repositories.
+
 pub mod archive;
 pub mod db;
 pub mod handoff;

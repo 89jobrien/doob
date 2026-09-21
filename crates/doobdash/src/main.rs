@@ -1,3 +1,5 @@
+//! Runs the interactive doobdash terminal interface.
+
 mod actions;
 mod app;
 mod data;

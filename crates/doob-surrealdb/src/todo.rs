@@ -1,3 +1,5 @@
+//! SurrealDB implementation of todo and note repository operations.
+
 // src/adapters/todo_repository.rs
 //
 // # TodoRepositoryImpl Adapter
@@ -19,6 +21,7 @@ const PERCENT: f64 = 100.0;
 const ZERO_RATE: f64 = 0.0;
 
 /// SurrealDB-backed implementation of TodoRepository
+#[derive(Debug)]
 pub struct TodoRepositoryImpl {
     db: DbConnection,
 }

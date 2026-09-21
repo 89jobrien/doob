@@ -1,3 +1,5 @@
+//! Integration tests for linking and resolving todo dependencies.
+
 mod common;
 use common::setup_test_db;
 

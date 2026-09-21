@@ -1,6 +1,9 @@
+//! Formats combined todo and note search results for terminal output.
+
 use crate::commands::search::SearchResults;
 use crate::models::TodoStatus;
 
+/// Formats matching todos and notes as grouped text.
 pub fn format_results(results: &SearchResults) -> String {
     if results.todos.is_empty() && results.notes.is_empty() {
         return format!("No results for \"{}\"", results.query);

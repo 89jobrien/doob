@@ -1,3 +1,5 @@
+//! Loads handoff items, logs, and session state for display.
+
 use anyhow::Result;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
@@ -54,6 +56,7 @@ pub struct StateData {
     pub notes: String,
 }
 
+/// Loads a handoff file and its adjacent session state file.
 pub fn load(handoff_path: &Path) -> Result<HandoffData> {
     let raw = std::fs::read_to_string(handoff_path)?;
     let val: serde_yaml::Value = serde_yaml::from_str(&raw)?;

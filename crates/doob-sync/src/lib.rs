@@ -1,3 +1,5 @@
+//! Provider-neutral domain types, ports, and services for issue synchronization.
+
 pub mod service;
 pub mod traits;
 pub mod types;

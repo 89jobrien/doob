@@ -1,3 +1,5 @@
+//! SQLite persistence for handoff items, logs, and session state.
+
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use chrono::Utc;
@@ -8,11 +10,13 @@ use doob_core::ports::HandoffRepository;
 
 use crate::db::SqliteConnection;
 
+#[derive(Debug)]
 pub struct HandoffRepositoryImpl {
     db: SqliteConnection,
 }
 
 impl HandoffRepositoryImpl {
+    /// Creates a handoff repository backed by the shared connection.
     pub fn new(db: SqliteConnection) -> Self {
         Self { db }
     }

@@ -1,3 +1,5 @@
+//! Validates values before they are interpolated into backend queries.
+
 /// Input validation for values interpolated into SurrealDB query strings.
 ///
 /// SurrealDB 2.x parameterized queries silently no-op (issue #6271), so raw
@@ -11,6 +13,7 @@ const ALLOWED_TODO_STATUSES: &[&str] = &["pending", "in_progress", "completed", 
 /// Valid handoff/kanban statuses used by doobdash
 const ALLOWED_HANDOFF_STATUSES: &[&str] = &["open", "done", "parked", "blocked"];
 
+/// Rejects status values outside the supported handoff states.
 pub fn validate_status(s: &str) -> Result<()> {
     if ALLOWED_TODO_STATUSES.contains(&s) || ALLOWED_HANDOFF_STATUSES.contains(&s) {
         Ok(())
@@ -22,6 +25,7 @@ pub fn validate_status(s: &str) -> Result<()> {
     }
 }
 
+/// Rejects project names that are empty or unsafe to interpolate.
 pub fn validate_project(p: &str) -> Result<()> {
     if p.chars()
         .all(|c| c.is_alphanumeric() || matches!(c, '-' | '_' | '.' | ' ' | '/'))

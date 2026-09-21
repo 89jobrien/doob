@@ -1,8 +1,11 @@
+//! Creates notes with explicit or auto-detected project context.
+
 use crate::context;
 use crate::models::Note;
 use crate::ports::TodoRepository;
 use anyhow::Result;
 
+/// Creates one note for each content value and returns the stored records.
 pub async fn execute(
     repo: &dyn TodoRepository,
     content: Vec<String>,

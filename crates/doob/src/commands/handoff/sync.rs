@@ -1,3 +1,5 @@
+//! Reconciles HANDOFF.yaml items with persisted handoff records.
+
 use crate::models::handoff_item::{ExtraEntry, ExtraType};
 use crate::ports::HandoffRepository;
 use anyhow::{Context, Result};
@@ -74,6 +76,7 @@ struct UpdatePayload {
 }
 
 // qual:allow(iosp) reason: "command handler — file read + DB sync"
+/// Performs a bidirectional sync between a handoff file and the repository.
 pub async fn execute(repo: &dyn HandoffRepository, file: &Path) -> Result<SyncSummary> {
     let raw = std::fs::read_to_string(file).with_context(|| format!("Cannot read {:?}", file))?;
 

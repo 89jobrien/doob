@@ -1,3 +1,5 @@
+//! Integration tests for syncing doob todos through the Beads adapter.
+
 // tests/beads_integration_test.rs
 #![cfg(feature = "bd")]
 

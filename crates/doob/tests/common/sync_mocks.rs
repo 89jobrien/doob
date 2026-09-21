@@ -1,3 +1,5 @@
+//! Configurable issue tracker doubles for sync service tests.
+
 // tests/common/sync_mocks.rs
 //
 // Shared mock implementations for sync module testing.
@@ -16,6 +18,7 @@ pub struct MockMinimalTracker {
 }
 
 impl MockMinimalTracker {
+    /// Creates an available tracker that successfully creates issues.
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_string(),
@@ -24,11 +27,13 @@ impl MockMinimalTracker {
         }
     }
 
+    /// Sets whether provider availability checks succeed.
     pub fn with_availability(mut self, available: bool) -> Self {
         self.available = available;
         self
     }
 
+    /// Sets whether issue creation returns an external API error.
     pub fn with_failure(mut self, should_fail: bool) -> Self {
         self.should_fail = should_fail;
         self

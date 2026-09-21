@@ -1,3 +1,5 @@
+//! Renders dashboard tabs, overlays, status summaries, and navigation hints.
+
 use crate::app::{App, Column, Mode, Tab};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -11,9 +13,7 @@ use ratatui::{
     Frame,
 };
 
-// ---------------------------------------------------------------------------
 // Catppuccin Mocha-inspired palette
-// ---------------------------------------------------------------------------
 const C_ACTIVE: Color = Color::Rgb(137, 180, 250); // Cyan/Blue
 const C_SUCCESS: Color = Color::Rgb(166, 227, 161); // Green
 const C_WARNING: Color = Color::Rgb(249, 226, 175); // Yellow
@@ -41,10 +41,9 @@ fn priority_color(priority: &str) -> Color {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Public entry point
-// ---------------------------------------------------------------------------
 
+/// Renders the active dashboard tab and shared header and footer.
 pub fn render(app: &App, frame: &mut Frame) {
     let area = frame.area();
 
@@ -78,9 +77,7 @@ pub fn render(app: &App, frame: &mut Frame) {
     render_footer(app, frame, chunks[3]);
 }
 
-// ---------------------------------------------------------------------------
 // Header
-// ---------------------------------------------------------------------------
 
 fn render_header(app: &App, frame: &mut Frame, area: Rect) {
     let state = &app.data.state;
@@ -124,9 +121,7 @@ fn render_header(app: &App, frame: &mut Frame, area: Rect) {
     frame.render_widget(header, area);
 }
 
-// ---------------------------------------------------------------------------
 // Tab bar
-// ---------------------------------------------------------------------------
 
 fn render_tabs(app: &App, frame: &mut Frame, area: Rect) {
     let tabs = [
@@ -162,9 +157,7 @@ fn render_tabs(app: &App, frame: &mut Frame, area: Rect) {
     frame.render_widget(tab_bar, area);
 }
 
-// ---------------------------------------------------------------------------
 // Items tab — kanban + detail pane
-// ---------------------------------------------------------------------------
 
 fn render_items_tab(app: &App, frame: &mut Frame, area: Rect) {
     // Optional search bar at top
@@ -384,7 +377,7 @@ fn render_kanban_col(app: &App, frame: &mut Frame, area: Rect, col: Column, titl
             let is_sel = is_focused && row_i == sel;
 
             let pri_span = Span::styled(
-                format!("{:<3}", &item.priority),
+                format!("{:<3}", item.priority),
                 Style::default().fg(priority_color(&item.priority)),
             );
 
@@ -452,9 +445,7 @@ fn render_kanban_col(app: &App, frame: &mut Frame, area: Rect, col: Column, titl
     }
 }
 
-// ---------------------------------------------------------------------------
 // Log tab
-// ---------------------------------------------------------------------------
 
 fn render_log_tab(app: &App, frame: &mut Frame, area: Rect) {
     let log_items: Vec<ListItem> = app
@@ -478,9 +469,7 @@ fn render_log_tab(app: &App, frame: &mut Frame, area: Rect) {
     frame.render_widget(list, area);
 }
 
-// ---------------------------------------------------------------------------
 // Stats tab
-// ---------------------------------------------------------------------------
 
 fn render_stats_tab(app: &App, frame: &mut Frame, area: Rect) {
     let chunks = Layout::default()
@@ -551,9 +540,7 @@ fn render_stats_tab(app: &App, frame: &mut Frame, area: Rect) {
     frame.render_widget(pri_chart, chunks[1]);
 }
 
-// ---------------------------------------------------------------------------
 // Help tab
-// ---------------------------------------------------------------------------
 
 fn render_help_tab(frame: &mut Frame, area: Rect) {
     let text = vec![
@@ -621,9 +608,7 @@ fn help_row(key: &str, desc: &str) -> Line<'static> {
     ])
 }
 
-// ---------------------------------------------------------------------------
 // Footer
-// ---------------------------------------------------------------------------
 
 fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
     let hint = match (&app.mode, &app.active_tab) {
@@ -676,9 +661,7 @@ fn render_footer(app: &App, frame: &mut Frame, area: Rect) {
     frame.render_widget(footer, area);
 }
 
-// ---------------------------------------------------------------------------
 // DB tab
-// ---------------------------------------------------------------------------
 
 fn render_db_tab(app: &App, frame: &mut Frame, area: Rect) {
     if let Some(ref err) = app.db_error {

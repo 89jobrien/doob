@@ -1,3 +1,5 @@
+//! Integration tests for creating, listing, searching, and removing notes.
+
 mod common;
 
 use common::setup_test_db;

@@ -1,3 +1,5 @@
+//! Refreshes and redraws the kanban board until interrupted.
+
 use crate::commands::kan;
 use crate::models::TodoStatus;
 use crate::output::kanban;
@@ -7,6 +9,7 @@ use std::io::Write;
 use tokio::signal;
 use tokio::time::{interval, Duration};
 
+/// Periodically renders the filtered board until Ctrl-C is received.
 pub async fn execute(
     repo: &dyn TodoRepository,
     project: Option<String>,

@@ -1,3 +1,5 @@
+//! Persistence interfaces implemented by database adapters.
+
 // src/ports.rs
 //
 // # TodoRepository Port (Hexagonal Architecture)
@@ -132,17 +134,13 @@ pub trait TodoRepository: Send + Sync {
     /// Search notes by content and optional project filter
     async fn search_notes(&self, query: &str, project: Option<&str>) -> Result<Vec<Note>>;
 
-    // ========================================================================
     // BATCH OPERATIONS
-    // ========================================================================
 
     /// Execute raw SurrealDB query for special cases
     async fn execute_raw_query(&self, query: &str) -> Result<serde_json::Value>;
 }
 
-// ============================================================================
 // HANDOFF REPOSITORY PORT
-// ============================================================================
 
 /// Abstraction for all handoff item persistence operations.
 #[async_trait]
@@ -170,9 +168,7 @@ pub trait HandoffRepository: Send + Sync {
     async fn add_extra(&self, handoff_id: &str, entry: ExtraEntry) -> Result<()>;
 }
 
-// ============================================================================
 // HANDOFF LOG & STATE REPOSITORY PORT
-// ============================================================================
 
 /// Persistence for handoff session logs, state, and handup checkpoints.
 /// Split from HandoffRepository to keep the sync-oriented trait lean.
@@ -210,9 +206,7 @@ pub trait HandoffSessionRepository: Send + Sync {
     ) -> Result<()>;
 }
 
-// ============================================================================
 // ARCHIVE REPOSITORY PORT
-// ============================================================================
 
 /// Abstraction for archive persistence operations.
 #[async_trait]

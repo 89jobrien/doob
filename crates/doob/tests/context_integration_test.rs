@@ -1,3 +1,5 @@
+//! Integration tests for attaching detected repository context to todos.
+
 mod common;
 
 use common::setup_test_db;

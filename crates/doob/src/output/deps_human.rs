@@ -1,6 +1,9 @@
+//! Formats todo dependency relationships for terminal output.
+
 use crate::commands::deps::DepsView;
 use crate::models::TodoStatus;
 
+/// Formats a todo with its blockers and dependents as text.
 pub fn format_deps(view: &DepsView) -> String {
     let mut out = String::new();
 

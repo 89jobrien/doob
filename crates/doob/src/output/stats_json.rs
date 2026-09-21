@@ -1,6 +1,9 @@
+//! Serializes todo statistics as JSON.
+
 use crate::commands::stats::StatsResult;
 use serde_json::json;
 
+/// Serializes lifecycle counts, rates, and window activity.
 pub fn format_stats(stats: &StatsResult) -> String {
     let output = json!({
         "project": stats.project,

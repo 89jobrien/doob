@@ -1,7 +1,10 @@
+//! Defines the SurrealDB tables, fields, and indexes used by doob.
+
 use anyhow::Result;
 use surrealdb::engine::local::Db;
 use surrealdb::Surreal;
 
+/// Defines any missing doob schema objects.
 pub async fn initialize(db: &Surreal<Db>) -> Result<()> {
     db.query(
         r#"

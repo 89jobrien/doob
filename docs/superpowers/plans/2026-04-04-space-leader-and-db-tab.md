@@ -222,7 +222,6 @@ git commit -m "feat(doobdash): add SpaceLeader mode, Db tab, db nav state"
 - Create: `crates/doobdash/src/db.rs`
 - Modify: `crates/doobdash/Cargo.toml`
 - Modify: `crates/doobdash/src/main.rs` (add `mod db;`)
-
 - [ ] **Step 1: Add surrealdb dependency to doobdash**
 
 In `crates/doobdash/Cargo.toml`, add under `[dependencies]`:
@@ -963,7 +962,6 @@ Verify:
 - DB tab shows "Loading…" then populates (or shows error if DB absent)
 - `j/k` navigates DB list
 - `Space /` enters search from DB tab
-
 - [ ] **Step 4: Update CLAUDE.md keybindings line**
 
 In `/Users/joe/dev/doob/CLAUDE.md`, update the doobdash keybindings entry:

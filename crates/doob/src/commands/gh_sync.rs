@@ -1,3 +1,5 @@
+//! Plans and executes synchronization between todos and GitHub issues.
+
 use crate::gh_sync::{self, SyncPlan};
 use crate::models::TodoStatus;
 use crate::ports::TodoRepository;
@@ -5,6 +7,7 @@ use anyhow::Result;
 use colored::Colorize;
 use std::collections::BTreeMap;
 
+#[derive(Debug)]
 pub struct GhSyncOptions {
     pub uuid: Option<String>,
     pub dry_run: bool,
@@ -14,6 +17,7 @@ pub struct GhSyncOptions {
 }
 
 // qual:allow(iosp) reason: "command handler — orchestrates sync logic with I/O"
+/// Synchronizes one todo or a status-selected batch and renders the resulting plans.
 pub async fn execute(repo: &dyn TodoRepository, opts: GhSyncOptions) -> Result<()> {
     let mut plans: Vec<SyncPlan> = Vec::new();
 

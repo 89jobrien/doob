@@ -1,3 +1,5 @@
+//! Contract tests for Beads adapter metadata and availability checks.
+
 // tests/beads_adapter_test.rs
 #![cfg(feature = "bd")]
 #![allow(non_snake_case)]

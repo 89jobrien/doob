@@ -1,3 +1,5 @@
+//! Integration tests for filtering and limiting todo lists.
+
 mod common;
 
 use common::setup_test_db;

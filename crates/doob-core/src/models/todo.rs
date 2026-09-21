@@ -1,3 +1,5 @@
+//! Defines todo records, lifecycle states, and filtering options.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -34,6 +36,7 @@ pub enum TodoStatus {
 }
 
 impl TodoStatus {
+    /// Returns the status value used by storage and CLI output.
     pub fn as_str(&self) -> &'static str {
         match self {
             TodoStatus::Pending => "pending",

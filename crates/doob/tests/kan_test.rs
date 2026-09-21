@@ -1,3 +1,5 @@
+//! Tests for kanban loading, status parsing, and board rendering.
+
 mod common;
 
 use common::setup_test_db;

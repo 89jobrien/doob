@@ -1,3 +1,5 @@
+//! Wraps GitHub issue operations used by todo synchronization.
+
 use anyhow::{bail, Context, Result};
 use std::process::{Command, Output};
 

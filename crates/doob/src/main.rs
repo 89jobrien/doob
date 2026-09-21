@@ -1,3 +1,5 @@
+//! Parses CLI input, selects a backend, and dispatches doob commands.
+
 mod error;
 
 use doob::cache;

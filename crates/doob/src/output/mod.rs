@@ -1,3 +1,5 @@
+//! Human-readable and JSON renderers for command results.
+
 pub mod archive_human;
 pub mod archive_json;
 pub mod deps_human;

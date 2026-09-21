@@ -1,3 +1,5 @@
+//! Applies and resolves dependency links between todos.
+
 use crate::models::Todo;
 use crate::ports::TodoRepository;
 use anyhow::Result;
@@ -23,6 +25,7 @@ pub async fn apply_batch_deps(
     Ok(())
 }
 
+#[derive(Debug)]
 pub struct DepsView {
     pub root: Todo,
     /// Todos that block this one (from blocked_by list)
@@ -31,6 +34,7 @@ pub struct DepsView {
     pub dependents: Vec<Todo>,
 }
 
+/// Loads a todo together with its blockers and dependents.
 pub async fn execute(repo: &dyn TodoRepository, id: String) -> Result<DepsView> {
     // Try UUID first, then record ID
     let root = match repo.get_todo_by_uuid(&id).await? {

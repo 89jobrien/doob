@@ -1,3 +1,5 @@
+//! Defines dashboard todo views and database-backed stores.
+
 use anyhow::Result;
 
 /// Domain type — doobdash's view of a todo from the DB.
@@ -18,13 +20,13 @@ pub struct DbTodo {
 /// Port: anything that can supply a list of todos.
 #[allow(dead_code)]
 pub trait TodoStore: Send + Sync {
+    /// Returns todos available for display in the database tab.
     fn list_todos(&self) -> Result<Vec<DbTodo>>;
 }
 
-// ---------------------------------------------------------------------------
 // SurrealKV adapter
-// ---------------------------------------------------------------------------
 
+#[derive(Debug)]
 #[allow(dead_code)]
 pub struct SurrealKvAdapter {
     db_path: std::path::PathBuf,
@@ -110,9 +112,7 @@ fn parse_todo(v: serde_json::Value) -> Option<DbTodo> {
     })
 }
 
-// ---------------------------------------------------------------------------
 // In-memory test double
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 pub struct InMemoryStore {

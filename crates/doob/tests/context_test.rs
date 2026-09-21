@@ -1,3 +1,5 @@
+//! Tests for deriving project names and paths from Git repositories.
+
 mod common;
 
 use git2::Repository;

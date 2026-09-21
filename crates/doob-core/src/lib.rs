@@ -1,3 +1,5 @@
+//! Core domain models and persistence ports for doob task management.
+
 pub mod cache;
 pub mod context;
 pub mod error;

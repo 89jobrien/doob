@@ -1,7 +1,10 @@
+//! Creates the SQLite tables and indexes used by doob.
+
 use anyhow::Result;
 
 use crate::db::SqliteConnection;
 
+/// Creates any missing doob tables and indexes.
 pub fn initialize(conn: &SqliteConnection) -> Result<()> {
     conn.with_conn(|c| {
         c.execute_batch(

@@ -1,3 +1,5 @@
+//! Maps doob todos to GitHub issue titles, bodies, and labels.
+
 use crate::config::GhSyncConfig;
 
 /// Returns `Some("owner/repo")` if the project maps to an allowlisted GitHub repo.

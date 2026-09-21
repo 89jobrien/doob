@@ -1,3 +1,5 @@
+//! Builds and persists lightweight todo status summaries for shell integrations.
+
 // cache.rs -- writes ~/.cache/doob/status.json after every mutation.
 //
 // Downstream consumers (Starship, Nu hooks) read this file to display
@@ -15,7 +17,7 @@ use serde::Serialize;
 use crate::models::{Todo, TodoStatus};
 use crate::ports::TodoRepository;
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct StatusCache {
     pub updated_at: String,
     pub pending_total: usize,
@@ -23,11 +25,13 @@ pub struct StatusCache {
     pub overdue_by_repo: HashMap<String, usize>,
 }
 
+/// Returns the default path for the status cache.
 pub fn cache_path() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
     PathBuf::from(home).join(".cache/doob/status.json")
 }
 
+/// Serializes a status summary to the default cache path.
 pub fn write_status_cache(cache: &StatusCache) -> Result<()> {
     let path = cache_path();
     if let Some(parent) = path.parent() {
@@ -38,6 +42,7 @@ pub fn write_status_cache(cache: &StatusCache) -> Result<()> {
     Ok(())
 }
 
+/// Summarizes pending and overdue todos from the repository.
 pub async fn build_status_cache(repo: &dyn TodoRepository) -> Result<StatusCache> {
     let todos: Vec<Todo> = repo.list_active_todos().await?;
 

@@ -1,3 +1,5 @@
+//! Integration tests for todo counts, rates, and activity windows.
+
 mod common;
 use common::setup_test_db;
 

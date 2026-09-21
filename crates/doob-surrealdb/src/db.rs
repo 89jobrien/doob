@@ -1,3 +1,5 @@
+//! Opens and initializes the embedded SurrealKV database.
+
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 use surrealdb::engine::local::{Db, SurrealKv};

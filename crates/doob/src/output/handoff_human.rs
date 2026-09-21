@@ -1,7 +1,10 @@
+//! Formats handoff items and sync summaries for terminal output.
+
 use crate::commands::handoff::sync::SyncSummary;
 use crate::models::handoff_item::HandoffItem;
 
 // qual:allow(iosp) reason: "output formatter — string building with conditionals"
+/// Formats handoff items as a human-readable list.
 pub fn format_list(items: &[HandoffItem]) -> String {
     if items.is_empty() {
         return "No handoff items found.".to_string();
@@ -23,6 +26,7 @@ pub fn format_list(items: &[HandoffItem]) -> String {
     out
 }
 
+/// Formats created, updated, and pulled item IDs as text.
 pub fn format_sync_summary(summary: &SyncSummary) -> String {
     let mut out = String::from("Handoff sync complete\n");
     out.push_str(&format!(

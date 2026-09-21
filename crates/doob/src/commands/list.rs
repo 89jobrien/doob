@@ -1,7 +1,10 @@
+//! Lists todos using status, project, and result-count filters.
+
 use crate::models::Todo;
 use crate::ports::TodoRepository;
 use anyhow::Result;
 
+/// Returns todos matching the supplied filters.
 pub async fn execute(
     repo: &dyn TodoRepository,
     status: Option<String>,

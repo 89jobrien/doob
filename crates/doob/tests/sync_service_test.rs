@@ -1,3 +1,5 @@
+//! Tests for sync validation, provider failures, and batch behavior.
+
 // tests/sync_service_test.rs
 #![allow(non_snake_case)]
 

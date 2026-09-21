@@ -1,3 +1,5 @@
+//! Contract tests for sync domain types and provider capabilities.
+
 // tests/sync_domain_test.rs
 #![allow(non_snake_case)]
 

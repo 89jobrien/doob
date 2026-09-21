@@ -1,5 +1,8 @@
+//! Formats note lists for terminal output.
+
 use crate::models::Note;
 
+/// Formats notes as a human-readable list.
 pub fn format_notes(notes: &[Note]) -> String {
     if notes.is_empty() {
         return "No notes found".to_string();

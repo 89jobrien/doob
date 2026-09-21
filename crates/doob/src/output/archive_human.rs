@@ -1,6 +1,9 @@
+//! Formats archive command results for terminal output.
+
 use crate::commands::archive::run::ArchiveRunResult;
 use crate::models::ArchivedTodo;
 
+/// Formats archive candidates and application totals as text.
 pub fn format_run_result(result: &ArchiveRunResult) -> String {
     if result.dry_run {
         if result.candidates.is_empty() {
@@ -23,6 +26,7 @@ pub fn format_run_result(result: &ArchiveRunResult) -> String {
 }
 
 // qual:allow(iosp) reason: "output formatter — string building with conditionals"
+/// Formats archived todos as a human-readable list.
 pub fn format_list(todos: &[ArchivedTodo]) -> String {
     if todos.is_empty() {
         return "No archived todos found.".to_string();

@@ -1,3 +1,5 @@
+//! CLI command handlers, output formatters, and backend wiring for doob.
+
 // Re-export domain types from doob-core at original paths
 pub use doob_core::cache;
 pub use doob_core::context;

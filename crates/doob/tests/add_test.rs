@@ -1,3 +1,5 @@
+//! Integration tests for creating todos and applying add options.
+
 mod common;
 
 use common::setup_test_db;

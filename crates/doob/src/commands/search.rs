@@ -1,13 +1,17 @@
+//! Searches todo and note content with optional type and project filters.
+
 use crate::models::{Note, Todo};
 use crate::ports::TodoRepository;
 use anyhow::Result;
 
+#[derive(Debug)]
 pub struct SearchResults {
     pub todos: Vec<Todo>,
     pub notes: Vec<Note>,
     pub query: String,
 }
 
+/// Searches the selected record types and groups their matches.
 pub async fn execute(
     repo: &dyn TodoRepository,
     query: String,

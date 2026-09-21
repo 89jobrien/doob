@@ -1,3 +1,5 @@
+//! End-to-end command workflow tests against the test repository.
+
 mod common;
 
 use common::setup_test_db;

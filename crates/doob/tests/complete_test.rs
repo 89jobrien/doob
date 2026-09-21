@@ -1,3 +1,5 @@
+//! Integration tests for completing one or more todos.
+
 mod common;
 
 use common::setup_test_db;

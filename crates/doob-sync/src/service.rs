@@ -1,3 +1,5 @@
+//! Validates and orchestrates synchronization to external issue trackers.
+
 // src/sync/domain/service.rs
 //
 // # SyncService: Domain Service for Todo Synchronization
@@ -45,9 +47,7 @@
 use crate::traits::MinimalIssueTracker;
 use crate::types::{SyncError, SyncRecord, SyncableTodo, TodoStatus};
 
-// ============================================================================
 // SYNC SERVICE (Refactored)
-// ============================================================================
 
 /// Domain service for syncing todos to external issue trackers.
 ///
@@ -58,6 +58,7 @@ pub struct SyncService<T: MinimalIssueTracker> {
 }
 
 impl<T: MinimalIssueTracker> SyncService<T> {
+    /// Creates a sync service for the supplied issue tracker.
     pub fn new(tracker: T) -> Self {
         Self { tracker }
     }
@@ -140,9 +141,7 @@ impl<T: MinimalIssueTracker> SyncService<T> {
     }
 }
 
-// ============================================================================
 // TESTS
-// ============================================================================
 
 #[cfg(test)]
 mod tests {

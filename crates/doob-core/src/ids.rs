@@ -1,3 +1,5 @@
+//! Defines UUID-backed identifiers for domain entities.
+
 /// Normalize a todo ID to the `todo:<id>` record format.
 pub fn normalize_id(id: String) -> String {
     if id.contains(':') {

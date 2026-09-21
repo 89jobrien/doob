@@ -1,3 +1,5 @@
+//! Loads GitHub synchronization settings from the user's config directory.
+
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::path::PathBuf;
@@ -52,6 +54,7 @@ pub fn load() -> Result<Option<GhSyncConfig>> {
     Ok(Some(cfg))
 }
 
+/// Returns the default GitHub sync configuration path.
 pub fn config_path() -> PathBuf {
     dirs_next::home_dir()
         .unwrap_or_else(|| PathBuf::from("/tmp"))

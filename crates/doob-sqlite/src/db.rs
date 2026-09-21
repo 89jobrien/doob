@@ -1,3 +1,5 @@
+//! Opens and shares configured SQLite connections.
+
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -5,12 +7,13 @@ use anyhow::{Context, Result};
 use rusqlite::Connection;
 
 /// Thread-safe wrapper around a SQLite connection.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct SqliteConnection {
     inner: Arc<Mutex<Connection>>,
 }
 
 impl SqliteConnection {
+    /// Opens a SQLite database and enables WAL mode and foreign keys.
     pub fn open(path: &std::path::Path) -> Result<Self> {
         let parent = path
             .parent()

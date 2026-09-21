@@ -1,3 +1,5 @@
+//! Computes lifecycle, completion, and overdue statistics for todos.
+
 use crate::models::TodoStatus;
 use crate::ports::TodoRepository;
 use anyhow::Result;
@@ -6,6 +8,7 @@ use chrono::Utc;
 const PERCENT: f64 = 100.0;
 const ZERO_RATE: f64 = 0.0;
 
+#[derive(Debug)]
 pub struct StatsResult {
     pub total: usize,
     pub pending: usize,
@@ -21,6 +24,7 @@ pub struct StatsResult {
     pub project: Option<String>,
 }
 
+/// Aggregates project statistics over the requested activity window.
 pub async fn execute(
     repo: &dyn TodoRepository,
     project: Option<String>,

@@ -1,3 +1,5 @@
+//! Describes the CLI as a serializable command and parameter manifest.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,6 +29,7 @@ pub struct ParamSchema {
     pub ty: String,
 }
 
+/// Builds the manifest for commands exposed to machine clients.
 pub fn build_manifest() -> CliManifest {
     CliManifest {
         name: "doob".to_string(),

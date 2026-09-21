@@ -1,3 +1,5 @@
+//! Integration tests for archive discovery, application, and listing.
+
 mod common;
 use common::setup_test_db;
 

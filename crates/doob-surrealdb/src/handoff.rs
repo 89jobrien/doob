@@ -1,3 +1,5 @@
+//! SurrealDB persistence for handoff items and logs.
+
 use crate::db::DbConnection;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -6,11 +8,13 @@ use doob_core::models::handoff_item::{ExtraEntry, HandoffItem};
 use doob_core::ports::HandoffRepository;
 use doob_core::query_guard::{validate_project, validate_status};
 
+#[derive(Debug)]
 pub struct HandoffRepositoryImpl {
     db: DbConnection,
 }
 
 impl HandoffRepositoryImpl {
+    /// Creates a handoff repository backed by the shared database client.
     pub fn new(db: DbConnection) -> Self {
         Self { db }
     }

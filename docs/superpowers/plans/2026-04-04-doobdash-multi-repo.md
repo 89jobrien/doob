@@ -2061,7 +2061,6 @@ Run manually: `./target/debug/doobdash` from the doob repo root. Verify:
 - `Enter` selects a project; header updates to `[project-name]`
 - `P` clears filter back to `[all]`
 - Kanban cards show repo tags when unfiltered
-
 - [ ] **Step 9: Commit**
 
 ```bash

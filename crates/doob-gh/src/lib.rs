@@ -1,3 +1,5 @@
+//! GitHub issue synchronization for doob todos.
+
 pub mod config;
 pub mod github;
 pub mod mapper;

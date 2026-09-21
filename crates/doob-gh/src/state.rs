@@ -1,3 +1,5 @@
+//! Persists associations between todo UUIDs and GitHub issues.
+
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -11,6 +13,7 @@ pub struct IssueRef {
 
 pub type StateMap = HashMap<String, IssueRef>;
 
+/// Returns the default GitHub sync state path.
 pub fn state_path() -> PathBuf {
     dirs_next::home_dir()
         .unwrap_or_else(|| PathBuf::from("/tmp"))

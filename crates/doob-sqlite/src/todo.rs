@@ -1,3 +1,5 @@
+//! SQLite implementation of todo and archive repository operations.
+
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use chrono::Utc;
@@ -9,11 +11,13 @@ use doob_core::ports::TodoRepository;
 
 use crate::db::SqliteConnection;
 
+#[derive(Debug)]
 pub struct TodoRepositoryImpl {
     db: SqliteConnection,
 }
 
 impl TodoRepositoryImpl {
+    /// Creates a todo repository backed by the shared connection.
     pub fn new(db: SqliteConnection) -> Self {
         Self { db }
     }

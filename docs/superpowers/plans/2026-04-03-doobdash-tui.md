@@ -50,7 +50,6 @@ items table, and log list.
 
 - Modify: `Cargo.toml`
 - Create: `crates/doobdash/Cargo.toml`
-
 - [ ] **Step 1: Read the current Cargo.toml**
 
 Run: `cat Cargo.toml`
@@ -514,7 +513,6 @@ git commit -m "feat(doobdash): App state struct with navigation and mode"
 - **Header** (3 lines): project, branch, build, test status from `state`
 - **Items table** (60% height): columns ID | PRI | STATUS | TITLE, selected row highlighted
 - **Log list** (remaining): most recent entries first, date + summary
-
 - [ ] **Step 1: Create `ui.rs`**
 
 ```rust
@@ -647,7 +645,6 @@ Key bindings:
 - `n` → enter InputNote mode (type text, Enter confirms, Esc cancels)
 - `w` → save + quit (runs `doob handoff sync --file <path>`)
 - `q` / `Esc` → quit without save
-
 - [ ] **Step 1: Replace `main.rs`**
 
 ```rust

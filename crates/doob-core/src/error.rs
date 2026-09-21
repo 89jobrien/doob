@@ -1,3 +1,5 @@
+//! Maps application errors to stable process exit codes.
+
 #[derive(Debug)]
 pub enum ExitCode {
     Success = 0,
@@ -10,6 +12,7 @@ pub enum ExitCode {
 }
 
 impl ExitCode {
+    /// Classifies an error into the most specific supported exit code.
     pub fn from_error(err: &anyhow::Error) -> Self {
         let msg = err.to_string().to_lowercase();
 

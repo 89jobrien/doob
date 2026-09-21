@@ -1,7 +1,10 @@
+//! Loads and filters todos for kanban rendering.
+
 use crate::models::{Todo, TodoStatus};
 use crate::ports::TodoRepository;
 use anyhow::Result;
 
+/// Returns project todos and the requested status filter for board rendering.
 pub async fn execute(
     repo: &dyn TodoRepository,
     project: Option<String>,

@@ -1,3 +1,5 @@
+//! Exercises SQLite repository behavior against temporary databases.
+
 use doob_core::models::handoff::HandoffState;
 use doob_core::ports::{HandoffRepository, HandoffSessionRepository, TodoRepository};
 use doob_sqlite::{

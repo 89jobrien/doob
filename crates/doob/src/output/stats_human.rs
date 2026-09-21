@@ -1,6 +1,9 @@
+//! Formats todo statistics for terminal output.
+
 use crate::commands::stats::StatsResult;
 
 // qual:allow(iosp) reason: "output formatter — string building with conditionals"
+/// Formats lifecycle counts, rates, and window activity as text.
 pub fn format_stats(stats: &StatsResult) -> String {
     let mut out = String::new();
 

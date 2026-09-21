@@ -1,8 +1,11 @@
+//! Appends dated notes, blockers, decisions, discoveries, or escalations to handoff items.
+
 use crate::models::handoff_item::{ExtraEntry, ExtraType};
 use crate::ports::HandoffRepository;
 use anyhow::{anyhow, Result};
 use chrono::Utc;
 
+/// Parses and appends a dated extra entry to a handoff item.
 pub async fn execute(
     repo: &dyn HandoffRepository,
     handoff_id: String,

@@ -1,3 +1,5 @@
+//! Tests for human-readable and JSON note output.
+
 use chrono::Utc;
 use doob::models::Note;
 

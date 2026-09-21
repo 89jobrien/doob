@@ -1,12 +1,12 @@
 project: doob
 id: doob
-updated: 2026-07-15
+updated: 2026-09-06
 items:
 - id: doob-17
   doob_uuid: null
   name: sqlite-adapter
   priority: P2
-  status: open
+  status: done
   title: 'feat: implement SQLite adapter behind sqlite-backend feature flag'
   description: |
     Stub created during feature-flags session. Implement rusqlite-backed
@@ -17,9 +17,50 @@ items:
   - crates/doob-core/src/ports.rs
   - crates/doob-core/src/models/
   - crates/doob/Cargo.toml
-  completed: null
+  completed: 2026-06-28
   extra: []
 log:
+- date: 2026-09-06
+  summary: >-
+    Refreshed from the prior handoff basis. The only subsequent local commit is
+    merge d06ea7e, whose tree is identical to the basis. Preserved uncommitted
+    Debug-derive work across 19 Rust files and the untracked OPAVS opencode.json config.
+  commits:
+  - d06ea7e
+  basis: c7b27bc (last commit touching this handoff before this update)
+  branch: feat/todo-add-due-flag
+  tests: not run during this handoff update
+  versions_touched: []
+  task_statuses:
+  - doob-17: done
+  - kq4raz79lpq9vajzg85m: pending
+  - pus72skz6jd2222lmw04: pending
+  - w19jt8ucgq2x0zpjbrss: pending
+  - 5cl1matoa21bewgwic4z: pending
+  - 1npuf6p6a5bspx51jkrl: pending
+  - 8u3a1vr1mw9blgmcgaf6: pending
+  changed_paths:
+  - .ctx/HANDOFF.doob.doob.yaml
+  - crates/doob-beads/src/lib.rs
+  - crates/doob-core/src/cache.rs
+  - crates/doob-sqlite/src/db.rs
+  - crates/doob-sqlite/src/handoff.rs
+  - crates/doob-sqlite/src/session.rs
+  - crates/doob-sqlite/src/todo.rs
+  - crates/doob-surrealdb/src/archive.rs
+  - crates/doob-surrealdb/src/handoff.rs
+  - crates/doob-surrealdb/src/todo.rs
+  - crates/doob/src/cli.rs
+  - crates/doob/src/commands/archive/run.rs
+  - crates/doob/src/commands/deps.rs
+  - crates/doob/src/commands/gh_sync.rs
+  - crates/doob/src/commands/search.rs
+  - crates/doob/src/commands/stats.rs
+  - crates/doob/src/commands/update.rs
+  - crates/doobdash/src/app.rs
+  - crates/doobdash/src/db.rs
+  - crates/doobdash/src/ui.rs
+  - opencode.json
 - date: 20260511::110118
   summary: 'Hexagonal crate split: extracted doob-core, doob-sync, doob-surrealdb, doob-beads, doob-gh from monolithic crate. Fixed SurrealDB Thing deserialization; 171/171 integration tests now pass.'
   commits: []

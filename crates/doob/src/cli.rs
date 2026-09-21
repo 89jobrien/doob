@@ -1,7 +1,9 @@
+//! Defines command-line arguments and subcommands for the doob binary.
+
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 #[command(name = "doob")]
 #[command(about = "Modern todo management for coding agents")]
 pub struct Cli {
@@ -17,7 +19,7 @@ pub struct Cli {
     pub command: Commands,
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 pub enum Commands {
     /// Manage todos
     Todo {
@@ -106,7 +108,7 @@ pub enum Commands {
     Schema,
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 pub enum TodoAction {
     /// Add todo(s)
     Add {
@@ -233,7 +235,7 @@ pub enum TodoAction {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 pub enum NoteAction {
     /// Add note(s)
     Add {
@@ -268,7 +270,7 @@ pub enum NoteAction {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 pub enum HandoffAction {
     /// Bidirectional sync between HANDOFF.yaml and the handoff_item table
     Sync {
@@ -312,7 +314,7 @@ pub enum HandoffAction {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 pub enum ArchiveAction {
     /// Move old completed/cancelled todos to archive (dry-run by default)
     Run {

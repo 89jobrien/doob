@@ -1,3 +1,5 @@
+//! Defines archived todo records and archive operation results.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 

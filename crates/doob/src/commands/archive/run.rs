@@ -1,14 +1,18 @@
+//! Finds and optionally archives completed todos older than a cutoff.
+
 use crate::models::Todo;
 use crate::ports::ArchiveRepository;
 use anyhow::Result;
 use chrono::Utc;
 
+#[derive(Debug)]
 pub struct ArchiveRunResult {
     pub dry_run: bool,
     pub candidates: Vec<Todo>,
     pub archived_count: usize,
 }
 
+/// Finds archive candidates and archives them when `apply` is enabled.
 pub async fn execute(
     repo: &dyn ArchiveRepository,
     older_than_days: u32,

@@ -1,3 +1,5 @@
+//! Domain entities shared by doob commands and persistence adapters.
+
 pub mod archive;
 pub mod handoff;
 pub mod handoff_item;

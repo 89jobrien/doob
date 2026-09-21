@@ -1,13 +1,16 @@
+//! Sync adapter that creates tasks through the Beads `bd` CLI.
+
 use doob_sync::{HealthCheck, IssueCreator, Provider, SyncError, SyncRecord, SyncableTodo};
 use std::process::Command;
 
 const PROVIDER_NAME: &str = "beads";
 const BEADS_ISSUE_TYPE: &str = "task";
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct BeadsAdapter {}
 
 impl BeadsAdapter {
+    /// Creates a stateless Beads adapter.
     pub fn new() -> Self {
         Self::default()
     }

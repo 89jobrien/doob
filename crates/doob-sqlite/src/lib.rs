@@ -1,3 +1,5 @@
+//! SQLite persistence adapter for doob repositories.
+
 mod db;
 mod handoff;
 mod schema;

@@ -1,3 +1,5 @@
+//! Invokes doob CLI mutations requested from the dashboard.
+
 use anyhow::{Context, Result};
 use std::path::Path;
 use std::process::Command;

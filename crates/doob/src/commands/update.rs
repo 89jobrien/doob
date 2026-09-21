@@ -1,9 +1,12 @@
+//! Validates and applies partial todo updates.
+
 use crate::models::Todo;
 use crate::ports::TodoRepository;
 use anyhow::{anyhow, Result};
 
 const MAX_PRIORITY: u8 = 5;
 
+#[derive(Debug)]
 pub struct UpdateFields {
     pub priority: Option<u8>,
     pub status: Option<String>,
@@ -12,6 +15,7 @@ pub struct UpdateFields {
     pub content: Option<String>,
 }
 
+/// Validates the requested fields and updates the identified todo.
 pub async fn execute(repo: &dyn TodoRepository, id: String, fields: UpdateFields) -> Result<Todo> {
     // Require at least one field
     if fields.priority.is_none()

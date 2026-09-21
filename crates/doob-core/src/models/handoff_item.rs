@@ -1,3 +1,5 @@
+//! Defines normalized handoff items stored independently of handoff YAML.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 

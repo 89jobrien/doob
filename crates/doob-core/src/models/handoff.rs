@@ -8,9 +8,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-// ---------------------------------------------------------------------------
 // CommitRef
-// ---------------------------------------------------------------------------
 
 /// A commit reference in a log entry. Accepts both a bare SHA string and the
 /// `{sha, branch}` object form.
@@ -25,6 +23,7 @@ pub enum CommitRef {
 }
 
 impl CommitRef {
+    /// Returns the commit SHA in either serialized representation.
     pub fn sha(&self) -> &str {
         match self {
             CommitRef::Sha(s) => s,
@@ -75,9 +74,7 @@ impl<'de> serde::Deserialize<'de> for CommitRef {
     }
 }
 
-// ---------------------------------------------------------------------------
 // LogEntry
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Default)]
 pub struct LogEntry {
@@ -132,9 +129,7 @@ impl<'de> serde::Deserialize<'de> for LogEntry {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Handoff (YAML root)
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Handoff {
@@ -198,16 +193,19 @@ pub struct YamlExtraEntry {
 }
 
 impl Handoff {
+    /// Iterates over open and blocked handoff items.
     pub fn active_items(&self) -> impl Iterator<Item = &YamlHandoffItem> {
         self.items.iter().filter(|item| item.is_open_or_blocked())
     }
 }
 
 impl YamlHandoffItem {
+    /// Returns whether open or blocked.
     pub fn is_open_or_blocked(&self) -> bool {
         matches!(self.status.as_deref(), Some("open" | "blocked"))
     }
 
+    /// Builds the todo title, marking blocked items explicitly.
     pub fn todo_title(&self) -> String {
         let base = self
             .name
@@ -224,6 +222,7 @@ impl YamlHandoffItem {
         }
     }
 
+    /// Returns accepted title forms used to match an existing todo.
     pub fn title_variants(&self) -> Vec<String> {
         let mut variants = Vec::new();
         let title = self.title.clone();
@@ -243,6 +242,7 @@ impl YamlHandoffItem {
         variants
     }
 
+    /// Returns the declared priority or infers one from the item text.
     pub fn inferred_priority(&self) -> String {
         self.priority
             .clone()
@@ -251,9 +251,7 @@ impl YamlHandoffItem {
     }
 }
 
-// ---------------------------------------------------------------------------
 // HandoffState (session metadata — replaces .state.json files)
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HandoffState {
@@ -275,9 +273,7 @@ pub struct HandoffState {
     pub extra: BTreeMap<String, serde_yaml::Value>,
 }
 
-// ---------------------------------------------------------------------------
 // Handup models
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Eq, PartialEq)]
 pub struct HandupReport {
@@ -326,9 +322,7 @@ pub struct HandupCheckpoint {
     pub json_path: String,
 }
 
-// ---------------------------------------------------------------------------
 // Reconcile types
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum ReconcileMode {
@@ -364,9 +358,7 @@ pub struct ReconcilePlan {
     pub report: ReconcileReport,
 }
 
-// ---------------------------------------------------------------------------
 // Validation
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ValidationWarning {
@@ -395,14 +387,14 @@ impl fmt::Display for ValidationWarning {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
+/// Normalizes a name for use as a lowercase, hyphenated identifier.
 pub fn sanitize_name(raw: &str) -> String {
     raw.trim().to_ascii_lowercase().replace([' ', '/'], "-")
 }
 
+/// Converts a hyphenated slug into a space-separated title.
 pub fn titleize_slug(slug: &str) -> String {
     slug.split('-')
         .filter(|part| !part.is_empty())
@@ -421,6 +413,7 @@ pub fn titleize_slug(slug: &str) -> String {
         .join(" ")
 }
 
+/// Infers a priority label from urgency and work-type keywords.
 pub fn infer_priority(title: &str, description: Option<&str>) -> String {
     let title = title.to_ascii_lowercase();
     let description = description.unwrap_or_default().to_ascii_lowercase();
@@ -464,6 +457,7 @@ const PRIORITY_P1: u8 = 4;
 const PRIORITY_P2: u8 = 3;
 const PRIORITY_DEFAULT: u8 = 1;
 
+/// Maps a handoff priority label to doob's numeric priority scale.
 pub fn map_priority(priority: Option<&str>) -> u8 {
     match priority {
         Some("P0") => PRIORITY_P0,
@@ -473,6 +467,7 @@ pub fn map_priority(priority: Option<&str>) -> u8 {
     }
 }
 
+/// Compares active handoff items with todo snapshots and plans missing creations.
 pub fn build_reconcile_plan(
     project: &str,
     handoff: &Handoff,

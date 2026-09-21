@@ -1,3 +1,5 @@
+//! Framework-independent todo, result, and error types for synchronization.
+
 // src/sync/domain/types.rs
 //
 // # Domain Types for Sync Operations
@@ -40,9 +42,7 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-// ============================================================================
 // ERROR TYPES
-// ============================================================================
 
 #[derive(Error, Debug, Clone)]
 pub enum SyncError {
@@ -65,9 +65,7 @@ pub enum SyncError {
     SerializationError(String),
 }
 
-// ============================================================================
 // DOMAIN TYPES
-// ============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TodoStatus {

@@ -1,3 +1,5 @@
+//! SurrealDB persistence for archived todos.
+
 use crate::db::DbConnection;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -7,11 +9,13 @@ use doob_core::models::todo::TodoStatus;
 use doob_core::models::{ArchivedTodo, Todo};
 use doob_core::ports::ArchiveRepository;
 
+#[derive(Debug)]
 pub struct ArchiveRepositoryImpl {
     db: DbConnection,
 }
 
 impl ArchiveRepositoryImpl {
+    /// Creates an archive repository backed by the shared database client.
     pub fn new(db: DbConnection) -> Self {
         Self { db }
     }

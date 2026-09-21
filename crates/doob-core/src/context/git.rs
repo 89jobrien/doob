@@ -1,6 +1,9 @@
+//! Derives project context from the current Git worktree.
+
 use git2::Repository;
 use std::env;
 
+/// Returns the repository name parsed from the `origin` remote.
 pub fn detect_project() -> Option<String> {
     // Try to find git repository
     let cwd = env::current_dir().ok()?;
@@ -19,6 +22,7 @@ pub fn detect_project() -> Option<String> {
     Some(name.to_string())
 }
 
+/// Returns the current directory relative to the repository root.
 pub fn detect_file_path() -> Option<String> {
     let cwd = env::current_dir().ok()?;
     let repo = Repository::discover(&cwd).ok()?;

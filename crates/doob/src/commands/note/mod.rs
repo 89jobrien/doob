@@ -1,3 +1,5 @@
+//! Creates, lists, removes, and normalizes identifiers for notes.
+
 pub mod add;
 pub mod list;
 pub mod remove;

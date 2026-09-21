@@ -1,3 +1,5 @@
+//! Defines timestamped notes attached to todos.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 

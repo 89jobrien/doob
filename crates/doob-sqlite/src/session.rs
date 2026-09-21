@@ -1,3 +1,5 @@
+//! SQLite persistence for handoff session metadata.
+
 use anyhow::Result;
 use async_trait::async_trait;
 use rusqlite::params;
@@ -7,11 +9,13 @@ use doob_core::ports::HandoffSessionRepository;
 
 use crate::db::SqliteConnection;
 
+#[derive(Debug)]
 pub struct HandoffSessionRepositoryImpl {
     db: SqliteConnection,
 }
 
 impl HandoffSessionRepositoryImpl {
+    /// Creates a session repository backed by the shared connection.
     pub fn new(db: SqliteConnection) -> Self {
         Self { db }
     }

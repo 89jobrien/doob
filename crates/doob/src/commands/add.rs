@@ -1,8 +1,11 @@
+//! Creates todos with explicit or auto-detected project context.
+
 use crate::context;
 use crate::models::Todo;
 use crate::ports::TodoRepository;
 use anyhow::Result;
 
+/// Creates one todo for each content value and returns the stored records.
 pub async fn execute(
     repo: &dyn TodoRepository,
     content: Vec<String>,

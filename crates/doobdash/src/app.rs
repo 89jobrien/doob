@@ -1,3 +1,5 @@
+//! Holds dashboard state and navigation behavior.
+
 use crate::data::HandoffData;
 use crossterm::event::KeyCode;
 
@@ -64,6 +66,7 @@ pub enum Column {
 }
 
 impl Column {
+    /// Returns the array index used for this column's selection state.
     pub fn index(self) -> usize {
         match self {
             Column::Active => 0,
@@ -72,6 +75,7 @@ impl Column {
         }
     }
 
+    /// Moves one column right, clamping at the final column.
     pub fn next(self) -> Self {
         match self {
             Column::Active => Column::Waiting,
@@ -80,6 +84,7 @@ impl Column {
         }
     }
 
+    /// Moves one column left, clamping at the first column.
     pub fn prev(self) -> Self {
         match self {
             Column::Active => Column::Active,
@@ -98,6 +103,7 @@ impl Column {
     }
 }
 
+#[derive(Debug)]
 pub struct App {
     pub data: HandoffData,
     /// Legacy flat index (used by actions/PickStatus to resolve item id)
@@ -133,6 +139,7 @@ pub struct App {
 }
 
 impl App {
+    /// Creates dashboard state initialized on the items tab.
     pub fn new(data: HandoffData) -> Self {
         App {
             data,
@@ -179,6 +186,7 @@ impl App {
             .collect()
     }
 
+    /// Returns visible item indexes for the active column.
     pub fn current_col_items(&self) -> Vec<usize> {
         self.col_items(self.active_col)
     }
@@ -190,6 +198,7 @@ impl App {
         items.get(sel).copied()
     }
 
+    /// Moves selection down one visible item without wrapping.
     pub fn select_next(&mut self) {
         let col = self.active_col.index();
         let len = self.col_items(self.active_col).len();
@@ -199,6 +208,7 @@ impl App {
         self.sync_legacy_selected();
     }
 
+    /// Moves selection up one visible item without wrapping.
     pub fn select_prev(&mut self) {
         let col = self.active_col.index();
         let len = self.col_items(self.active_col).len();
@@ -208,12 +218,14 @@ impl App {
         self.sync_legacy_selected();
     }
 
+    /// Selects the first item and resets the active column's scroll offset.
     pub fn select_top(&mut self) {
         self.col_selected[self.active_col.index()] = 0;
         self.col_offsets[self.active_col.index()] = 0;
         self.sync_legacy_selected();
     }
 
+    /// Selects the final visible item in the active column.
     pub fn select_bottom(&mut self) {
         let col = self.active_col.index();
         let len = self.col_items(self.active_col).len();
@@ -223,11 +235,13 @@ impl App {
         self.sync_legacy_selected();
     }
 
+    /// Activates the column to the right and synchronizes selection.
     pub fn col_next(&mut self) {
         self.active_col = self.active_col.next();
         self.sync_legacy_selected();
     }
 
+    /// Activates the column to the left and synchronizes selection.
     pub fn col_prev(&mut self) {
         self.active_col = self.active_col.prev();
         self.sync_legacy_selected();
@@ -240,6 +254,7 @@ impl App {
         }
     }
 
+    /// Returns the handoff ID of the selected visible item.
     pub fn selected_id(&self) -> Option<&str> {
         self.selected_item_index()
             .and_then(|i| self.data.items.get(i))
@@ -248,6 +263,7 @@ impl App {
 
     // ---- stats helpers ----
 
+    /// Counts all items with an exact status match.
     pub fn count_by_status(&self, status: &str) -> usize {
         self.data
             .items
@@ -256,6 +272,7 @@ impl App {
             .count()
     }
 
+    /// Counts items shown in the active column.
     pub fn active_count(&self) -> usize {
         self.data
             .items
@@ -264,6 +281,7 @@ impl App {
             .count()
     }
 
+    /// Counts items shown in the waiting column.
     pub fn waiting_count(&self) -> usize {
         self.data
             .items
@@ -272,6 +290,7 @@ impl App {
             .count()
     }
 
+    /// Counts completed items.
     pub fn done_count(&self) -> usize {
         self.data
             .items
@@ -282,14 +301,17 @@ impl App {
 
     // ---- strip methods ----
 
+    /// Shows or hides the item detail strip.
     pub fn strip_toggle(&mut self) {
         self.strip.visible = !self.strip.visible;
     }
 
+    /// Increases the detail strip height by one line.
     pub fn strip_expand(&mut self) {
         self.strip.height += 1;
     }
 
+    /// Decreases the detail strip height without going below one line.
     pub fn strip_shrink(&mut self) {
         if self.strip.height > 1 {
             self.strip.height -= 1;
@@ -304,14 +326,17 @@ impl App {
             .unwrap_or(false)
     }
 
+    /// Records the start of a `z` key hold.
     pub fn z_press(&mut self) {
         self.strip.z_held_since = Some(std::time::Instant::now());
     }
 
+    /// Clears the active `z` key hold.
     pub fn z_release(&mut self) {
         self.strip.z_held_since = None;
     }
 
+    /// Returns database todos matching the case-insensitive search text.
     pub fn db_filtered(&self) -> Vec<&crate::db::DbTodo> {
         let q = self.db_search.to_lowercase();
         self.db_todos
@@ -325,6 +350,7 @@ impl App {
             .collect()
     }
 
+    /// Moves database selection down one filtered result without wrapping.
     #[allow(dead_code)]
     pub fn db_select_next(&mut self) {
         let len = self.db_filtered().len();
@@ -333,6 +359,7 @@ impl App {
         }
     }
 
+    /// Moves database selection up one result without wrapping.
     #[allow(dead_code)]
     pub fn db_select_prev(&mut self) {
         self.db_selected = self.db_selected.saturating_sub(1);

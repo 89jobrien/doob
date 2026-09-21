@@ -1,3 +1,5 @@
+//! Command handlers and record-ID helpers used by the CLI.
+
 pub mod add;
 pub mod archive;
 pub mod complete;

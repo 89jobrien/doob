@@ -1,3 +1,5 @@
+//! In-memory repositories and fixtures shared by integration tests.
+
 use anyhow::Result;
 use async_trait::async_trait;
 use doob::adapters::{ArchiveRepositoryImpl, TodoRepositoryImpl};
@@ -163,6 +165,7 @@ impl ArchiveRepository for TestDb {
     }
 }
 
+/// Returns a fresh in-memory repository for an isolated test.
 pub async fn setup_test_db() -> TestDb {
     let dir = tempfile::tempdir().expect("Failed to create temp dir");
     let path = dir.path().join("test.db");

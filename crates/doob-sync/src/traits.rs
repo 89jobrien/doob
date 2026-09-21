@@ -1,3 +1,5 @@
+//! Defines capability-focused ports for external issue tracker adapters.
+
 // src/sync/domain/traits.rs
 //
 // # Ports (Trait Definitions) for Sync Adapters
@@ -68,9 +70,7 @@
 
 use crate::types::{SyncError, SyncRecord, SyncableTodo};
 
-// ============================================================================
 // TRAIT 1: Provider Metadata
-// ============================================================================
 
 /// Provider identity and capability information.
 ///
@@ -99,9 +99,7 @@ pub struct ProviderCapabilities {
     pub supports_webhooks: bool,
 }
 
-// ============================================================================
 // TRAIT 2: Health Checking
-// ============================================================================
 
 /// Health and availability checking.
 ///
@@ -130,44 +128,39 @@ pub struct ProviderHealth {
     pub rate_limit_remaining: Option<u32>,
 }
 
-// ============================================================================
 // TRAIT 3: Issue Creation (Write-Only)
-// ============================================================================
 
 /// Issue creation capability.
 ///
 /// This is the minimal interface for syncing todos to external systems.
 /// Adapters that only support creating issues (like bd CLI) implement this.
 pub trait IssueCreator: Send + Sync {
+    /// Creates an external issue and returns its synchronization metadata.
     fn create_issue(&self, todo: &SyncableTodo) -> Result<SyncRecord, SyncError>;
 }
 
-// ============================================================================
 // TRAIT 4: Issue Updates
-// ============================================================================
 
 /// Issue update capability.
 ///
 /// Only implement this if the provider supports updating existing issues.
 /// Requires `IssueCreator` because updates imply creation capability.
 pub trait IssueUpdater: IssueCreator {
+    /// Replaces the external issue data identified by `external_id`.
     fn update_issue(&self, external_id: &str, todo: &SyncableTodo) -> Result<(), SyncError>;
 }
 
-// ============================================================================
 // TRAIT 5: Issue Deletion
-// ============================================================================
 
 /// Issue deletion capability.
 ///
 /// Separated from updates because some providers allow delete but not update.
 pub trait IssueDeleter: Send + Sync {
+    /// Deletes the external issue identified by `external_id`.
     fn delete_issue(&self, external_id: &str) -> Result<(), SyncError>;
 }
 
-// ============================================================================
 // TRAIT 6: External Issue Reading (Bidirectional Sync)
-// ============================================================================
 
 /// Read operations from external system.
 ///
@@ -180,15 +173,14 @@ pub trait ExternalIssueReader: Send + Sync {
     fn list_issues(&self, since: Option<&str>) -> Result<Vec<SyncableTodo>, SyncError>;
 }
 
-// ============================================================================
 // TRAIT 7: Batch Operations (Performance)
-// ============================================================================
 
 /// Batch issue creation for performance.
 ///
 /// Implement this to support efficient bulk syncing.
 /// Default implementation falls back to sequential creation.
 pub trait BatchIssueCreator: Send + Sync {
+    /// Creates one external issue per todo and preserves result order.
     fn create_issues(&self, todos: &[SyncableTodo]) -> Vec<Result<SyncRecord, SyncError>>;
 }
 
@@ -199,9 +191,7 @@ impl<T: IssueCreator> BatchIssueCreator for T {
     }
 }
 
-// ============================================================================
 // COMPOSED TRAITS (Convenience Aliases)
-// ============================================================================
 
 /// Minimal tracker: Only creation capability.
 ///
@@ -235,9 +225,7 @@ impl<T> StandardIssueTracker for T where
 impl<T> FullIssueTracker for T where T: StandardIssueTracker + ExternalIssueReader {}
 impl<T> BatchIssueTracker for T where T: MinimalIssueTracker + BatchIssueCreator {}
 
-// ============================================================================
 // BACKWARD COMPATIBILITY
-// ============================================================================
 
 /// Legacy monolithic trait (deprecated).
 ///

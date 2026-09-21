@@ -704,7 +704,6 @@ Verify:
 - `j`/`k` scroll overlay
 - `s` and `n` work from overlay
 - `Esc` closes overlay
-
 - [ ] **Step 3: Final test run**
 
 ```bash
