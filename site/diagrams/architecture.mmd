@@ -1,0 +1,27 @@
+flowchart TB
+%% doob workspace dependencies. The doob crate is the composition root and
+%% depends on six others; doob-core and doob-sync are leaves; doobdash stands
+%% outside the graph and shells out to the doob executable.
+%%
+%% Rendered by scripts/render-diagrams.sh. Edit this file, not the SVG.
+
+  doob["<b>doob</b><br/><i>lib + bin, composition root</i>"]
+  core["doob-core<br/><i>domain and ports, no workspace deps</i>"]
+  surrealdb["doob-surrealdb<br/><i>default adapter, SurrealKV</i>"]
+  sqlite["doob-sqlite<br/><i>optional, <b>unsafe for real data</b></i>"]
+  gh["doob-gh<br/><i>GitHub sync via the gh CLI</i>"]
+  sync["doob-sync<br/><i>provider-neutral domain, unwired</i>"]
+  beads["doob-beads<br/><i>adapter to bd, not in the CLI</i>"]
+  dash["<b>doobdash</b><br/><i>bin only, no doob dependency</i><br/>reads YAML, shells out to doob"]
+
+  doob --> core
+  doob --> surrealdb
+  doob --> gh
+  doob --> sync
+  doob --> beads
+  surrealdb --> core
+  gh --> core
+  beads --> sync
+  sqlite --> core
+
+  dash -. "subprocess" .-> doob

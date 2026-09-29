@@ -22,11 +22,11 @@ for a utility face.
 ```bash
 # re-fetch, from the repo root
 base=https://cdn.jsdelivr.net/npm
-curl -sLo assets/fonts/bricolage-grotesque-latin-wght-normal.woff2 \
+curl -sLo site/fonts/bricolage-grotesque-latin-wght-normal.woff2 \
   "$base/@fontsource-variable/bricolage-grotesque@latest/files/bricolage-grotesque-latin-wght-normal.woff2"
-curl -sLo assets/fonts/newsreader-latin-wght-normal.woff2 \
+curl -sLo site/fonts/newsreader-latin-wght-normal.woff2 \
   "$base/@fontsource-variable/newsreader@latest/files/newsreader-latin-wght-normal.woff2"
-curl -sLo assets/fonts/fragment-mono-latin-400-normal.woff2 \
+curl -sLo site/fonts/fragment-mono-latin-400-normal.woff2 \
   "$base/@fontsource/fragment-mono@latest/files/fragment-mono-latin-400-normal.woff2"
 ```
 
