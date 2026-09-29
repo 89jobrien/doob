@@ -34,54 +34,12 @@
       <section>
         <h2>The graph</h2>
         <figure class="diagram">
-          <svg viewBox="0 0 880 520" role="img" aria-labelledby="doob-arch-title doob-arch-desc" xmlns="http://www.w3.org/2000/svg">
-            <title id="doob-arch-title">doob crate dependencies</title>
-            <desc id="doob-arch-desc">The doob crate sits at the top as the composition root and depends on doob-core, doob-surrealdb, doob-sqlite, doob-gh, doob-sync, and doob-beads. doob-core is the domain and port layer and has no workspace dependencies. doob-surrealdb and doob-sqlite both depend on doob-core. doob-gh depends on doob-core. doob-sync has no workspace dependencies and is depended on by doob-beads. doobdash is a standalone binary outside the graph that shells out to the doob executable.</desc>
-
-            <g font-family="'Fragment Mono', monospace" font-size="12">
-              <rect x="290" y="14" width="300" height="54" rx="4" fill="#2b2b2b" stroke="#ff6f61" stroke-width="1.5"/>
-              <text x="440" y="40" fill="#2b2b2b" font-size="15" font-weight="700" text-anchor="middle">doob</text>
-              <text x="440" y="58" fill="#2b2b2b" font-size="10" text-anchor="middle" opacity="0.75">lib + bin, composition root</text>
-
-              <g stroke="#0d5c63" stroke-width="1.6" fill="none">
-                <path d="M 440 68 L 440 108"/>
-                <path d="M 130 138 L 130 196"/>
-                <path d="M 340 138 L 340 196"/>
-                <path d="M 550 138 L 550 196"/>
-                <path d="M 700 230 L 760 230 L 760 138 L 440 138"/>
-                <path d="M 700 322 L 760 322 L 760 138"/>
-              </g>
-
-              <rect x="40" y="108" width="180" height="30" rx="4" fill="#fbf7ef" stroke="#0d5c63"/>
-              <text x="130" y="128" fill="#0d5c63" text-anchor="middle">doob-core</text>
-
-              <rect x="250" y="196" width="180" height="34" rx="4" fill="#fbf7ef" stroke="#0d5c63"/>
-              <text x="340" y="218" fill="#0d5c63" text-anchor="middle">doob-surrealdb</text>
-
-              <rect x="460" y="196" width="180" height="34" rx="4" fill="#fbf7ef" stroke="#0d5c63"/>
-              <text x="550" y="218" fill="#0d5c63" text-anchor="middle">doob-gh</text>
-
-              <rect x="610" y="108" width="180" height="30" rx="4" fill="#fbf7ef" stroke="#0d5c63"/>
-              <text x="700" y="128" fill="#0d5c63" text-anchor="middle">doob-sync</text>
-
-              <rect x="610" y="196" width="180" height="34" rx="4" fill="#fbf7ef" stroke="#0d5c63"/>
-              <text x="700" y="218" fill="#0d5c63" text-anchor="middle">doob-beads</text>
-
-              <rect x="250" y="296" width="180" height="34" rx="4" fill="#fbf7ef" stroke="#0d5c63"/>
-              <text x="340" y="318" fill="#0d5c63" text-anchor="middle">doob-sqlite</text>
-
-              <text x="360" y="272" fill="#6b6459" font-size="10">default-features = false</text>
-
-              <rect x="40" y="392" width="270" height="76" rx="4" fill="#ff6f61" stroke="#2b2b2b" stroke-dasharray="4 3"/>
-              <text x="175" y="420" fill="#2b2b2b" font-size="14" font-weight="700" text-anchor="middle">doobdash</text>
-              <text x="175" y="440" fill="#2b2b2b" font-size="10" text-anchor="middle" opacity="0.8">bin only, depends on no doob crate</text>
-              <text x="175" y="456" fill="#2b2b2b" font-size="10" text-anchor="middle" opacity="0.8">reads YAML, shells out to doob</text>
-
-              <path d="M 310 430 L 400 430" stroke="#2b2b2b" stroke-width="1.4" stroke-dasharray="5 3" fill="none"/>
-              <text x="355" y="422" fill="#2b2b2b" font-size="10" text-anchor="middle">subprocess</text>
-            </g>
-          </svg>
-          <figcaption><code>doob-core</code> and <code>doob-sync</code> have no workspace dependencies at all. <code>doob-sqlite</code> opts out of <code>doob-core</code>'s default features, which is how it avoids dragging the SurrealDB backend in.</figcaption>
+          <picture>
+            <source srcset="diagrams/architecture.print.svg" media="print">
+            <img src="diagrams/architecture.svg" width="880" height="520" loading="lazy" decoding="async"
+                 alt="The doob workspace as a dependency graph. The doob crate sits at the top as the composition root and depends on doob-core, doob-surrealdb, doob-gh, doob-sync, and doob-beads. doob-surrealdb, doob-gh, and doob-sqlite each depend on doob-core, which has no workspace dependencies at all. doob-beads depends on doob-sync. doobdash stands outside the graph: it is a binary-only crate that depends on no doob crate, and reaches the database by shelling out to the doob executable.">
+          </picture>
+          <figcaption><code>doob-core</code> and <code>doob-sync</code> have no workspace dependencies at all. <code>doob-sqlite</code> opts out of <code>doob-core</code>'s default features, which is how it avoids dragging the SurrealDB backend in. The <code>doobdash</code> arrow is a subprocess call, not a crate edge. Source: <a href="diagrams/architecture.mmd"><code>diagrams/architecture.mmd</code></a>, rendered at build time with a light variant for print.</figcaption>
         </figure>
       </section>
 

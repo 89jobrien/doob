@@ -1,26 +1,29 @@
 /* ============================================================
-   doob — static site stylesheet
+   doob -- static site stylesheet
    https://github.com/89jobrien/doob
 
-   Assembled from a shared skeleton. Three parts are repo-specific:
-     - the design tokens below
-     - the signature section at the end
-   Everything between them is the shared component layer and must
-   stay byte-identical across repos. Edit the tokens and the
-   signature; do not fork the middle.
+   Assembled by the repo-reference-site skill. Three parts:
+
+     1. design tokens (below)
+     2. the SHARED COMPONENT LAYER, identical in every repo
+     3. the signature section, at the end
+
+   Edit (1) and (3) directly. To change (2), edit it in this skill and re-run
+   scripts/assemble-css.sh for each repo; never hand-fork the middle.
    ============================================================ */
-
-
 
 /* ============================================================
    doob — design tokens
-   Card index. doob is a working desk tool: todos in columns,
-   priorities as labels, handoffs as printed records. The
-   palette is a two-ink Risograph print — coral and teal on
-   unbleached paper — because the product carries two separate
-   status vocabularies and each gets one ink. Anything that
-   needs a third signal is rendered with a hatch, not a
-   third hue.
+   Card index, after dark. doob is a working desk tool: todos in
+   columns, priorities as labels, handoffs as printed records.
+   The palette is a two-ink Risograph print — coral and teal — kept
+   on a dark ground because the product carries two separate status
+   vocabularies and each gets one ink. Anything that needs a third
+   signal is rendered with a hatch, not a third hue.
+   The identity is the two inks and the card stock, not the paper;
+   both survive the dark substrate, and a light-scheme site for one
+   project in a set of dark ones reads as a mistake rather than a
+   choice.
    Type: Bricolage Grotesque (filing-cabinet label) /
    Newsreader (prose) / Fragment Mono (commands and ids).
    ============================================================ */
@@ -59,7 +62,7 @@
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
   /* type ------------------------------------------------------------------ */
   --font-display: "Bricolage Grotesque", "Trebuchet MS", "Gill Sans", sans-serif;
@@ -80,44 +83,48 @@
   --font-size-2xl: clamp(2.2rem, 5vw, 3.6rem);
   --font-size-display: clamp(2.9rem, 9vw, 6rem);
 
-  /* palette: Risograph, two ink ------------------------------------------ */
-  --color-bg: #f2ede4;
-  --color-surface: #fbf7ef;
-  --color-surface-raised: #fffcf5;
-  --color-surface-sunken: #e9e2d3;
-  --color-fg: #2b2b2b;
-  --color-fg-muted: #6b6459;
-  --color-accent: #ff6f61;
-  --color-accent-hover: #f05546;
-  --color-accent-fg: #2b2b2b;
-  --color-border: #d8cdb8;
-  --color-border-strong: #b6a98f;
-  --color-focus: #0d5c63;
+  /* palette: Risograph at night, two ink --------------------------------- */
+  /* The two-ink logic is the identity and it survives the dark ground: the
+     todo vocabulary and the handoff vocabulary each get one ink, and anything
+     needing a third signal is hatched rather than given a third hue. Only the
+     substrate changed -- card stock under a lamp instead of on a desk. */
+  --color-bg: #17161c;
+  --color-surface: #1e1d24;
+  --color-surface-raised: #26252d;
+  --color-surface-sunken: #121115;
+  --color-fg: #ece7dd;
+  --color-fg-muted: #9a938a;
+  --color-accent: #ff7a6b;
+  --color-accent-hover: #ff9285;
+  --color-accent-fg: #17161c;
+  --color-border: #2e2c35;
+  --color-border-strong: #4a4752;
+  --color-focus: #4fc4c9;
 
   /* second ink, reserved for the handoff status vocabulary -------------- */
-  --color-ink-2: #0d5c63;
+  --color-ink-2: #4fc4c9;
 
-  --color-nav-bg: rgb(242 237 228 / 0.9);
-  --color-row-hover: rgb(255 111 97 / 0.07);
-  --color-note-bg: rgb(13 92 99 / 0.07);
-  --color-pill-neutral-bg: rgb(107 100 89 / 0.14);
-  --color-code-bg: #2b2b2b;
-  --color-code-fg: #f2ede4;
-  --color-terminal-bg: #2b2b2b;
-  --color-terminal-fg: #f2ede4;
-  --color-dot-1: #ff6f61;
-  --color-dot-2: #0d5c63;
-  --color-dot-3: #d8cdb8;
+  --color-nav-bg: rgb(23 22 28 / 0.9);
+  --color-row-hover: rgb(255 122 107 / 0.08);
+  --color-note-bg: rgb(79 196 201 / 0.09);
+  --color-pill-neutral-bg: rgb(154 147 138 / 0.16);
+  --color-code-bg: #121115;
+  --color-code-fg: #ece7dd;
+  --color-terminal-bg: #121115;
+  --color-terminal-fg: #ece7dd;
+  --color-dot-1: #ff7a6b;
+  --color-dot-2: #4fc4c9;
+  --color-dot-3: #2e2c35;
 
   /* two inks only. A blocked or unwired item is hatched, never a 3rd hue. */
-  --color-signal-ok: #0d5c63;
-  --color-signal-ok-bg: rgb(13 92 99 / 0.12);
-  --color-signal-warn: #d2452f;
-  --color-signal-warn-bg: rgb(255 111 97 / 0.18);
-  --color-signal-err: #2b2b2b;
+  --color-signal-ok: #4fc4c9;
+  --color-signal-ok-bg: rgb(79 196 201 / 0.14);
+  --color-signal-warn: #ff8a7a;
+  --color-signal-warn-bg: rgb(255 122 107 / 0.16);
+  --color-signal-err: #ece7dd;
   --color-signal-err-bg: repeating-linear-gradient(
     45deg,
-    rgb(43 43 43 / 0.14) 0 4px,
+    rgb(236 231 221 / 0.16) 0 4px,
     transparent 4px 8px
   );
 
@@ -131,20 +138,42 @@
   --stat-columns: 4;
   --terminal-min-height: 20rem;
 
-  --shadow-card: 3px 3px 0 rgb(43 43 43 / 0.07);
-  --shadow-terminal: 6px 6px 0 rgb(43 43 43 / 0.1);
-  --shadow-nav: 0 6px 22px rgb(43 43 43 / 0.08);
-  --shadow-button: 3px 3px 0 rgb(43 43 43 / 0.16);
+  /* the hard offset is the card-stock tell; on a dark ground it reads as an
+     edge catching light rather than as a printed drop shadow. */
+  --shadow-card: 3px 3px 0 rgb(0 0 0 / 0.5);
+  --shadow-terminal: 6px 6px 0 rgb(0 0 0 / 0.55);
+  --shadow-nav: 0 6px 22px rgb(0 0 0 / 0.5);
+  --shadow-button: 3px 3px 0 rgb(0 0 0 / 0.55);
 
-  /* atmosphere: halftone paper, one warm wash ---------------------------- */
-  --atmosphere-image: radial-gradient(rgb(43 43 43 / 0.055) 0.9px, transparent 0.9px),
-    radial-gradient(circle at 88% -4%, rgb(255 111 97 / 0.16), transparent 38rem);
+  /* atmosphere: halftone, inverted to a faint light dot field ------------- */
+  --atmosphere-image: radial-gradient(rgb(236 231 221 / 0.05) 0.9px, transparent 0.9px),
+    radial-gradient(circle at 88% -4%, rgb(255 122 107 / 0.13), transparent 38rem);
   --atmosphere-size: 7px 7px, auto;
-  --grain-image: radial-gradient(rgb(43 43 43 / 0.035) 0.6px, transparent 0.6px);
+  --grain-image: radial-gradient(rgb(236 231 221 / 0.03) 0.6px, transparent 0.6px);
   --grain-opacity: 1;
-  --grain-blend: multiply;
+  --grain-blend: normal;
 }
 
+/* >>> SHARED-LAYER:BEGIN
+   SHARED COMPONENT LAYER
+   ------------------------------------------------------------------------
+   This block is byte-identical in every repo that uses the reference-site
+   pattern. It is the only part of a repo's site stylesheet that is not
+   repo-specific.
+
+   A repo's stylesheet is exactly three parts:
+
+       1. design tokens       (:root, @font-face)  -- repo-specific
+       2. SHARED COMPONENT LAYER (this block)    -- identical everywhere
+       3. signature section   (at the end)        -- repo-specific
+
+   Edit (1) and (3) freely. Change this block only by changing it in every
+   repo at once -- scripts/assemble-css.sh does that and fails on drift.
+   The site directory is site/ by default, overridable with SITE_DIR.
+
+   Adding a class here means every repo gains it. That is the point: it keeps
+   the sites one system instead of N forks.
+   ---------------------------------------------------------------------- */
 
 /* ============================================================
    SHARED COMPONENT LAYER
@@ -1171,6 +1200,7 @@ figcaption {
   }
 }
 
+/* <<< SHARED-LAYER:END */
 
 /* ============================================================
    doob — signature: the handoff board
@@ -1328,15 +1358,12 @@ figcaption {
   }
 }
 
-
-
 /* ============================================================
    End of repo-specific sections.
 
-   Self-hosted faces in ./fonts/ are the latin subsets pulled from
-   Fontsource, each under the SIL Open Font License 1.1. See
-   fonts/README.md for the file list and upstream sources. No CDN
-   request is made at render time.
+   Self-hosted faces in ./fonts/ are latin subsets pulled from Fontsource
+   (SIL Open Font License 1.1). See fonts/README.md for the file list and
+   upstream sources. No CDN request is made at render time.
 
    repo: doob
    ============================================================ */
