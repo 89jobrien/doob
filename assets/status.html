@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="What actually works in doob today: shipped capabilities, the SQLite backend's real limitations, planned-but-absent features, and documentation that contradicts the code.">
+    <title>doob &mdash; status</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">do<span class="mark">ob</span></a>
+      <a href="architecture.html">Architecture</a>
+      <a href="cli.html">CLI</a>
+      <a href="crates.html">Crates</a>
+      <a href="status.html" aria-current="page">Status</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+
+    <main id="main" class="page">
+      <header class="page-head">
+        <span class="eyebrow">Status</span>
+        <h1>In daily use, and pre-1.0 in every publishing sense</h1>
+        <p class="lead">Seven months of commits, 732 live todos, four automation hooks running in this workspace &mdash; and one <code>0.1.0</code> tag, zero releases, no changelog, and no crates.io listing. Both halves of that are true at once.</p>
+        <div class="meta-row">
+          <span class="meta">v0.1.0 tagged 2026-02-21</span>
+          <span class="meta">0 GitHub releases</span>
+          <span class="meta">185 commits</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Working today</h2>
+        <p class="section-intro">Verified by running them against a live 732-todo database, not by reading the code and hoping.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Capability</th><th scope="col">Evidence</th></tr></thead>
+            <tbody>
+              <tr><td>Todo CRUD, batch add, undo, due dates, update</td><td>All produce <code>✓</code>-prefixed output; exercised continuously</td></tr>
+              <tr><td>Todo dependencies</td><td><code>--blocks</code>, <code>--blocked-by</code>, and <code>todo deps</code> render a real graph</td></tr>
+              <tr><td>Notes</td><td>Two live notes in the current database</td></tr>
+              <tr><td><code>kan</code>, <code>watch</code>, <code>search</code>, <code>stats</code></td><td>All produced real output</td></tr>
+              <tr><td>Archive</td><td>168 candidates in a dry run; 288 archived rows listed</td></tr>
+              <tr><td>Handoff sync</td><td>Bidirectional, with real <code>doob_uuid</code>s backfilled and database-wins-on-conflict in the code</td></tr>
+              <tr><td>GitHub issue sync</td><td>111 issues previewed across real repositories</td></tr>
+              <tr><td><code>doobdash</code></td><td>Full five-tab app with working keybindings</td></tr>
+              <tr><td>JSON and exit codes</td><td><code>--json</code> on all read paths; the 0&ndash;6 exit code enum</td></tr>
+              <tr><td>Shell status cache</td><td><code>~/.cache/doob/status.json</code>, written best-effort so a cache failure can never fail a command</td></tr>
+              <tr><td>CI</td><td>fmt, clippy, nextest, audit, deny, and machete, plus a nightly unsafe audit</td></tr>
+              <tr><td>Tests</td><td>About 188 test functions across 42 files, roughly 184 actually compiled</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">
+          <p>Four hooks are wired into this workspace's global agent configuration against this CLI: a GitHub sync after <code>doob todo add|complete|remove</code>, a commit-message autocomplete, a reminder to close a todo by uuid, and a database backup before any remove.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Planned, not shipped</h2>
+        <p class="section-intro">Roughly a third of the documented surface. Each has a plan or a design document; none has an implementation.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Feature</th><th scope="col">State</th></tr></thead>
+            <tbody>
+              <tr><td>Any <code>doob sync …</code> command for the provider framework</td><td><span class="status status-err">absent</span> the CLI has no <code>sync</code> subcommand. The README lists it as a future phase and <code>docs/sync/</code> documents it as if it exists.</td></tr>
+              <tr><td>GitHub, Jira, and Linear providers through <code>doob-sync</code></td><td><span class="status status-err">absent</span> only <code>doob-gh</code> exists, and it does not implement the traits</td></tr>
+              <tr><td><code>doob todo add --due</code></td><td><span class="status status-warn">not implemented</span> the add action has no <code>due</code> field; the plan and design exist</td></tr>
+              <tr><td><code>doob todo add --json</code></td><td><span class="status status-warn">not implemented</span> the handler never reads the flag</td></tr>
+              <tr><td>SQLite as a real backend</td><td><span class="status status-warn">partial and unsafe</span> see below</td></tr>
+              <tr><td>Multi-repo dashboard</td><td><span class="status status-err">not implemented</span> a 2,191-line plan and an approved spec; no registry or <code>toml</code> dependency exists in the crate</td></tr>
+              <tr><td>Dashboard DB tab correctness</td><td><span class="status status-err">not implemented</span> queries a different namespace and expects different field names than the adapter writes</td></tr>
+              <tr><td><code>tracers-task</code> registry backend</td><td><span class="status status-err">not implemented</span> a plan exists; the string <code>tracers</code> appears nowhere in the crates</td></tr>
+              <tr><td>Any GitHub Release or crates.io publish</td><td><span class="status status-err">never done</span> the release workflow builds artifacts and creates a release; it has produced neither, and the crate is not on crates.io</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>The SQLite backend, specifically</h2>
+        <p class="section-intro">It is the one place where a partial implementation is more dangerous than no implementation, so it gets its own section.</p>
+        <div class="card">
+          <h3>The tuple-order bug</h3>
+          <p><code>TodoRepositoryImpl::create_todos</code> reads tuple fields as <code>(content, uuid, …)</code>. The command layer and the SurrealDB adapter both pass <code>(uuid, content, …)</code>. Until that is reconciled, the SQLite-backed <code>doob todo add</code> path writes content into the uuid column. The crate's own README calls it <strong>unsafe for real data</strong>.</p>
+        </div>
+        <div class="card">
+          <h3>What is missing</h3>
+          <p>Archive persistence, raw query execution, and the raw HANDOFF sync operations are all unimplemented. The command layer falls back to the todo repository as a placeholder for archive, and says so in a comment.</p>
+        </div>
+        <div class="card">
+          <h3>What is missing in CI</h3>
+          <p>CI runs the default feature set. A SQLite-specific job would be the thing that catches the tuple-order regression, and there isn't one.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Known defects worth knowing</h2>
+        <ul>
+          <li><strong>Dashboard mutations fail silently.</strong> Both subprocess call sites discard the result, so a failed status change produces no error in the TUI.</li>
+          <li><strong><code>search --type</code> accepts anything.</strong> Only <code>todo</code> and <code>note</code> are meaningful; any other value silently behaves as <code>all</code>.</li>
+          <li><strong>Schema is incomplete.</strong> The manifest lists 15 commands against 29 real ones. <code>kan</code>, <code>watch</code>, <code>tui</code>, <code>todo update</code>, <code>todo gh-sync</code>, <code>handoff add-extra</code>, <code>handoff update-status</code>, <code>archive run</code>, and <code>schema</code> itself are all absent, and several positional arguments are described as flags.</li>
+          <li><strong>The adapter still uses <code>.bind</code>.</strong> Several todo and archive paths do, which means they are exposed to the parameterised-query bug the rest of the code works around. The adapter README flags this explicitly.</li>
+          <li><strong>The repository ships one licence file.</strong> All eight manifests declare MIT OR Apache-2.0; only the MIT text is present.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Documentation that contradicts the code</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Document</th><th scope="col">Where it is wrong</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Root <code>README.md</code></td>
+                <td><code>cargo install --path .</code> cannot work &mdash; the root is a virtual manifest. The database path is given as <code>~/.claude/data/doob.db</code>; it is <code>~/.ctx/doob/db/</code>. The JSON example shows a flat <code>"todo:abc123"</code> id where the real output nests a <code>Thing</code>. It lists four planned sync adapters and a <code>sync</code> command that do not exist.</td>
+              </tr>
+              <tr>
+                <td><code>docs/sync/</code></td>
+                <td>Documents <code>doob sync config</code>, <code>doob sync to</code>, and <code>doob sync status</code>. There is no <code>sync</code> subcommand. Also documents <code>bd list</code> and <code>bd close</code> as doob operations; those are Beads CLI commands.</td>
+              </tr>
+              <tr>
+                <td><code>AGENTS.md</code> and <code>.coderabbit.yaml</code></td>
+                <td>Both say edition 2024. All eight manifests say 2021.</td>
+              </tr>
+              <tr>
+                <td><code>AGENTS.md</code> and <code>CLAUDE.md</code></td>
+                <td>Both claim <code>ci.sh</code> runs <code>cargo deny check</code>. It runs <code>cargo audit</code>; <code>cargo deny</code> is in the GitHub workflow only. Both also claim there is no justfile, and a tracked <code>Justfile</code> exists.</td>
+              </tr>
+              <tr>
+                <td><code>AGENTS.md</code> environment section</td>
+                <td>Instructs exporting <code>GITHUB_TOKEN</code>. The <code>doob-gh</code> crate never reads it &mdash; authentication is delegated entirely to <code>gh</code>.</td>
+              </tr>
+              <tr>
+                <td><code>.ctx/HANDOFF.md</code> and <code>.ctx/HANDOVER.md</code></td>
+                <td>Near-duplicates, both headed <code>Build: unknown | Tests: unknown</code>, both carrying a machine-inserted warning that an automated sweep could not verify the repo's handoff status.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The per-crate READMEs and <code>CLAUDE.md</code> are the accurate sources. Read those instead of the root README.</p>
+      </section>
+
+      <section>
+        <h2>Recorded state, with caveats</h2>
+        <ul>
+          <li>The handoff item titled <em>sqlite adapter</em> carries <code>status: done</code> while its own description describes unimplemented work. Its <code>doob_uuid</code> was never backfilled.</li>
+          <li><code>HANDOFF.state.yaml</code> points at a branch this repository is not on and was last checked in April.</li>
+          <li>The last recorded test run in the handoff state is 171 passed, dated May 11. A current count needs a fresh run.</li>
+        </ul>
+      </section>
+
+      <p><a href="faq.html">Common questions</a> &middot; <a href="cli.html">Back to the command line</a></p>
+    </main>
+
+    <footer class="site-foot">
+      <a href="https://github.com/89jobrien/doob">Source on GitHub</a> &middot; MIT OR Apache-2.0 &middot; built by <a href="https://github.com/89jobrien">Joseph O'Brien</a>
+    </footer>
+  </body>
+</html>

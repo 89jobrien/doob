@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The doob command line: eleven top-level subcommands, JSON output on every read path, typed exit codes, and captured output from a live database.">
+    <title>doob &mdash; CLI</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">do<span class="mark">ob</span></a>
+      <a href="architecture.html">Architecture</a>
+      <a href="cli.html" aria-current="page">CLI</a>
+      <a href="crates.html">Crates</a>
+      <a href="status.html">Status</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+
+    <main id="main" class="page">
+      <header class="page-head">
+        <span class="eyebrow">Command line</span>
+        <h1>Eleven commands, and a global <code>--json</code></h1>
+        <p class="lead">The self-description is <em>Modern todo management for coding agents</em>. Output blocks below are captured from the installed binary against a live database unless the caption says otherwise.</p>
+        <div class="meta-row">
+          <span class="meta">cargo install --path crates/doob</span>
+          <span class="meta">exit 0&ndash;6</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Surface</h2>
+        <div class="terminal">
+          <div class="terminal-bar"><span class="label">doob --help</span></div>
+<pre>Modern todo management for coding agents
+
+Usage: doob [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  todo     Manage todos
+  note     Manage notes
+  kan      Visual kanban board of todos
+  search   Full-text search across todos and notes
+  stats    Analytics and statistics
+  archive  Archive completed/cancelled todos
+  handoff  Manage handoff items (bidirectional sync
+           with HANDOFF.yaml)
+  tui      Launch the doobdash TUI dashboard
+  watch    Live-updating kanban board
+  schema   Print machine-readable JSON manifest
+  help     Print this message
+
+Options:
+      --json     Output in JSON format
+      --db &lt;DB&gt;  Database path
+  -h, --help     Print help</pre>
+        </div>
+        <div class="note note-warn">
+          <p>There is no <code>--version</code>. Running it returns <code>error: unexpected argument '--version' found</code> &mdash; the <code>Cli</code> struct has no version attribute. The version is discoverable through <code>doob schema</code> instead, where it reads <code>0.1.0</code>.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Read paths take JSON</h2>
+        <p class="section-intro"><code>--json</code> is a global flag, so it goes before the subcommand. The agent guide calls the JSON shape a compatibility surface &mdash; treat a change to it as a breaking change.</p>
+        <div class="terminal">
+          <div class="terminal-bar"><span class="label">doob --json todo list</span></div>
+<pre><span class="prompt">$</span> doob --json todo list
+{
+  <span class="cmt">"count"</span>: 732,
+  <span class="cmt">"todos"</span>: [
+    {
+      <span class="cmt">"id"</span>: { <span class="cmt">"tb"</span>: <span class="ok">"todo"</span>, <span class="cmt">"id"</span>: { <span class="cmt">"String"</span>: <span class="ok">"gmvyfntvro7mjvrieqn7"</span> } },
+      <span class="cmt">"uuid"</span>: <span class="ok">"e4a05507-1422-46d4-ae94-f556ed56558b"</span>,
+      <span class="cmt">"content"</span>: <span class="ok">"Run Envelope Contract Quality Gates"</span>,
+      <span class="cmt">"status"</span>: <span class="ok">"pending"</span>,
+      <span class="cmt">"priority"</span>: 3,
+      <span class="cmt">"created_at"</span>: <span class="ok">"2026-09-28T11:22:28.371169Z"</span>,
+      <span class="cmt">"updated_at"</span>: <span class="ok">"2026-09-28T11:22:28.371181Z"</span>,
+      <span class="cmt">"completed_at"</span>: null,
+      <span class="cmt">"due_date"</span>: null,
+      <span class="cmt">"project"</span>: <span class="ok">"crux"</span>,
+      <span class="cmt">"project_path"</span>: null,
+      <span class="cmt">"file_path"</span>: null,
+      <span class="cmt">"tags"</span>: [<span class="ok">"handoff"</span>, <span class="ok">"crux"</span>],
+      <span class="cmt">"metadata"</span>: null,
+      <span class="cmt">"blocks"</span>: [],
+      <span class="cmt">"blocked_by"</span>: []
+    }
+  ]
+}</pre>
+        </div>
+        <div class="note">
+          <p>The <code>id</code> field is a nested SurrealDB <code>Thing</code> &mdash; <code>id.tb</code> and <code>id.id.String</code> &mdash; not the flat <code>"todo:abc123"</code> the root README shows. The manifest is the real shape.</p>
+        </div>
+
+        <h3>Human form</h3>
+        <div class="terminal">
+          <div class="terminal-bar"><span class="label">doob todo list</span></div>
+<pre><span class="prompt">$</span> doob todo list
+1. [pending] Run Envelope Contract Quality Gates (priority: 3)
+   Project: crux
+   Tags: handoff, crux
+2. [pending] Compile Before Cli Execution (priority: 3)
+   Project: crux
+   Tags: handoff, crux
+...</pre>
+        </div>
+        <p>An empty result prints the literal string <code>No todos found</code>.</p>
+      </section>
+
+      <section>
+        <h2>Statistics</h2>
+        <div class="terminal">
+          <div class="terminal-bar"><span class="label">doob stats</span></div>
+<pre><span class="prompt">$</span> doob stats
+Total todos:       732
+  pending:         559
+  in_progress:       3
+  completed:       170
+  cancelled:         0
+
+Completion rate:   23.2%
+Avg time to complete: 37d 2h
+Overdue:             0
+
+Last 7 days:
+  Created:           6
+  Completed:         2</pre>
+        </div>
+      </section>
+
+      <section>
+        <h2>The board</h2>
+        <p class="section-intro">Fixed-width, 24-character cells in a 70-character board, with box-drawing dividers. Blocked items get a <code>[BLK]</code> prefix and a tighter truncation.</p>
+        <div class="terminal">
+          <div class="terminal-bar"><span class="label">doob kan --project crux</span></div>
+<pre><span class="prompt">$</span> doob kan --project crux
+== project: crux ================================
+
+  [ Pending (13) ]          [ Completed (21) ]
+  ────────────────────────  ────────────────────────
+  mixfm1  Minibox agent...  blllyx  cruxai-model:...
+  nnu57h  Document hand...  nzwfkf  cruxai-model:...
+  vf9ndx  Propagate con...  jqosrg  cruxai-model:...
+  gh6uo8  [BLK] delegate:... 99s3pg  cruxai-model:...
+  ...</pre>
+        </div>
+        <p><code>doob watch</code> is the same board, live-updating. <code>doob tui</code> launches <code>doobdash</code> as a subprocess.</p>
+      </section>
+
+      <section>
+        <h2>GitHub sync</h2>
+        <p class="section-intro">Dry run is the default, and it says so. Colours carry the action: green plus for create, yellow minus for close, dimmed tilde for tombstone.</p>
+        <div class="terminal">
+          <div class="terminal-bar"><span class="label">doob todo gh-sync</span></div>
+<pre><span class="prompt">$</span> doob todo gh-sync
+<span class="cmt">Dry run — 111 issue(s) would be affected</span>
+
+  <span class="ok">89jobrien/braid</span> (1)
+    <span class="ok">+</span> Implement: harness-architecture — braid-review,
+      braid-worktree, Harness...
+
+  <span class="ok">89jobrien/devloop</span> (11)
+    <span class="ok">+</span> Create docs/gkg_api_contract.md: document
+      POST /api/search endpoint, au...
+    <span class="ok">+</span> dep-isolation: fix circular-dependency
+      terminology to architectural-lay...
+    ...
+
+  <span class="ok">89jobrien/doob</span> (7)
+    <span class="ok">+</span> Verify notes are tracked — DB shows 0 notes,
+      check if note workflow is ...
+    <span class="ok">+</span> Uncommitted Work
+    <span class="ok">+</span> Sqlite adapter
+    ...
+
+<span class="cmt">Run with --execute to apply.</span></pre>
+        </div>
+        <p>Long titles truncate at 72 characters with an ellipsis. The mapping strips a leading <code>dev/</code> from the project name, then checks the allowlist; an absent allowlist allows everything.</p>
+      </section>
+
+      <section>
+        <h2>Archiving</h2>
+        <div class="terminal">
+          <div class="terminal-bar"><span class="label">doob archive run</span></div>
+<pre><span class="prompt">$</span> doob archive run
+<span class="cmt">Would archive 168 todo(s) (dry run — use --apply to execute):</span>
+
+  [3448a3a2] Execute skills refactor implementation plan
+       project: joe
+  [98f716f5] P1: Remove dead code — OllamaAdapter::list_models,
+       load_cruxfile_file, ...
+       project: crux
+  [7186115f] P0: Break up crux-agentic/bin/crux.rs — 996-line
+       module. Split ...
+       project: crux
+  ...</pre>
+        </div>
+        <p><code>doob archive list</code> currently reports 288 archived rows. The SQLite adapter has no archive persistence, so this path is SurrealDB only &mdash; the CLI falls back to the todo repository as a placeholder and says so in a comment.</p>
+      </section>
+
+      <section>
+        <h2>Handoff</h2>
+        <div class="terminal">
+          <div class="terminal-bar"><span class="label">doob handoff list</span></div>
+<pre><span class="prompt">$</span> doob handoff list
+[cli18] Define the init scaffold and the fmt canonical form
+  (8f0ed0c9-0c3c-41a6-8b18-8509be53ce47)
+  project: rulery  priority: P2  status: blocked
+  + [2026-09-27] blocker: init and fmt are the only two commands
+    the specification does not determine. ...
+[fix-policy-overlay-zero] Preserve inherited subagent limits
+  when overlays omit them (5e55d0a5-...)
+  project: godmode  priority: P1  status: done
+[gh-507] feat(oci): stabilize push, commit, and build
+  (b0015aa9-...)
+  project: minibox  priority: P2  status: open
+  + [2026-09-21] blocker: Dockerfile.minibox-build cleanup
+    remains unresolved; ...</pre>
+        </div>
+        <p><code>doob handoff sync</code> rewrites the YAML file. The summary it prints reports what was created, updated, and pulled.</p>
+        <div class="note note-warn">
+          <p>Call <code>doob handoff update-status &lt;id&gt; &lt;status&gt;</code> <em>before</em> editing status by hand. On a conflict the database wins and is written back into the file, so a manual status edit that skips this step is reverted on the next sync.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Mutations</h2>
+        <p class="section-intro">Not executed here, since they would change state. The output strings are quoted from the source.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Command</th><th scope="col">Output</th></tr></thead>
+            <tbody>
+              <tr><td><code>doob todo add "X"</code></td><td><code>✓ Created todo: X</code></td></tr>
+              <tr><td><code>doob todo complete &lt;ids…&gt;</code></td><td><code>✓ Completed N todo(s)</code></td></tr>
+              <tr><td><code>doob todo undo &lt;ids…&gt;</code></td><td><code>✓ Undid completion for N todo(s)</code></td></tr>
+              <tr><td><code>doob todo remove &lt;ids…&gt;</code></td><td><code>✓ Removed N todo(s)</code></td></tr>
+              <tr><td><code>doob todo due &lt;id&gt; 2026-10-01</code></td><td><code>✓ Set due date for todo &lt;id&gt;: 2026-10-01</code></td></tr>
+              <tr><td><code>doob todo due &lt;id&gt; clear</code></td><td><code>✓ Cleared due date for todo: &lt;id&gt;</code></td></tr>
+              <tr><td><code>doob todo update &lt;id&gt; …</code></td><td><code>✓ Updated todo: X</code></td></tr>
+              <tr><td><code>doob note add "X"</code></td><td><code>✓ Created note: X</code></td></tr>
+              <tr><td><code>doob note remove &lt;ids…&gt;</code></td><td><code>✓ Removed N note(s)</code></td></tr>
+              <tr><td><code>doob handoff update-status &lt;id&gt; &lt;status&gt;</code></td><td><code>✓ Updated &lt;id&gt; status to &lt;status&gt;</code></td></tr>
+              <tr><td><code>doob handoff add-extra &lt;id&gt; …</code></td><td><code>✓ Added extra to &lt;id&gt;</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>There is no undo for a remove, which is why a backup hook runs before it in this workspace's agent configuration.</p>
+      </section>
+
+      <section>
+        <h2>Commands that do not exist</h2>
+        <p class="section-intro">The root README and <code>docs/sync/</code> document a provider sync framework as if it were reachable from the CLI. It is not. There is no <code>sync</code> subcommand at all.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Documented</th><th scope="col">Reality</th></tr></thead>
+            <tbody>
+              <tr><td><code>doob sync config beads --enable</code></td><td><span class="status status-err">no such subcommand</span></td></tr>
+              <tr><td><code>doob sync to --provider beads</code></td><td><span class="status status-err">no such subcommand</span></td></tr>
+              <tr><td><code>doob sync status</code>, <code>doob sync providers</code></td><td><span class="status status-err">no such subcommand</span></td></tr>
+              <tr><td><code>doob todo add --due</code></td><td><span class="status status-warn">not implemented</span> a plan and a design exist in <code>docs/</code></td></tr>
+              <tr><td><code>bd list</code>, <code>bd close</code></td><td><span class="status status-off">a third-party CLI</span> the Beads tool, not a doob command</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The per-crate READMEs are the reliable source. The root <code>README.md</code> has drifted on the install command, the database path, and the JSON id shape as well.</p>
+      </section>
+
+      <p><a href="crates.html">What each crate owns</a> &middot; <a href="status.html">What works today</a></p>
+    </main>
+
+    <footer class="site-foot">
+      <a href="https://github.com/89jobrien/doob">Source on GitHub</a> &middot; MIT OR Apache-2.0 &middot; built by <a href="https://github.com/89jobrien">Joseph O'Brien</a>
+    </footer>
+  </body>
+</html>
