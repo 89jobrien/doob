@@ -1,5 +1,8 @@
 # doob
 
+> **Website** &mdash; <https://89jobrien.github.io/doob/> &middot; source for the site is in [`assets/`](assets/)
+> (landing, architecture, CLI reference, crate inventory, status, and FAQ)
+
 Modern, agent-first todo CLI built with Rust and SurrealDB.
 
 ## Features

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Questions about doob: where the database lives, why the database wins a handoff conflict, which status vocabulary applies, and whether the SQLite backend is safe.">
+    <title>doob &mdash; FAQ</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">do<span class="mark">ob</span></a>
+      <a href="architecture.html">Architecture</a>
+      <a href="cli.html">CLI</a>
+      <a href="crates.html">Crates</a>
+      <a href="status.html">Status</a>
+      <a href="faq.html" aria-current="page">FAQ</a>
+    </nav>
+
+    <main id="main" class="page">
+      <header class="page-head">
+        <span class="eyebrow">Questions</span>
+        <h1>The ones that actually come up</h1>
+        <p class="lead">Answered from the source, the per-crate READMEs, and captured runs.</p>
+      </header>
+
+      <div class="faq">
+
+        <details class="faq-item">
+          <summary>Where does the data live?</summary>
+          <div class="faq-body">
+            <p>SurrealDB 2 embedded with the SurrealKV engine, at <code>~/.ctx/doob/db/</code> &mdash; a <strong>directory</strong>, not a file. Namespace and database are both <code>doob</code>. Override the location with the global <code>--db</code> flag.</p>
+            <p>The root README says <code>~/.claude/data/doob.db</code>. That is wrong.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>I edited the status in <code>HANDOFF.yaml</code> and it reverted. Why?</summary>
+          <div class="faq-body">
+            <p>Because the database wins on conflict. That rule is one line in the sync implementation &mdash; <code>// doob wins on status conflict</code> &mdash; and if the stored status differs from the file, the stored value is written back into the YAML.</p>
+            <p>So run <code>doob handoff update-status &lt;id&gt; &lt;status&gt;</code> first, then edit the file for anything else. Sync also <strong>rewrites the whole document</strong>, so keep anything you add in a shape it round-trips.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Which status values apply where?</summary>
+          <div class="faq-body">
+            <p>Two vocabularies, and they are not interchangeable.</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th scope="col">Applies to</th><th scope="col">Values</th></tr></thead>
+                <tbody>
+                  <tr><td>Todos, in the database and the CLI</td><td><code>pending</code> &middot; <code>in_progress</code> &middot; <code>completed</code> &middot; <code>cancelled</code></td></tr>
+                  <tr><td>Handoff items, in the YAML and the TUI</td><td><code>open</code> &middot; <code>done</code> &middot; <code>parked</code> &middot; <code>blocked</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>A third <code>TodoStatus</code> exists in <code>doob-sync</code> with two variants that serialise as <code>"Pending"</code> and <code>"InProgress"</code>. It is part of the provider framework and is not reachable from the CLI.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Is the SQLite backend safe to use?</summary>
+          <div class="faq-body">
+            <p>Not for <code>doob todo add</code>, and the crate README says so. The adapter reads tuple fields as <code>(content, uuid, …)</code> while the command layer passes <code>(uuid, content, …)</code>, so content lands in the uuid column.</p>
+            <p>Archive persistence, raw query execution, and the raw HANDOFF sync operations are also unimplemented, and the command layer falls back to the todo repository as a placeholder for archive. SurrealDB is the supported backend; SQLite is opt-in and partial.</p>
+            <p>If you must use it, build with <code>--no-default-features --features sqlite</code>, and follow the adapter's current field order rather than the command layer's.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Why is the query code full of string interpolation?</summary>
+          <div class="faq-body">
+            <p>Because parameterised queries silently do nothing in SurrealDB 2.x &mdash; tracked upstream as issue 6271. <code>doob-core</code> therefore enforces strict allowlists in a query guard before any user-supplied value reaches a query string. That is a safety control compensating for an upstream bug, not a preference.</p>
+            <p>The caveat: several todo and archive paths still use <code>.bind(...)</code>, so they remain exposed to the bug. The adapter README flags this and asks for real SurrealKV verification rather than compile-only confidence on any change to those paths.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How do I read this for a script?</summary>
+          <div class="faq-body">
+            <p>Put the global flag first: <code>doob --json todo list</code>, not <code>doob todo list --json</code>. Every read path supports it.</p>
+            <p>Branch on the exit code rather than parsing text. It is a real enum: 0 success, 1 not found, 2 invalid input, 3 database, 4 context, 5 io, 6 parse.</p>
+            <p>Expect the id to be a nested object, not a string &mdash; <code>{"tb": "todo", "id": {"String": "..."}}</code>. The root README shows a flat <code>"todo:abc123"</code>, which is not what the binary prints.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Does <code>doob schema</code> give me the full command surface?</summary>
+          <div class="faq-body">
+            <p>No. It emits 15 commands; the real CLI has 29. Absent from the manifest: <code>kan</code>, <code>watch</code>, <code>tui</code>, <code>todo update</code>, <code>todo gh-sync</code>, <code>handoff add-extra</code>, <code>handoff update-status</code>, <code>archive run</code>, and <code>schema</code> itself. Several positional arguments are described as flags.</p>
+            <p>It is the only place the version is discoverable, since there is no <code>--version</code> flag. Treat it as provisional and read the crate's CLI source for the real surface.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Is there a Linear or Jira integration?</summary>
+          <div class="faq-body">
+            <p>No. <code>doob-sync</code> defines the provider-neutral traits and a <code>SyncService</code>, and <code>doob-sync</code>'s README is explicit: the framework is not wired to any <code>doob</code> CLI command, and there are no active GitHub, Linear, Jira, or bidirectional providers.</p>
+            <p>GitHub support does exist &mdash; in <code>doob-gh</code>, which is a <em>separate</em> implementation that does not implement those traits. It shells out to the <code>gh</code> CLI and is push-only: it never reads issue state back, and never updates an existing issue's title or body.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What does removing a todo do to its GitHub issue?</summary>
+          <div class="faq-body">
+            <p>It adds a tombstone comment and leaves the issue open. The comment reads <em>"This todo was removed from doob without being completed."</em></p>
+            <p>Completing a todo closes the issue instead. Both behaviours are configurable and both default to true. There is no undo for a remove, which is why this workspace runs a database backup before one.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Does the dashboard depend on doob?</summary>
+          <div class="faq-body">
+            <p>No. <code>doobdash</code> is a binary-only crate with a dependency on nothing in the workspace. It reads the YAML directly and shells out to the installed <code>doob</code> for its two mutations: <code>doob handoff update-status ID STATUS</code> and <code>doob handoff add-extra ID --type note --note TEXT</code>.</p>
+            <p>Both call sites discard the result, so a failed mutation is not surfaced in the TUI. The DB tab is also unreliable: it queries a namespace and field names the primary adapter does not use.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How do I install it?</summary>
+          <div class="faq-body">
+            <p>From the crate, not the workspace root:</p>
+<pre>cargo install --path crates/doob
+cargo install --path crates/doobdash</pre>
+            <p>For the SQLite build, add <code>--no-default-features --features sqlite</code>. The release is by default; a <code>--release</code> flag is rejected.</p>
+            <p>It is not on crates.io, and the repository has no GitHub releases, so there is nothing to <code>brew install</code> or download. A single <code>v0.1.0</code> tag exists from February 2026.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Which document should I trust?</summary>
+          <div class="faq-body">
+            <p>The per-crate READMEs and <code>CLAUDE.md</code>. The root <code>README.md</code> has drifted on the install command, the database path, the JSON id shape, and an entire sync surface that does not exist. <code>docs/sync/</code> documents commands that were never built.</p>
+            <p>The per-crate READMEs are the strongest thing in the repository: each opens with a Status section that names its own limitations, including the SQLite safety warning.</p>
+            <p>See the <a href="status.html">status page</a> for the full drift list.</p>
+          </div>
+        </details>
+
+      </div>
+
+      <p style="margin-top: 2.5rem"><a href="index.html">Back to the overview</a> &middot; <a href="architecture.html">Architecture</a></p>
+    </main>
+
+    <footer class="site-foot">
+      <a href="https://github.com/89jobrien/doob">Source on GitHub</a> &middot; MIT OR Apache-2.0 &middot; built by <a href="https://github.com/89jobrien">Joseph O'Brien</a>
+    </footer>
+  </body>
+</html>

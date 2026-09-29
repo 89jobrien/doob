@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The eight crates in the doob workspace, what each owns, and the status each one declares for itself.">
+    <title>doob &mdash; crates</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">do<span class="mark">ob</span></a>
+      <a href="architecture.html">Architecture</a>
+      <a href="cli.html">CLI</a>
+      <a href="crates.html" aria-current="page">Crates</a>
+      <a href="status.html">Status</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+
+    <main id="main" class="page">
+      <header class="page-head">
+        <span class="eyebrow">Inventory</span>
+        <h1>Eight crates, each honest about itself</h1>
+        <p class="lead">None of the eight manifests carries a <code>description</code> field, so the descriptions below come from each crate's own README. Several of those READMEs open with a Status section, which makes them the best maturity signal in the repository.</p>
+        <div class="meta-row">
+          <span class="meta">0.1.0 in every manifest</span>
+          <span class="meta">MIT OR Apache-2.0</span>
+          <span class="meta">edition 2021</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Composition root</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Crate</th><th scope="col">Owns</th><th scope="col">Declared status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>doob</code></td>
+                <td>The primary library and command-line application. Combines the domain ports from <code>doob-core</code>, a selected storage adapter, HANDOFF YAML sync, GitHub issue sync, rendering, and command dispatch. Library plus binary.</td>
+                <td>
+                  <span class="pill pill-shipped">Active</span> SurrealDB-backed CLI, todo and note commands, kanban, search, stats, handoff sync, GitHub sync, archive.
+                  <br><span class="pill pill-wip">Partial</span> SQLite covers todo, note, handoff status, and handoff session persistence, but several CLI paths are incompatible.
+                  <br><span class="pill pill-experimental">Experimental</span> the Beads adapter is a library API with no CLI command, and <code>schema</code> is a partial manifest.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Domain and storage</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Crate</th><th scope="col">Owns</th><th scope="col">Declared status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>doob-core</code></td>
+                <td>Backend-independent models, repository ports, context helpers, query validation, record-id helpers, exit-code classification, and the shell status cache. No workspace dependencies.</td>
+                <td><span class="pill pill-shipped">Active</span></td>
+              </tr>
+              <tr>
+                <td><code>doob-surrealdb</code></td>
+                <td>The default persistence adapter. Embeds SurrealDB 2 with the SurrealKV engine and implements the todo, note, HANDOFF item, and archive repository ports.</td>
+                <td>
+                  <span class="pill pill-shipped">Active</span>
+                  <br><span class="pill pill-experimental">Test coverage</span> the crate has no direct unit or integration test files of its own; its behaviour is exercised by the <code>doob</code> integration suite.
+                </td>
+              </tr>
+              <tr>
+                <td><code>doob-sqlite</code></td>
+                <td>An optional SQLite adapter using <code>rusqlite</code> with a bundled library, storing structured collections as JSON text. Opts out of <code>doob-core</code>'s default features.</td>
+                <td>
+                  <span class="pill pill-partial">Partial and experimental</span> Todo, note, handoff item, session log, session state, and checkpoint operations are implemented. Archive persistence, raw query execution, and the raw HANDOFF sync operations are not.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note note-warn">
+          <p>The SQLite crate's README contains the most important sentence in the repository for anyone about to use it: <code>create_todos</code> interprets tuple fields as <code>(content, uuid, …)</code> while the command layer and the SurrealDB adapter pass <code>(uuid, content, …)</code>. Until that is reconciled, the README's guidance is that the SQLite-backed <code>doob todo add</code> path <strong>should be considered unsafe for real data</strong>. Direct library callers should follow the adapter's current order.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Sync</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Crate</th><th scope="col">Owns</th><th scope="col">Declared status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>doob-sync</code></td>
+                <td>The provider-neutral domain for pushing todos to external issue trackers: serializable sync types, capability-oriented provider traits, and <code>SyncService</code>. No workspace dependencies.</td>
+                <td>
+                  <span class="pill pill-shipped">Domain</span> the types and the Beads integration are implemented and unit-tested.
+                  <br><span class="pill pill-notwired">Not wired</span> the provider framework is not connected to any <code>doob</code> CLI command, and there are no active GitHub, Linear, Jira, or bidirectional providers in this workspace.
+                </td>
+              </tr>
+              <tr>
+                <td><code>doob-beads</code></td>
+                <td>A synchronous adapter from <code>doob-sync</code> to the external Beads <code>bd</code> command-line tool. Depends on <code>doob-sync</code> only.</td>
+                <td>
+                  <span class="pill pill-experimental">Not active in the CLI</span> the main crate re-exports the adapter, but no current command constructs a <code>SyncService</code> with it.
+                </td>
+              </tr>
+              <tr>
+                <td><code>doob-gh</code></td>
+                <td>GitHub issue sync by invoking the authenticated <code>gh</code> CLI. Owns project-to-repository mapping, local sync state, issue body construction, and the create, close, and comment actions.</td>
+                <td>
+                  <span class="pill pill-shipped">Active</span> 111 issues across real repositories on the last dry run.
+                  <br><span class="pill pill-experimental">Separate</span> does not implement the <code>doob-sync</code> provider traits; it has zero references to that crate.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note note-warn">
+          <p>Two sets of Beads tests are gated behind feature names &mdash; <code>bd</code> and <code>integration-tests</code> &mdash; that are <strong>not declared</strong> in the <code>doob</code> crate's manifest. Four test functions are therefore permanently inert in normal workspace builds.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Dashboard</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Crate</th><th scope="col">Owns</th><th scope="col">Declared status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>doobdash</code></td>
+                <td>A standalone Ratatui terminal dashboard for browsing and updating a HANDOFF YAML file. Binary only, no library target, and no dependency on any doob crate.</td>
+                <td>
+                  <span class="pill pill-shipped">Active</span> item, log, statistics, help, search, detail, and navigation views.
+                  <br><span class="pill pill-partial">Partial</span> status and note actions shell out to <code>doob</code>, and failures are currently discarded by the event handlers rather than shown in the TUI.
+                  <br><span class="pill pill-notwired">Experimental</span> the DB tab is implemented but its namespace and field mapping do not match the primary adapter, so it may show no rows or skip valid todos.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Five tabs: Items (a three-column Active, Waiting, Done kanban), Log, Stats, Help, and DB. Path discovery walks up from the working directory for a <code>HANDOFF.*.yaml</code>, excluding <code>HANDOFF.state.yaml</code>.</p>
+      </section>
+
+      <section>
+        <h2>Metadata that is missing or wrong</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Field</th><th scope="col">State</th></tr></thead>
+            <tbody>
+              <tr><td><code>description</code></td><td><span class="status status-err">absent</span> from all eight manifests</td></tr>
+              <tr><td><code>workspace.package.version</code></td><td><span class="status status-err">absent</span> the root is a virtual manifest, so the version is duplicated per crate at 0.1.0</td></tr>
+              <tr><td>MSRV</td><td><span class="status status-err">not declared</span> no <code>rust-version</code> and no toolchain file</td></tr>
+              <tr><td>Edition</td><td><span class="status status-ok">2021</span> in all eight manifests &mdash; but <code>AGENTS.md</code> and the review bot config both say 2024</td></tr>
+              <tr><td>Licence</td><td><span class="status status-wip">inconsistent</span> manifests declare MIT OR Apache-2.0; the repository ships only an MIT <code>LICENSE</code> file</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <p><a href="architecture.html">How the crates fit together</a> &middot; <a href="status.html">What works today</a></p>
+    </main>
+
+    <footer class="site-foot">
+      <a href="https://github.com/89jobrien/doob">Source on GitHub</a> &middot; MIT OR Apache-2.0 &middot; built by <a href="https://github.com/89jobrien">Joseph O'Brien</a>
+    </footer>
+  </body>
+</html>

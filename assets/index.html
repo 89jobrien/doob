@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="doob is a modern, agent-first todo CLI built with Rust and SurrealDB: todos, notes, handoff sync to YAML, GitHub issue sync, and a Ratatui dashboard.">
+    <title>doob &mdash; todo management for coding agents</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand" aria-current="page">do<span class="mark">ob</span></a>
+      <a href="architecture.html">Architecture</a>
+      <a href="cli.html">CLI</a>
+      <a href="crates.html">Crates</a>
+      <a href="status.html">Status</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+
+    <main id="main">
+      <header class="hero">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow reveal reveal-1">Rust 2021 &middot; SurrealDB 2 / SurrealKV &middot; MIT OR Apache-2.0</span>
+            <h1 class="reveal reveal-2">do<span class="mark">ob</span></h1>
+            <p class="tagline reveal reveal-3">A todo manager built for coding agents. Every read path takes <code>--json</code>, mutations announce themselves with a tick, and a handoff file stays in sync with the database in both directions.</p>
+            <div class="actions reveal reveal-4">
+              <a class="button button-primary" href="cli.html">See the commands</a>
+              <a class="button" href="architecture.html">How it is put together</a>
+            </div>
+          </div>
+
+          <div class="terminal reveal reveal-3" aria-label="A real doob run against a live database">
+            <div class="terminal-bar"><span class="label">doob stats</span></div>
+<pre><span class="prompt">$</span> doob stats
+Total todos:       732
+  pending:         559
+  in_progress:       3
+  completed:       170
+  cancelled:         0
+
+Completion rate:   23.2%
+Avg time to complete: 37d 2h
+Overdue:             0</pre>
+          </div>
+        </div>
+      </header>
+
+      <div class="stat-strip" aria-label="Live database snapshot">
+        <div class="stat"><div class="n">8</div><div class="d">workspace crates</div></div>
+        <div class="stat"><div class="n">732</div><div class="d">todos in the database</div></div>
+        <div class="stat"><div class="n">288</div><div class="d">archived</div></div>
+        <div class="stat"><div class="n">111</div><div class="d">issues one sync would touch</div></div>
+      </div>
+
+      <section class="home-section">
+        <span class="eyebrow">What it is for</span>
+        <h2>The database is the source of truth. The YAML is a view of it.</h2>
+        <p class="section-intro">A handoff file lives in the repository so a person can read it without running anything. Sync pulls it into the database, mints a UUID for anything new, writes that UUID back into the file, and merges <code>extra</code> entries in both directions.</p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>On conflict, the database wins</h3>
+            <p>The rule is one line of the sync implementation, and it is the thing to know before editing a handoff file by hand:</p>
+            <blockquote><p><code>// doob wins on status conflict</code></p></blockquote>
+            <p>If the stored status differs from the file, the stored value is written back into the YAML. So call <code>doob handoff update-status</code> <em>before</em> editing status by hand, or the edit is reverted.</p>
+          </div>
+          <div class="card">
+            <h3>The project name comes from the directory</h3>
+            <p>Sync derives the project from the immediate parent folder of the handoff file, not from a <code>project:</code> field in the document. Moving a file moves the records with it.</p>
+            <p>A handoff item's priority is a label &mdash; <code>P0</code>, <code>P1</code>, <code>P2</code> &mdash; not a number, unlike a todo's numeric priority.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="home-section">
+        <span class="eyebrow">The board</span>
+        <h2>Work sits in lanes, and the lanes are the TUI's</h2>
+        <p class="section-intro">The dashboard maps handoff status to three columns. The mapping is source-defined, not a design guess: Active takes <code>open</code>, <code>blocked</code>, and <code>in-progress</code>; Waiting takes <code>parked</code> and <code>waiting</code>; Done takes <code>done</code>.</p>
+
+        <div class="board">
+          <div class="lane lane-active">
+            <h3>Active <span class="count">2</span></h3>
+            <div class="lane-body">
+              <div class="ticket">
+                <span class="ticket-id">gh-507</span>
+                <span class="ticket-title">feat(oci): stabilize push, commit, and build</span>
+                <span class="ticket-meta"><span class="pri pri-p2">P2</span> <span>minibox</span> <span>open</span></span>
+              </div>
+              <div class="ticket">
+                <span class="ticket-id">cli18</span>
+                <span class="ticket-title">Define the init scaffold and the fmt canonical form</span>
+                <span class="ticket-meta"><span class="pri pri-p2">P2</span> <span>rulery</span> <span>blocked</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lane lane-waiting">
+            <h3>Waiting <span class="count">0</span></h3>
+            <div class="lane-body">
+              <p class="meta" style="margin: 0">No <code>parked</code> or <code>waiting</code> items in this excerpt of <code>doob handoff list</code>.</p>
+            </div>
+          </div>
+
+          <div class="lane lane-done">
+            <h3>Done <span class="count">1</span></h3>
+            <div class="lane-body">
+              <div class="ticket">
+                <span class="ticket-id">fix-policy-overlay-zero</span>
+                <span class="ticket-title">Preserve inherited subagent limits when overlays omit them</span>
+                <span class="ticket-meta"><span class="pri pri-p1">P1</span> <span>godmode</span> <span>done</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="meta">Items are verbatim from <code>doob handoff list</code>. A blocked item can also carry dated <code>extra</code> entries of type note, blocker, decision, discovery, or escalation &mdash; a blocked branch is not the only way that context is recorded.</p>
+      </section>
+
+      <section class="home-section">
+        <span class="eyebrow">Two vocabularies</span>
+        <h2>Todos and handoff items do not share a status enum</h2>
+        <p class="section-intro">This trips people up, and the crate README says so explicitly. A todo has four statuses; a handoff item has four different ones.</p>
+        <div class="grid-2">
+          <div class="card">
+            <span class="pill pill-neutral">Todo</span>
+            <h3>Stored in the database</h3>
+            <p><code>pending</code> &middot; <code>in_progress</code> &middot; <code>completed</code> &middot; <code>cancelled</code></p>
+            <p>Defaults in the schema are <code>'pending'</code> and priority <code>0</code>. <code>pending</code> is the value the CLI prints and the filter accepts.</p>
+          </div>
+          <div class="card">
+            <span class="pill pill-ok">Handoff</span>
+            <h3>Stored in the YAML and shown by the TUI</h3>
+            <p><code>open</code> &middot; <code>done</code> &middot; <code>parked</code> &middot; <code>blocked</code></p>
+            <p>Quoted from the dashboard's own README: <em>These are HANDOFF statuses, not the <code>pending</code>/<code>in_progress</code> values used by the todo database.</em></p>
+          </div>
+        </div>
+        <div class="note note-warn">
+          <p>There is a third <code>TodoStatus</code> in <code>doob-sync</code> with only two variants, and it serializes as <code>"Pending"</code> and <code>"InProgress"</code> in Rust variant casing rather than the snake case the rest of the workspace uses. It is part of the provider framework, which is not reachable from the CLI.</p>
+        </div>
+      </section>
+
+      <section class="home-section">
+        <span class="eyebrow">For agents</span>
+        <h2>Built to be called, not read</h2>
+        <div class="card-grid">
+          <article class="feature-card">
+            <span class="pill pill-shipped">Shipped</span>
+            <h3>JSON on every read path</h3>
+            <p><code>--json</code> is a global flag, so <code>doob --json todo list</code> works. The agent guide is explicit that JSON output is a compatibility surface: its shape is a promise.</p>
+          </article>
+          <article class="feature-card">
+            <span class="pill pill-shipped">Shipped</span>
+            <h3>Typed exit codes</h3>
+            <p>Zero success, 1 not found, 2 invalid input, 3 database, 4 context, 5 io, 6 parse. A real enum, classified from the rendered error, so a script can branch without parsing text.</p>
+          </article>
+          <article class="feature-card">
+            <span class="pill pill-partial">Partial</span>
+            <h3><code>doob schema</code></h3>
+            <p>It emits a machine-readable manifest of 15 commands. The real CLI has 29, and the manifest describes several positional arguments as flags. Treat it as provisional.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="home-section">
+        <span class="eyebrow">The dashboard</span>
+        <h2><code>doobdash</code> reads the file and shells out to change it</h2>
+        <p class="section-intro">A standalone Ratatui binary with five tabs: Items (a three-column kanban), Log, Stats, Help, and an experimental DB view. It does not depend on any doob crate. It reads the YAML directly and shells out to the installed <code>doob</code> for the two mutations it supports.</p>
+        <div class="note">
+          <p>Its own README is candid about the seams: status and note actions shell out, and <strong>failures are discarded by the event handlers rather than shown in the TUI</strong> &mdash; both call sites discard the result. The DB tab is implemented against a namespace and field mapping that do not match the primary adapter, so it may show no rows.</p>
+        </div>
+      </section>
+
+      <p><a href="cli.html">Every command, with real output</a> &middot; <a href="status.html">What is planned rather than shipped</a></p>
+    </main>
+
+    <footer class="site-foot">
+      <a href="https://github.com/89jobrien/doob">Source on GitHub</a> &middot; MIT OR Apache-2.0 &middot; built by <a href="https://github.com/89jobrien">Joseph O'Brien</a>
+    </footer>
+  </body>
+</html>
