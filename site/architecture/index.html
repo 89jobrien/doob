@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="doob workspace architecture: eight crates, two storage adapters, a provider-neutral sync domain, and a dashboard that depends on none of them.">
     <title>doob &mdash; architecture</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
     <nav class="nav" aria-label="Primary">
-      <a href="index.html" class="brand">do<span class="mark">ob</span></a>
-      <a href="architecture.html" aria-current="page">Architecture</a>
-      <a href="cli.html">CLI</a>
-      <a href="crates.html">Crates</a>
-      <a href="status.html">Status</a>
-      <a href="faq.html">FAQ</a>
+      <a href="../" class="brand">do<span class="mark">ob</span></a>
+      <a href="../architecture/" aria-current="page">Architecture</a>
+      <a href="../cli/">CLI</a>
+      <a href="../crates/">Crates</a>
+      <a href="../status/">Status</a>
+      <a href="../faq/">FAQ</a>
     </nav>
 
     <main id="main" class="page">
@@ -36,10 +36,10 @@
         <figure class="diagram">
           <picture>
             <source srcset="diagrams/architecture.print.svg" media="print">
-            <img src="diagrams/architecture.svg" width="880" height="520" loading="lazy" decoding="async"
+            <img src="../diagrams/architecture.svg" width="880" height="520" loading="lazy" decoding="async"
                  alt="The doob workspace as a dependency graph. The doob crate sits at the top as the composition root and depends on doob-core, doob-surrealdb, doob-gh, doob-sync, and doob-beads. doob-surrealdb, doob-gh, and doob-sqlite each depend on doob-core, which has no workspace dependencies at all. doob-beads depends on doob-sync. doobdash stands outside the graph: it is a binary-only crate that depends on no doob crate, and reaches the database by shelling out to the doob executable.">
           </picture>
-          <figcaption><code>doob-core</code> and <code>doob-sync</code> have no workspace dependencies at all. <code>doob-sqlite</code> opts out of <code>doob-core</code>'s default features, which is how it avoids dragging the SurrealDB backend in. The <code>doobdash</code> arrow is a subprocess call, not a crate edge. Source: <a href="diagrams/architecture.mmd"><code>diagrams/architecture.mmd</code></a>, rendered at build time with a light variant for print.</figcaption>
+          <figcaption><code>doob-core</code> and <code>doob-sync</code> have no workspace dependencies at all. <code>doob-sqlite</code> opts out of <code>doob-core</code>'s default features, which is how it avoids dragging the SurrealDB backend in. The <code>doobdash</code> arrow is a subprocess call, not a crate edge. Source: <a href="../diagrams/architecture.mmd"><code>diagrams/architecture.mmd</code></a>, rendered at build time with a light variant for print.</figcaption>
         </figure>
       </section>
 
@@ -115,7 +115,7 @@
         <p>Because parameterized queries silently do-op, <code>doob-core</code> enforces allowlists before any user value reaches a query string. That is a security control, not a style preference: the crate's own comment frames it as the consequence of the upstream bug rather than a preference for string building.</p>
       </section>
 
-      <p><a href="crates.html">What each crate owns</a> &middot; <a href="status.html">What works today</a></p>
+      <p><a href="../crates/">What each crate owns</a> &middot; <a href="../status/">What works today</a></p>
     </main>
 
     <footer class="site-foot">

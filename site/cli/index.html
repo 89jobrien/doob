@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="The doob command line: eleven top-level subcommands, JSON output on every read path, typed exit codes, and captured output from a live database.">
     <title>doob &mdash; CLI</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
     <nav class="nav" aria-label="Primary">
-      <a href="index.html" class="brand">do<span class="mark">ob</span></a>
-      <a href="architecture.html">Architecture</a>
-      <a href="cli.html" aria-current="page">CLI</a>
-      <a href="crates.html">Crates</a>
-      <a href="status.html">Status</a>
-      <a href="faq.html">FAQ</a>
+      <a href="../" class="brand">do<span class="mark">ob</span></a>
+      <a href="../architecture/">Architecture</a>
+      <a href="../cli/" aria-current="page">CLI</a>
+      <a href="../crates/">Crates</a>
+      <a href="../status/">Status</a>
+      <a href="../faq/">FAQ</a>
     </nav>
 
     <main id="main" class="page">
@@ -66,7 +66,7 @@ Options:
         <h2>Read paths take JSON</h2>
         <p class="section-intro"><code>--json</code> is a global flag, so it goes before the subcommand. The agent guide calls the JSON shape a compatibility surface &mdash; treat a change to it as a breaking change.</p>
         <div class="terminal">
-          <div class="terminal-bar"><span class="label">doob --json todo list</span></div>
+          <div class="terminal-bar"></div>
 <pre><span class="prompt">$</span> doob --json todo list
 {
   <span class="cmt">"count"</span>: 732,
@@ -98,7 +98,7 @@ Options:
 
         <h3>Human form</h3>
         <div class="terminal">
-          <div class="terminal-bar"><span class="label">doob todo list</span></div>
+          <div class="terminal-bar"></div>
 <pre><span class="prompt">$</span> doob todo list
 1. [pending] Run Envelope Contract Quality Gates (priority: 3)
    Project: crux
@@ -114,7 +114,7 @@ Options:
       <section>
         <h2>Statistics</h2>
         <div class="terminal">
-          <div class="terminal-bar"><span class="label">doob stats</span></div>
+          <div class="terminal-bar"></div>
 <pre><span class="prompt">$</span> doob stats
 Total todos:       732
   pending:         559
@@ -136,7 +136,7 @@ Last 7 days:
         <h2>The board</h2>
         <p class="section-intro">Fixed-width, 24-character cells in a 70-character board, with box-drawing dividers. Blocked items get a <code>[BLK]</code> prefix and a tighter truncation.</p>
         <div class="terminal">
-          <div class="terminal-bar"><span class="label">doob kan --project crux</span></div>
+          <div class="terminal-bar"></div>
 <pre><span class="prompt">$</span> doob kan --project crux
 == project: crux ================================
 
@@ -155,7 +155,7 @@ Last 7 days:
         <h2>GitHub sync</h2>
         <p class="section-intro">Dry run is the default, and it says so. Colours carry the action: green plus for create, yellow minus for close, dimmed tilde for tombstone.</p>
         <div class="terminal">
-          <div class="terminal-bar"><span class="label">doob todo gh-sync</span></div>
+          <div class="terminal-bar"></div>
 <pre><span class="prompt">$</span> doob todo gh-sync
 <span class="cmt">Dry run — 111 issue(s) would be affected</span>
 
@@ -185,7 +185,7 @@ Last 7 days:
       <section>
         <h2>Archiving</h2>
         <div class="terminal">
-          <div class="terminal-bar"><span class="label">doob archive run</span></div>
+          <div class="terminal-bar"></div>
 <pre><span class="prompt">$</span> doob archive run
 <span class="cmt">Would archive 168 todo(s) (dry run — use --apply to execute):</span>
 
@@ -205,7 +205,7 @@ Last 7 days:
       <section>
         <h2>Handoff</h2>
         <div class="terminal">
-          <div class="terminal-bar"><span class="label">doob handoff list</span></div>
+          <div class="terminal-bar"></div>
 <pre><span class="prompt">$</span> doob handoff list
 [cli18] Define the init scaffold and the fmt canonical form
   (8f0ed0c9-0c3c-41a6-8b18-8509be53ce47)
@@ -269,7 +269,7 @@ Last 7 days:
         <p>The per-crate READMEs are the reliable source. The root <code>README.md</code> has drifted on the install command, the database path, and the JSON id shape as well.</p>
       </section>
 
-      <p><a href="crates.html">What each crate owns</a> &middot; <a href="status.html">What works today</a></p>
+      <p><a href="../crates/">What each crate owns</a> &middot; <a href="../status/">What works today</a></p>
     </main>
 
     <footer class="site-foot">
